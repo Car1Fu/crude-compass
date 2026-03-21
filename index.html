@@ -1403,13 +1403,13 @@ function scrollToTop(){window.scrollTo({top:0,behavior:'smooth'});}
   }
   function renderFeatureSection(sectionKey, sectionName, items, moreLabel){
     const top=items[0]||null;
-    const side=items.slice(1,5);
+    const side=items.slice(1,6);
     const sideRows=side.map(x=>`<div class="hl-item" data-id="${x.id}"><div class="hl-src">${esc(x.source)}</div><p class="hl-title">${esc(x.title)}</p><div class="hl-meta"><span>${fD(x.ts)} ${fT(x.ts)}</span>${impactSpan(x.impact)}</div></div>`).join("")||`<div class="hl-item"><p class="hl-title" style="color:var(--mn-empty-text)">（暂无）</p></div>`;
     return`<div class="mn-section" id="sec-${sectionKey}"><div class="mn-section-head"><h3>${esc(sectionName)}</h3><div class="mn-section-meta"><button class="mn-btn primary" data-vm data-key="${sectionKey}" style="padding:4px 10px;font-size:11px;border-radius:8px;">${moreLabel}</button></div></div><div class="mn-body mn-body-hl">${fc(top)}<div class="mn-panel">${sideRows}</div></div></div>`;
   }
   renderFeatureSection=function(sectionKey, sectionName, items, moreLabel){
     const top=items[0]||null;
-    const side=items.slice(1,5);
+    const side=items.slice(1,6);
     const sideRows=side.map(x=>`<div class="hl-item" data-id="${x.id}"><div class="hl-src">${esc(x.source)}</div><p class="hl-title">${esc(x.title)}</p><div class="hl-meta"><span>${fD(x.ts)} ${fT(x.ts)}</span>${impactSpan(x.impact)}</div></div>`).join("")||`<div class="hl-item"><p class="hl-title" style="color:var(--mn-empty-text)">锛堟殏鏃狅級</p></div>`;
     return`<div class="mn-section" id="sec-${sectionKey}"><div class="mn-section-head"><h3>${esc(sectionName)}</h3><div class="mn-section-meta"><button class="mn-btn primary" data-vm data-key="${sectionKey}" style="padding:4px 10px;font-size:11px;border-radius:8px;">${moreLabel}</button></div></div><div class="mn-body mn-body-hl">${featureCard(top)}<div class="mn-panel">${sideRows}</div></div></div>`;
   }
