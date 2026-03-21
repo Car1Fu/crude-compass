@@ -827,7 +827,7 @@ function initForecast(){
       animation:false, backgroundColor:'#000',
       tooltip:{trigger:'axis',axisPointer:{type:'cross'},borderColor:'#d4af37',backgroundColor:'rgba(42,42,42,.9)',textStyle:{color:'#d4af37'},
         formatter(p){const d=p[0].data,dt=new Date(d[0]);return`日期:${dt.toISOString().slice(0,10)}<br>开:${d[1]} 收:${d[2]}<br>低:${d[3]} 高:${d[4]}<br>量:${d[5]}`;}},
-      legend:{data:['K线','MA5','MA20'],textStyle:{color:'#d4af37'},right:'5%',top:'2%'},
+      legend:{data:['K线','MA5','MA20'],textStyle:{color:'#d4af37',fontFamily:'"Noto Sans SC","PingFang SC","Microsoft YaHei UI",sans-serif'},right:'5%',top:'2%'},
       grid:{left:'3%',right:'3%',bottom:'5%',top:'15%',containLabel:true},
       xAxis:{type:'time',scale:true,axisLine:{lineStyle:{color:'#444'}},splitLine:{show:false},axisLabel:{color:'#888',formatter(v){const d=new Date(v);return(d.getMonth()+1)+'/'+d.getDate();}}},
       yAxis:{scale:true,axisLine:{lineStyle:{color:'#444'}},splitLine:{lineStyle:{color:'rgba(255,255,255,.06)',type:'dashed'}},axisLabel:{color:'#888'}},
@@ -1257,7 +1257,7 @@ function initForecast(){
         textStyle: { color: '#f6e3b2' }
       },
       legend: {
-        textStyle: { color: '#f6e3b2' }
+        textStyle: { color: '#f6e3b2', fontFamily:'"Noto Sans SC","PingFang SC","Microsoft YaHei UI",sans-serif' }
       },
       xAxis: {
         axisLine: { lineStyle: { color: 'rgba(214,179,106,.25)' } },
