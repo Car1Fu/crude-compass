@@ -164,6 +164,16 @@
   const rpFav=new Set(JSON.parse(localStorage.getItem(LS_FAV)||"[]"));
   const rpRead=new Set(JSON.parse(localStorage.getItem(LS_READ)||"[]"));
   const rpState={q:"",sort:"new",type:"",tags:new Set(),from:"",to:"",onlyUnread:false,showFav:false,selected:new Set(),page:1,pageSize:20};
+  const RP_THEME_KEY="cc_research_theme";
+  const rpViewEl=document.getElementById("view-research");
+  const rpThemeBtn=document.getElementById("rpThemeToggle");
+  function rpApplyTheme(mode){
+    if(!rpViewEl||!rpThemeBtn)return;
+    const isLight=mode==="light";
+    rpViewEl.classList.toggle("rp-light",isLight);
+    rpThemeBtn.textContent=isLight?"黑夜模式":"白昼模式";
+    rpThemeBtn.setAttribute("aria-pressed",isLight?"true":"false");
+  }
   const rpTodayStr=rpToISO(new Date());
   const rpFromEl=document.getElementById("rpFrom"),rpToEl=document.getElementById("rpTo");
   const rpFromDisp=document.getElementById("rpFromDisp"),rpToDisp=document.getElementById("rpToDisp");
@@ -203,6 +213,8 @@
   document.getElementById("rpBulkMerge").onclick=()=>{const reps=[...rpState.selected].map(id=>RP_REPORTS.find(r=>r.id===id)).filter(Boolean);if(!reps.length)return;const res=rpBuildPDF(reps,"今日研报包");if(res)rpDlBlob(res.blob,res.fileName);reps.forEach(r=>rpRead.add(r.id));localStorage.setItem(LS_READ,JSON.stringify([...rpRead]));rpRenderAll(false);};
   document.getElementById("rpBulkClear").onclick=()=>{rpState.selected.clear();rpSyncSel();rpRenderAll(false);};
   document.getElementById("rpGoPage").onclick=()=>{const v=Number(document.getElementById("rpJumpInput").value),tp=rpPageCount(rpFiltered().length);if(!v||v<1||v>tp)return;rpState.page=v;rpRenderAll(false);};
+  rpApplyTheme(localStorage.getItem(RP_THEME_KEY)==="light"?"light":"dark");
+  if(rpThemeBtn)rpThemeBtn.addEventListener("click",()=>{const next=rpViewEl&&rpViewEl.classList.contains("rp-light")?"dark":"light";localStorage.setItem(RP_THEME_KEY,next);rpApplyTheme(next);});
   window.rpRenderAllGlobal = rpRenderAll;
 })();
 

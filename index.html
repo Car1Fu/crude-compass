@@ -275,16 +275,12 @@
       <div class="rp-controls">
         <select id="rpSort" class="rp-select"><option value="new">最新发布</option><option value="hot">热度最高</option><option value="pages">页数最多</option></select>
         <select id="rpType" class="rp-select"><option value="">全部类型</option><option value="周报">周报</option><option value="月报">月报</option><option value="点评">点评</option><option value="策略">策略</option><option value="数据">数据</option></select>
-        <button class="rp-btn rp-gold" id="rpExport">导出列表</button>
+        <button class="rp-btn" id="rpThemeToggle" aria-pressed="false">白昼模式</button>
       </div>
     </div>
     <div class="rp-app">
       <aside class="rp-sidebar">
-        <!-- Morning Brief Generator - Most prominent action -->
-        <button class="rp-morning-brief-btn" id="rpMorningBrief" onclick="alert('📋 今日研报早报功能即将上线！\n\n将自动汇总今日最新研报摘要，生成 PDF 早报。')">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
-          一键生成今日研报早报
-        </button>
+        <button class="rp-btn rp-gold rp-export-side" id="rpExport">导出列表</button>
         <div class="rp-panel"><h4>快捷筛选（标签）</h4><div class="rp-chip-row" id="rpTagChips"></div><div class="rp-small-link" id="rpClearAll">清空筛选</div></div>
         <div class="rp-panel">
           <h4>时间筛选</h4>
@@ -1477,6 +1473,16 @@ function scrollToTop(){window.scrollTo({top:0,behavior:'smooth'});}
   const rpFav=new Set(JSON.parse(localStorage.getItem(LS_FAV)||"[]"));
   const rpRead=new Set(JSON.parse(localStorage.getItem(LS_READ)||"[]"));
   const rpState={q:"",sort:"new",type:"",tags:new Set(),from:"",to:"",onlyUnread:false,showFav:false,selected:new Set(),page:1,pageSize:20};
+  const RP_THEME_KEY="cc_research_theme";
+  const rpViewEl=document.getElementById("view-research");
+  const rpThemeBtn=document.getElementById("rpThemeToggle");
+  function rpApplyTheme(mode){
+    if(!rpViewEl||!rpThemeBtn)return;
+    const isLight=mode==="light";
+    rpViewEl.classList.toggle("rp-light",isLight);
+    rpThemeBtn.textContent=isLight?"黑夜模式":"白昼模式";
+    rpThemeBtn.setAttribute("aria-pressed",isLight?"true":"false");
+  }
   const rpTodayStr=rpToISO(new Date());
   const rpFromEl=document.getElementById("rpFrom"),rpToEl=document.getElementById("rpTo");
   const rpFromDisp=document.getElementById("rpFromDisp"),rpToDisp=document.getElementById("rpToDisp");
@@ -1516,6 +1522,8 @@ function scrollToTop(){window.scrollTo({top:0,behavior:'smooth'});}
   document.getElementById("rpBulkMerge").onclick=()=>{const reps=[...rpState.selected].map(id=>RP_REPORTS.find(r=>r.id===id)).filter(Boolean);if(!reps.length)return;const res=rpBuildPDF(reps,"今日研报包");if(res)rpDlBlob(res.blob,res.fileName);reps.forEach(r=>rpRead.add(r.id));localStorage.setItem(LS_READ,JSON.stringify([...rpRead]));rpRenderAll(false);};
   document.getElementById("rpBulkClear").onclick=()=>{rpState.selected.clear();rpSyncSel();rpRenderAll(false);};
   document.getElementById("rpGoPage").onclick=()=>{const v=Number(document.getElementById("rpJumpInput").value),tp=rpPageCount(rpFiltered().length);if(!v||v<1||v>tp)return;rpState.page=v;rpRenderAll(false);};
+  rpApplyTheme(localStorage.getItem(RP_THEME_KEY)==="light"?"light":"dark");
+  if(rpThemeBtn)rpThemeBtn.addEventListener("click",()=>{const next=rpViewEl&&rpViewEl.classList.contains("rp-light")?"dark":"light";localStorage.setItem(RP_THEME_KEY,next);rpApplyTheme(next);});
   window.rpRenderAllGlobal = rpRenderAll;
 })();
 
