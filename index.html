@@ -260,7 +260,7 @@
             <input id="mnQ" placeholder="搜索：OPEC+ / 制裁 / 库存 / 红海 / VLCC / 裂解价差 ..."/>
           </div>
           <button class="mn-btn" id="mnClear">清空</button>
-          <button class="mn-btn primary" id="mnRefresh">刷新</button>
+          <button class="mn-btn primary" id="mnThemeToggle" aria-pressed="false">白昼模式</button>
         </div>
         <div id="mnSections"></div>
       </div>
@@ -1347,13 +1347,23 @@ function scrollToTop(){window.scrollTo({top:0,behavior:'smooth'});}
     }).sort((a,b)=>b.ts-a.ts);
   }
   let S={q:"",items:gen()};
+  const THEME_KEY="cc_module_news_theme";
   const $id=id=>document.getElementById(id);
   const p2=n=>String(n).padStart(2,"0");
   const fT=ts=>{const d=new Date(ts);return`${p2(d.getHours())}:${p2(d.getMinutes())}`;};
   const fD=ts=>{const d=new Date(ts);return`${d.getMonth()+1}/${d.getDate()}`;};
   const esc=s=>String(s).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;");
-  const impactCls=v=>v>=80?'impact-high':v>=50?'impact-mid':'impact-low';
+  const impactCls=v=>v>=80?'impact-high':v>=70?'impact-mid':'impact-low';
   const impactSpan=(v,prefix='影响 ')=>`<span class="${impactCls(v)}">${prefix}${v}</span>`;
+  const viewEl=$id("view-module-news");
+  const themeBtn=$id("mnThemeToggle");
+  function applyTheme(mode){
+    if(!viewEl||!themeBtn) return;
+    const isLight=mode==="light";
+    viewEl.classList.toggle("mn-light",isLight);
+    themeBtn.textContent=isLight?"黑夜模式":"白昼模式";
+    themeBtn.setAttribute("aria-pressed",isLight?"true":"false");
+  }
   function renderNow(){const el=$id("nowText");if(el){const d=new Date();el.textContent=`本地时间 ${p2(d.getHours())}:${p2(d.getMinutes())}`;}}
   function hl(items){
     const T=["Geopolitics","Supply","Inventory","Macro","Freight","Spreads","Demand"];
@@ -1395,11 +1405,11 @@ function scrollToTop(){window.scrollTo({top:0,behavior:'smooth'});}
     const sec=document.getElementById("mnSections");if(!sec)return;
     sec.innerHTML=MODS.map(m=>{
       if(m.key==="HIGHLIGHT"){
-        const sideRows=hlSide.map(x=>`<div class="hl-item" data-id="${x.id}"><div class="hl-src">${esc(x.source)}</div><p class="hl-title">${esc(x.title)}</p><div class="hl-meta"><span>${fD(x.ts)} ${fT(x.ts)}</span>${impactSpan(x.impact)}</div></div>`).join("")||`<div class="hl-item"><p class="hl-title" style="color:rgba(255,255,255,.4)">（暂无）</p></div>`;
+        const sideRows=hlSide.map(x=>`<div class="hl-item" data-id="${x.id}"><div class="hl-src">${esc(x.source)}</div><p class="hl-title">${esc(x.title)}</p><div class="hl-meta"><span>${fD(x.ts)} ${fT(x.ts)}</span>${impactSpan(x.impact)}</div></div>`).join("")||`<div class="hl-item"><p class="hl-title" style="color:var(--mn-empty-text)">（暂无）</p></div>`;
         return`<div class="mn-section" id="sec-HIGHLIGHT"><div class="mn-section-head"><h3>${esc(m.name)}</h3><div class="mn-section-meta"><span>${H.length} 条</span><span class="mn-sep"></span><button class="mn-btn primary" data-vm data-key="HIGHLIGHT" style="padding:4px 10px;font-size:11px;border-radius:8px;">查看更多</button></div></div><div class="mn-body mn-body-hl">${fc(hlTop)}<div class="mn-panel">${sideRows}</div></div></div>`;
       }
       const la=filtered.filter(x=>x.theme===m.key).sort((a,b)=>b.score-a.score);
-      const rows=la.map(x=>`<div class="mn-news-row" data-id="${x.id}"><div class="nr-src">${esc(x.source)}</div><div class="nr-title">${esc(x.title)}</div><div class="nr-meta"><span>${fD(x.ts)} ${fT(x.ts)}</span>${impactSpan(x.impact)}</div></div>`).join("")||`<div class="mn-news-row"><div class="nr-title" style="color:rgba(255,255,255,.4)">当前搜索下暂无</div></div>`;
+      const rows=la.map(x=>`<div class="mn-news-row" data-id="${x.id}"><div class="nr-src">${esc(x.source)}</div><div class="nr-title">${esc(x.title)}</div><div class="nr-meta"><span>${fD(x.ts)} ${fT(x.ts)}</span>${impactSpan(x.impact)}</div></div>`).join("")||`<div class="mn-news-row"><div class="nr-title" style="color:var(--mn-empty-text)">当前搜索下暂无</div></div>`;
       return`<div class="mn-section" id="sec-${m.key}"><div class="mn-section-head"><h3>${esc(m.name)}</h3><div class="mn-section-meta"><span>${la.length} 条</span><span class="mn-sep"></span><button class="mn-btn primary" data-vm data-key="${m.key}" style="padding:4px 10px;font-size:11px;border-radius:8px;">更多</button></div></div><div class="mn-body"><div class="mn-news-list">${rows}</div></div></div>`;
     }).join("");
     sec.querySelectorAll("[data-id]").forEach(el=>el.addEventListener("click",()=>{const item=S.items.find(x=>x.id===el.dataset.id);if(!item)return;modal({title:item.title,subtitle:`${item.source} · ${fD(item.ts)} ${fT(item.ts)}`,mode:"detail",det:item});}));
@@ -1408,7 +1418,12 @@ function scrollToTop(){window.scrollTo({top:0,behavior:'smooth'});}
   renderNow();setInterval(renderNow,20000);
   const qEl=document.getElementById("mnQ");if(qEl)qEl.addEventListener("input",()=>{S.q=qEl.value;render();});
   const clr=document.getElementById("mnClear");if(clr)clr.addEventListener("click",()=>{if(qEl)qEl.value="";S.q="";render();});
-  const ref=document.getElementById("mnRefresh");if(ref)ref.addEventListener("click",()=>{S.items=gen();render();});
+  applyTheme(localStorage.getItem(THEME_KEY)==="light"?"light":"dark");
+  if(themeBtn)themeBtn.addEventListener("click",()=>{
+    const next=viewEl&&viewEl.classList.contains("mn-light")?"dark":"light";
+    localStorage.setItem(THEME_KEY,next);
+    applyTheme(next);
+  });
   render();
   renderQuickNav();
 })();
