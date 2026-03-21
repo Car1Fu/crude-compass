@@ -1361,6 +1361,7 @@ function scrollToTop(){window.scrollTo({top:0,behavior:'smooth'});}
     if(!viewEl||!themeBtn) return;
     const isLight=mode==="light";
     viewEl.classList.toggle("mn-light",isLight);
+    document.querySelectorAll(".modal-wrap").forEach(el=>el.classList.toggle("mn-light",isLight));
     themeBtn.textContent=isLight?"黑夜模式":"白昼模式";
     themeBtn.setAttribute("aria-pressed",isLight?"true":"false");
   }
@@ -1378,6 +1379,7 @@ function scrollToTop(){window.scrollTo({top:0,behavior:'smooth'});}
   }
   function modal({title,subtitle,mode,list,det}){
     const w=document.createElement("div");w.className="modal-wrap";
+    if(viewEl&&viewEl.classList.contains("mn-light"))w.classList.add("mn-light");
     let body=mode==="list"
       ?`<div class="modal-list">${list.map(x=>`<div class="modal-item" data-id="${x.id}"><p class="tt">${esc(x.title)}</p><div class="mm"><span>${esc(x.source)} · ${fD(x.ts)} ${fT(x.ts)}</span>${impactSpan(x.impact)}</div></div>`).join("")}</div>`
       :`<div class="modal-text">${esc(det.summary)}</div>`;
@@ -1403,13 +1405,13 @@ function scrollToTop(){window.scrollTo({top:0,behavior:'smooth'});}
     const top=items[0]||null;
     const side=items.slice(1,5);
     const sideRows=side.map(x=>`<div class="hl-item" data-id="${x.id}"><div class="hl-src">${esc(x.source)}</div><p class="hl-title">${esc(x.title)}</p><div class="hl-meta"><span>${fD(x.ts)} ${fT(x.ts)}</span>${impactSpan(x.impact)}</div></div>`).join("")||`<div class="hl-item"><p class="hl-title" style="color:var(--mn-empty-text)">（暂无）</p></div>`;
-    return`<div class="mn-section" id="sec-${sectionKey}"><div class="mn-section-head"><h3>${esc(sectionName)}</h3><div class="mn-section-meta"><span>${items.length} 条</span><span class="mn-sep"></span><button class="mn-btn primary" data-vm data-key="${sectionKey}" style="padding:4px 10px;font-size:11px;border-radius:8px;">${moreLabel}</button></div></div><div class="mn-body mn-body-hl">${fc(top)}<div class="mn-panel">${sideRows}</div></div></div>`;
+    return`<div class="mn-section" id="sec-${sectionKey}"><div class="mn-section-head"><h3>${esc(sectionName)}</h3><div class="mn-section-meta"><button class="mn-btn primary" data-vm data-key="${sectionKey}" style="padding:4px 10px;font-size:11px;border-radius:8px;">${moreLabel}</button></div></div><div class="mn-body mn-body-hl">${fc(top)}<div class="mn-panel">${sideRows}</div></div></div>`;
   }
   renderFeatureSection=function(sectionKey, sectionName, items, moreLabel){
     const top=items[0]||null;
     const side=items.slice(1,5);
     const sideRows=side.map(x=>`<div class="hl-item" data-id="${x.id}"><div class="hl-src">${esc(x.source)}</div><p class="hl-title">${esc(x.title)}</p><div class="hl-meta"><span>${fD(x.ts)} ${fT(x.ts)}</span>${impactSpan(x.impact)}</div></div>`).join("")||`<div class="hl-item"><p class="hl-title" style="color:var(--mn-empty-text)">锛堟殏鏃狅級</p></div>`;
-    return`<div class="mn-section" id="sec-${sectionKey}"><div class="mn-section-head"><h3>${esc(sectionName)}</h3><div class="mn-section-meta"><span>${items.length} 鏉?/span><span class="mn-sep"></span><button class="mn-btn primary" data-vm data-key="${sectionKey}" style="padding:4px 10px;font-size:11px;border-radius:8px;">${moreLabel}</button></div></div><div class="mn-body mn-body-hl">${featureCard(top)}<div class="mn-panel">${sideRows}</div></div></div>`;
+    return`<div class="mn-section" id="sec-${sectionKey}"><div class="mn-section-head"><h3>${esc(sectionName)}</h3><div class="mn-section-meta"><button class="mn-btn primary" data-vm data-key="${sectionKey}" style="padding:4px 10px;font-size:11px;border-radius:8px;">${moreLabel}</button></div></div><div class="mn-body mn-body-hl">${featureCard(top)}<div class="mn-panel">${sideRows}</div></div></div>`;
   }
   function renderQuickNav(){
     const nav=document.getElementById("mnQuickNav");if(!nav)return;
@@ -1425,7 +1427,7 @@ function scrollToTop(){window.scrollTo({top:0,behavior:'smooth'});}
     const sec=document.getElementById("mnSections");if(!sec)return;
     sec.innerHTML=MODS.map(m=>{
       const list=m.key==="HIGHLIGHT" ? H : filtered.filter(x=>x.theme===m.key).sort((a,b)=>b.score-a.score);
-      return renderFeatureSection(m.key,m.name,list,m.key==="HIGHLIGHT"?"查看更多":"更多");
+      return renderFeatureSection(m.key,m.name,list,"更多");
     }).join("");
     sec.querySelectorAll("[data-id]").forEach(el=>el.addEventListener("click",()=>{const item=S.items.find(x=>x.id===el.dataset.id);if(!item)return;modal({title:item.title,subtitle:`${item.source} · ${fD(item.ts)} ${fT(item.ts)}`,mode:"detail",det:item});}));
     sec.querySelectorAll("[data-vm]").forEach(btn=>btn.addEventListener("click",e=>{e.stopPropagation();const key=btn.dataset.key;let list=[],title="";if(key==="HIGHLIGHT"){list=H;title="今日重点 · 更多新闻";}else{const mod=MODS.find(x=>x.key===key);list=filtered.filter(x=>x.theme===key).sort((a,b)=>b.score-a.score);title=`${mod?.name||key} · 更多新闻`;}modal({title,subtitle:`共 ${list.length} 条`,mode:"list",list});}));
@@ -1433,11 +1435,11 @@ function scrollToTop(){window.scrollTo({top:0,behavior:'smooth'});}
     sec.innerHTML=MODS.map(m=>{
       if(m.key==="HIGHLIGHT"){
         const sideRows=hlSide.map(x=>`<div class="hl-item" data-id="${x.id}"><div class="hl-src">${esc(x.source)}</div><p class="hl-title">${esc(x.title)}</p><div class="hl-meta"><span>${fD(x.ts)} ${fT(x.ts)}</span>${impactSpan(x.impact)}</div></div>`).join("")||`<div class="hl-item"><p class="hl-title" style="color:var(--mn-empty-text)">（暂无）</p></div>`;
-        return`<div class="mn-section" id="sec-HIGHLIGHT"><div class="mn-section-head"><h3>${esc(m.name)}</h3><div class="mn-section-meta"><span>${H.length} 条</span><span class="mn-sep"></span><button class="mn-btn primary" data-vm data-key="HIGHLIGHT" style="padding:4px 10px;font-size:11px;border-radius:8px;">查看更多</button></div></div><div class="mn-body mn-body-hl">${fc(hlTop)}<div class="mn-panel">${sideRows}</div></div></div>`;
+        return`<div class="mn-section" id="sec-HIGHLIGHT"><div class="mn-section-head"><h3>${esc(m.name)}</h3><div class="mn-section-meta"><button class="mn-btn primary" data-vm data-key="HIGHLIGHT" style="padding:4px 10px;font-size:11px;border-radius:8px;">更多</button></div></div><div class="mn-body mn-body-hl">${fc(hlTop)}<div class="mn-panel">${sideRows}</div></div></div>`;
       }
       const la=filtered.filter(x=>x.theme===m.key).sort((a,b)=>b.score-a.score);
       const rows=la.map(x=>`<div class="mn-news-row" data-id="${x.id}"><div class="nr-src">${esc(x.source)}</div><div class="nr-title">${esc(x.title)}</div><div class="nr-meta"><span>${fD(x.ts)} ${fT(x.ts)}</span>${impactSpan(x.impact)}</div></div>`).join("")||`<div class="mn-news-row"><div class="nr-title" style="color:var(--mn-empty-text)">当前搜索下暂无</div></div>`;
-      return`<div class="mn-section" id="sec-${m.key}"><div class="mn-section-head"><h3>${esc(m.name)}</h3><div class="mn-section-meta"><span>${la.length} 条</span><span class="mn-sep"></span><button class="mn-btn primary" data-vm data-key="${m.key}" style="padding:4px 10px;font-size:11px;border-radius:8px;">更多</button></div></div><div class="mn-body"><div class="mn-news-list">${rows}</div></div></div>`;
+      return`<div class="mn-section" id="sec-${m.key}"><div class="mn-section-head"><h3>${esc(m.name)}</h3><div class="mn-section-meta"><button class="mn-btn primary" data-vm data-key="${m.key}" style="padding:4px 10px;font-size:11px;border-radius:8px;">更多</button></div></div><div class="mn-body"><div class="mn-news-list">${rows}</div></div></div>`;
     }).join("");
     sec.querySelectorAll("[data-id]").forEach(el=>el.addEventListener("click",()=>{const item=S.items.find(x=>x.id===el.dataset.id);if(!item)return;modal({title:item.title,subtitle:`${item.source} · ${fD(item.ts)} ${fT(item.ts)}`,mode:"detail",det:item});}));
     sec.querySelectorAll("[data-vm]").forEach(btn=>btn.addEventListener("click",e=>{e.stopPropagation();const key=btn.dataset.key;let list=[],title="";if(key==="HIGHLIGHT"){list=H;title="今日重点 · 更多新闻";}else{const mod=MODS.find(x=>x.key===key);list=filtered.filter(x=>x.theme===key).sort((a,b)=>b.score-a.score);title=`${mod?.name||key} · 更多新闻`;}modal({title,subtitle:`共 ${list.length} 条`,mode:"list",list});}));
