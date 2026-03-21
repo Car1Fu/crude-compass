@@ -1,0 +1,2491 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Crude Compass｜原油罗盘</title>
+
+  <!-- Premium Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Noto+Sans+SC:wght@300;400;500;700;900&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="css/styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+</head>
+<body>
+<div class="topline"></div>
+
+<!-- ═══════════════ HEADER ═══════════════ -->
+<header>
+  <div class="wrap">
+    <div class="nav">
+      <a class="brand" onclick="switchView('view-home')" style="padding:4px 8px;">
+        <img src="assets/logo.png" alt="原油罗盘 Crude Compass" style="height:46px; width:auto; display:block; filter:drop-shadow(0 2px 8px rgba(214,179,106,.25));">
+      </a>
+      <div class="nav-right">
+        <nav class="menu">
+          <div class="nav-item">
+            <a class="nav-link" id="nl-zixun" href="javascript:void(0)">资讯与洞察 <span class="caret"></span></a>
+            <div class="dropdown" role="menu">
+              <a onclick="switchView('view-module-news')" role="menuitem">新闻快讯</a>
+              <a onclick="switchView('view-research')"    role="menuitem">研究解读</a>
+              <a onclick="switchView('view-supply')"      role="menuitem">供需洞察</a>
+            </div>
+          </div>
+          <div class="nav-item">
+            <a class="nav-link" id="nl-data" href="javascript:void(0)">数据中心 <span class="caret"></span></a>
+            <div class="dropdown" role="menu">
+              <a onclick="switchView('view-database')" role="menuitem">价格看板</a>
+              <a onclick="switchView('view-api')"      role="menuitem">数据库</a>
+            </div>
+          </div>
+          <div class="nav-item">
+            <a class="nav-link" id="nl-forecast" href="javascript:void(0)">预测与风控 <span class="caret"></span></a>
+            <div class="dropdown" role="menu">
+              <a onclick="switchView('view-forecast')" role="menuitem">预测中心</a>
+              <a onclick="switchView('view-hedge')"    role="menuitem">套保助手</a>
+            </div>
+          </div>
+          <div class="nav-item">
+            <a class="nav-link" id="nl-about" href="javascript:void(0)">关于我们 <span class="caret"></span></a>
+            <div class="dropdown" role="menu">
+              <a onclick="switchView('view-about')"   role="menuitem">产品介绍/方法论</a>
+              <a onclick="switchView('view-pricing')" role="menuitem">订阅与定价</a>
+              <a onclick="switchView('view-contact')" role="menuitem">联系我们 / 合作洽谈</a>
+            </div>
+          </div>
+        </nav>
+        <div class="actions">
+          <div class="search-wrap" id="searchWrap">
+            <input class="search-input" id="searchInput" type="text" placeholder="搜索关键词…"/>
+            <button class="iconbtn" id="searchBtn">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                <path d="M10.5 18.5a8 8 0 1 1 0-16 8 8 0 0 1 0 16Z" stroke="rgba(255,255,255,.92)" stroke-width="2"/>
+                <path d="M16.5 16.5 21 21" stroke="rgba(255,255,255,.92)" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </button>
+          </div>
+          <a href="register.html" style="height:38px;padding:0 14px;border-radius:12px;border:1px solid rgba(214,178,106,.35);background:rgba(214,178,106,.08);color:rgba(214,178,106,.88);font-weight:700;font-size:13px;display:inline-flex;align-items:center;cursor:pointer;text-decoration:none;transition:.18s ease;letter-spacing:.3px;" onmouseover="this.style.background='rgba(214,178,106,.16)'" onmouseout="this.style.background='rgba(214,178,106,.08)'">注册</a>
+          <a href="login.html" class="loginbtn" style="display:inline-flex;align-items:center;text-decoration:none;">登录</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ═══════════════ CONTENT MANAGER ═══════════════ -->
+<div id="content-manager">
+
+  <!-- VIEW: HOME -->
+  <div id="view-home" class="view active">
+    <div style="padding-top:calc(var(--header-h) + 24px); padding-bottom:40px; position:relative;">
+      <div id="view-home-overlay-before" style="position:absolute;inset:0;background:linear-gradient(180deg, rgba(12,12,14,.85) 0%, rgba(12,12,14,.55) 30%, rgba(12,12,14,.70) 100%);pointer-events:none;"></div>
+      <div style="position:absolute;inset:0;box-shadow:inset 0 0 140px rgba(0,0,0,.100hero);pointer-events:none;"></div>
+      <div class="wrap hero-inner">
+        <div class="hero-copy hero-copy-card">
+          <!-- 顶部标签条 -->
+          <div class="hero-copy-badge">
+            <span class="hero-copy-badge-dot"></span>原油市场 · 专业导航平台
+          </div>
+          <!-- Logo大图替代文字标题 -->
+          <div style="margin: 4px 0 8px;">
+            <img src="assets/logo.png" alt="原油罗盘 Crude Compass"
+              style="height:clamp(54px,7vw,88px); width:auto; display:block;
+                     filter:drop-shadow(0 0 28px rgba(214,179,106,.35)) drop-shadow(0 4px 12px rgba(0,0,0,.6));
+                     animation:heroSweep 4.2s ease-in-out infinite;">
+          </div>
+          <!-- 副标题：细字重 -->
+          <div class="hero-sub">
+            <span class="hero-accent-dot"></span>引领原油投资的专业导航
+          </div>
+          <!-- 英文小字：全大写 + 大字间距 -->
+          <div class="hero-en">Multi-source factors &nbsp;·&nbsp; Forecasting &nbsp;·&nbsp; Risk Control &nbsp;·&nbsp; Explainable Signals</div>
+          <!-- 底部分隔线 + 快速入口 -->
+          <div class="hero-copy-footer">
+            <div class="hero-copy-divider"></div>
+            <div class="hero-copy-actions">
+              <button class="hero-cta-btn" onclick="switchView('view-forecast')">查看最新预测 →</button>
+              <button class="hero-cta-ghost" onclick="document.getElementById('home-market').scrollIntoView({behavior:'smooth'})">市场快照 ↓</button>
+            </div>
+          </div>
+        </div>
+        <aside class="risk-card risk-card-bright">
+          <div class="risk-head">
+            <h3>风险预警</h3>
+            <a class="risk-explore" onclick="switchView('view-forecast')">探索最新预测信息 &gt;</a>
+          </div>
+          <div class="risk-body">
+            <div class="risk-row"><span>今日风险等级</span><span class="risk-badge">低</span></div>
+            <div class="risk-range">
+              <div class="rl">Brent T+3 预测区间</div>
+              <div class="rv">82.20 – 87.50 <span class="ru">USD / bbl</span></div>
+            </div>
+            <div>
+              <div class="risk-row" style="justify-content:flex-start;gap:10px;margin-bottom:6px;">
+                <span style="color:rgba(214,178,106,.92);font-weight:900;letter-spacing:.6px;">关键驱动因子</span>
+              </div>
+              <ol class="risk-list"><li>美元指数</li><li>库存</li><li>航运价差</li></ol>
+            </div>
+          </div>
+          <div class="risk-foot">提示：示例展示位，实际可由你们模型/API实时填充。</div>
+        </aside>
+      </div>
+      <div class="hero-bottom">
+        <div class="wrap">
+          <div class="hdivider"></div>
+          <div class="latest-label"><span class="latest-dot"></span><a href="#home-market" style="cursor:pointer;">最新动态 →</a></div>
+        </div>
+      </div>
+    </div>
+
+    <section id="home-market" class="home-section">
+      <div class="wrap">
+        <div class="white-shell">
+          <div class="shell-head">
+            <h2>市场快照</h2>
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end;">
+              <div class="shell-meta" id="updateTime">Updated at —</div>
+              <a class="explore-link" href="#home-news">探索最新新闻 <svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
+            </div>
+          </div>
+          <div class="shell-body">
+            <div class="grid2">
+              <div class="card">
+                <div class="card-title">Market Prices</div>
+                <div class="subhead">Futures Markets</div>
+                <table>
+                  <thead><tr><th>Crude Oil</th><th>Last</th><th>Change</th></tr></thead>
+                  <tbody>
+                    <tr><td>ICE Brent ($/bbl)</td><td>69.24</td><td class="pos">+0.84</td></tr>
+                    <tr><td class="muted">3rd month</td><td>67.50</td><td class="pos">+0.76</td></tr>
+                    <tr><td class="muted">12th month</td><td>64.96</td><td class="pos">+0.49</td></tr>
+                  </tbody>
+                </table>
+                <div class="subhead">Spot Markets</div>
+                <table>
+                  <thead><tr><th>Crude Oil ($/bbl)</th><th>Last</th><th>Change</th></tr></thead>
+                  <tbody>
+                    <tr><td>OPEC Basket</td><td>63.50</td><td class="neg">-0.19</td></tr>
+                  </tbody>
+                </table>
+                <div class="subhead">Natural Gas ($/MMBtu)</div>
+                <table>
+                  <thead><tr><th>Hub</th><th>Last</th><th>Change</th></tr></thead>
+                  <tbody>
+                    <tr><td>AECO</td><td>1.51</td><td class="neg">-0.13</td></tr>
+                    <tr><td>Henry Hub</td><td>9.02</td><td class="neg">-2.88</td></tr>
+                    <tr><td>Katy Hub</td><td>4.08</td><td class="neg">-5.71</td></tr>
+                    <tr><td>Transco Z6 - NY</td><td>37.95</td><td class="muted">—</td></tr>
+                  </tbody>
+                </table>
+                <div class="shell-meta" style="margin-top:10px;">提示：此处为排版示例，可替换为你们数据源/API。</div>
+              </div>
+              <div class="card">
+                <div class="chart-title"><span>WTI &amp; Brent Prices</span><span class="shell-meta">2005–2025 (demo)</span></div>
+                <div class="legend">
+                  <span style="color:#1b6ca8"><i class="dot"></i>WTI Spot</span>
+                  <span style="color:#7fb8d8"><i class="dot"></i>Brent Spot</span>
+                </div>
+                <div class="svgbox">
+                  <svg viewBox="0 0 900 360" width="100%" height="100%" preserveAspectRatio="none">
+                    <g opacity="0.18" stroke="#000">
+                      <line x1="60" y1="40" x2="60" y2="320"/><line x1="60" y1="320" x2="870" y2="320"/>
+                      <line x1="60" y1="260" x2="870" y2="260"/><line x1="60" y1="200" x2="870" y2="200"/>
+                      <line x1="60" y1="140" x2="870" y2="140"/><line x1="60" y1="80" x2="870" y2="80"/>
+                    </g>
+                    <g fill="rgba(0,0,0,.55)" font-size="12">
+                      <text x="20" y="325">0</text><text x="16" y="265">25</text><text x="16" y="205">50</text><text x="16" y="145">75</text><text x="12" y="85">100</text>
+                    </g>
+                    <polyline id="lineWTI" fill="none" stroke="#1b6ca8" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+                    <polyline id="lineBrent" fill="none" stroke="#7fb8d8" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" opacity="0.95"/>
+                  </svg>
+                </div>
+                <div class="shell-meta" style="margin-top:10px;">后续接入真实数据：按日期映射 X，价格映射 Y 即可保持 UI 不变。</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="home-news" class="home-section">
+      <div class="wrap">
+        <div class="white-shell">
+          <div class="shell-head">
+            <h2>最新新闻</h2>
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end;">
+              <div class="shell-meta">信息流 + 精选解读（示例排版）</div>
+              <a class="explore-link" onclick="switchView('view-module-news')">探索最新新闻 <svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
+            </div>
+          </div>
+          <div class="shell-body">
+            <div class="news-grid">
+              <div class="card news-feature">
+                <span class="tag">精选 · 宏观/供需</span>
+                <div class="news-title">油价波动加剧：供需与地缘扰动共同抬升短端风险</div>
+                <p class="news-excerpt">这里是摘要示例：用 2–3 行概述新闻核心结论，并引导用户点击查看全文或报告解读。</p>
+                <div class="news-meta"><span>2026-01-30 · 研究团队</span><button class="news-btn">阅读更多</button></div>
+              </div>
+              <div class="news-list">
+                <div class="news-item"><p class="t">库存数据超预期：期限结构短暂走平</p><p class="m">2026-01-30 · 数据/库存</p></div>
+                <div class="news-item"><p class="t">OPEC+ 会议预期升温：市场开始重新定价供给弹性</p><p class="m">2026-01-29 · 政策/供给</p></div>
+                <div class="news-item"><p class="t">航运运力扰动：跨区价差出现结构性扩张迹象</p><p class="m">2026-01-29 · 航运/价差</p></div>
+                <div class="news-item"><p class="t">美元走强与风险偏好回落：商品整体承压</p><p class="m">2026-01-28 · 宏观/美元</p></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- VIEW: MODULE NEWS -->
+  <div id="view-module-news" class="view">
+    <div style="padding-top:var(--header-h); padding-bottom:60px;">
+      <div class="wrap">
+        <div class="mn-head">
+          <h2>新闻资讯</h2>
+          <div class="mn-head-right">
+            <span class="mn-head-meta" id="resultCount">0 条</span>
+            <span class="mn-vsep"></span>
+            <span class="mn-head-meta" id="nowText">—</span>
+          </div>
+        </div>
+        <!-- Sticky quick-nav: populated by JS -->
+        <div class="mn-quick-nav" id="mnQuickNav"></div>
+        <div class="mn-searchbar">
+          <div class="mn-searchbox">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.4)" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            <input id="mnQ" placeholder="搜索：OPEC+ / 制裁 / 库存 / 红海 / VLCC / 裂解价差 ..."/>
+          </div>
+          <button class="mn-btn" id="mnClear">清空</button>
+          <button class="mn-btn primary" id="mnRefresh">刷新</button>
+        </div>
+        <div id="mnSections"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VIEW: RESEARCH -->
+  <div id="view-research" class="view">
+
+    <div class="rp-topbar">
+      <div class="rp-search-box"><input id="rpQ" placeholder="搜索：标题 / 机构 / 作者 / 标签（例如：OPEC、地缘、库存、Brent）"/><div class="rp-search-icon">⌕</div></div>
+      <div class="rp-controls">
+        <select id="rpSort" class="rp-select"><option value="new">最新发布</option><option value="hot">热度最高</option><option value="pages">页数最多</option></select>
+        <select id="rpType" class="rp-select"><option value="">全部类型</option><option value="周报">周报</option><option value="月报">月报</option><option value="点评">点评</option><option value="策略">策略</option><option value="数据">数据</option></select>
+        <button class="rp-btn rp-gold" id="rpExport">导出列表</button>
+      </div>
+    </div>
+    <div class="rp-app">
+      <aside class="rp-sidebar">
+        <!-- Morning Brief Generator - Most prominent action -->
+        <button class="rp-morning-brief-btn" id="rpMorningBrief" onclick="alert('📋 今日研报早报功能即将上线！\n\n将自动汇总今日最新研报摘要，生成 PDF 早报。')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+          一键生成今日研报早报
+        </button>
+        <div class="rp-panel"><h4>快捷筛选（标签）</h4><div class="rp-chip-row" id="rpTagChips"></div><div class="rp-small-link" id="rpClearAll">清空筛选</div></div>
+        <div class="rp-panel">
+          <h4>时间筛选</h4>
+          <div class="rp-date-field"><div class="rp-date-label">起始时间</div><div class="rp-date-box" id="rpFromBox"><div class="rp-date-value rp-faint" id="rpFromDisp">—</div><input id="rpFrom" class="rp-date-native" type="date"/></div></div>
+          <div class="rp-date-field"><div class="rp-date-label">终止时间</div><div class="rp-date-box" id="rpToBox"><div class="rp-date-value rp-faint" id="rpToDisp">—</div><input id="rpTo" class="rp-date-native" type="date"/></div></div>
+          <div class="rp-quick-row"><button class="rp-quick-btn" id="rpQ7">近7天</button><button class="rp-quick-btn" id="rpQ30">近30天</button><button class="rp-quick-btn" id="rpQY">今年</button><button class="rp-quick-btn" id="rpQAll">全部</button></div>
+        </div>
+      </aside>
+      <div class="rp-main">
+        <div class="rp-content">
+          <div class="rp-card">
+            <div class="rp-card-header">
+              <div class="rp-filter-pills" id="rpPills"></div>
+              <div style="display:flex;gap:10px;align-items:center;"><button class="rp-btn" id="rpUnread">仅看未读</button><button class="rp-btn" id="rpFavBtn">收藏夹</button></div>
+            </div>
+            <div class="rp-table-wrap">
+              <table class="rp-table">
+                <thead><tr><th style="width:38px"><input class="rp-checkbox" id="rpCheckAll" type="checkbox"/></th><th style="width:92px">时间</th><th style="width:128px">机构</th><th>标题 / 标签 / 操作</th><th style="width:88px">类型</th><th style="width:68px">页数</th><th style="width:88px">热度</th></tr></thead>
+                <tbody id="rpTbody"></tbody>
+              </table>
+            </div>
+            <div class="rp-pager">
+              <div class="rp-muted" id="rpPageInfo">—</div>
+              <div class="rp-page-btns" id="rpPageBtns"></div>
+              <div class="rp-page-jump">跳转<input id="rpJumpInput" type="number" min="1" placeholder="页码"/><button class="rp-page-btn" id="rpGoPage">Go</button></div>
+            </div>
+            <div class="rp-sel-bar" id="rpSelBar">
+              <div class="rp-muted" id="rpSelInfo">已选 0 篇</div>
+              <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                <button class="rp-btn" id="rpBulkFav">加入收藏</button>
+                <button class="rp-btn rp-gold" id="rpBulkMerge">合并下载（1个PDF）</button>
+                <button class="rp-btn" id="rpBulkDl">下载选中（逐个）</button>
+                <button class="rp-btn" id="rpBulkClear">取消选择</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="rp-toast" id="rpToast"><div id="rpToastMsg">—</div><div class="sub" id="rpToastSub"></div></div>
+  </div>
+
+ <div id="view-supply" class="view">
+  <iframe id="supply-iframe"></iframe>
+</div>
+
+  <div id="view-database" class="view">
+    <div class="db-wrap">
+      <main class="db-main">
+
+        <!-- 原油现货 -->
+        <section id="db-crude-oil" class="db-section">
+          <h2>原油现货</h2>
+          <div class="db-tbl-wrap">
+            <table class="db-tbl">
+              <thead><tr><th>名称</th><th>现价</th><th>涨跌</th><th>涨跌幅</th></tr></thead>
+              <tbody>
+                <tr><td>英国布伦特原油</td><td>71.30</td><td class="db-neg">-0.20</td><td class="db-neg">-0.28%</td></tr>
+                <tr><td>美国WTI原油</td><td>70.45</td><td class="db-neg">-0.19</td><td class="db-neg">-0.27%</td></tr>
+                <tr><td>中国胜利原油</td><td>69.80</td><td class="db-pos">+0.15</td><td class="db-pos">+0.22%</td></tr>
+                <tr><td>中国大庆原油</td><td>70.10</td><td class="db-pos">+0.08</td><td class="db-pos">+0.11%</td></tr>
+                <tr><td>中国南海原油</td><td>70.50</td><td class="db-neg">-0.12</td><td class="db-neg">-0.17%</td></tr>
+                <tr><td>俄罗斯ESPO原油</td><td>71.20</td><td class="db-neg">-0.15</td><td class="db-neg">-0.21%</td></tr>
+                <tr><td>阿曼原油(人民币)</td><td>480.50</td><td class="db-neg">-1.20</td><td class="db-neg">-0.25%</td></tr>
+                <tr><td>阿曼原油(环太平洋)</td><td>70.24</td><td class="db-neg">-0.84</td><td class="db-neg">-1.18%</td></tr>
+                <tr><td>阿联酋迪拜原油</td><td>70.45</td><td class="db-neg">-0.77</td><td class="db-neg">-1.08%</td></tr>
+                <tr><td>马来西亚塔皮斯原油</td><td>72.50</td><td class="db-pos">+0.10</td><td class="db-pos">+0.14%</td></tr>
+                <tr><td>印尼米纳斯原油</td><td>71.80</td><td class="db-neg">-0.05</td><td class="db-neg">-0.07%</td></tr>
+                <tr><td>印尼辛塔原油</td><td>71.60</td><td class="db-pos">+0.02</td><td class="db-pos">+0.03%</td></tr>
+                <tr><td>印尼杜里原油</td><td>70.90</td><td class="db-neg">-0.08</td><td class="db-neg">-0.11%</td></tr>
+                <tr><td>OPEC一揽子原油</td><td>70.11</td><td class="db-pos">+0.32</td><td class="db-pos">+0.46%</td></tr>
+                <tr><td>科威特能源原油</td><td>71.00</td><td class="db-neg">-0.05</td><td class="db-neg">-0.07%</td></tr>
+                <tr><td>WTI库欣交割</td><td>70.35</td><td class="db-neg">-0.20</td><td class="db-neg">-0.28%</td></tr>
+                <tr><td>路易斯安那低硫原油</td><td>71.50</td><td class="db-pos">+0.05</td><td class="db-pos">+0.07%</td></tr>
+                <tr><td>中国中质含硫原油</td><td>69.90</td><td class="db-pos">+0.10</td><td class="db-pos">+0.14%</td></tr>
+                <tr><td>山东马瑞原油</td><td>70.20</td><td class="db-neg">-0.05</td><td class="db-neg">-0.07%</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- 期货-国际 -->
+        <section id="db-futures-intl" class="db-section">
+          <h2>期货-国际</h2>
+          <div class="db-tbl-wrap">
+            <table class="db-tbl">
+              <thead><tr><th>名称</th><th>现价</th><th>涨跌</th><th>涨跌幅</th><th>成交量</th></tr></thead>
+              <tbody>
+                <tr><td>IPE布油</td><td>71.30</td><td class="db-neg">-0.20</td><td class="db-neg">-0.28%</td><td>25,300</td></tr>
+                <tr><td>IPE轻质原油</td><td>70.85</td><td class="db-neg">-0.18</td><td class="db-neg">-0.25%</td><td>18,750</td></tr>
+                <tr><td>IPE英国天然气</td><td>89.60</td><td class="db-pos">+0.50</td><td class="db-pos">+0.56%</td><td>12,400</td></tr>
+                <tr><td>NYMEX迷你轻质原油</td><td>70.45</td><td class="db-neg">-0.19</td><td class="db-neg">-0.27%</td><td>32,100</td></tr>
+                <tr><td>NYMEX轻质原油</td><td>70.50</td><td class="db-neg">-0.20</td><td class="db-neg">-0.28%</td><td>45,600</td></tr>
+                <tr><td>NYMEX布油金融</td><td>71.25</td><td class="db-neg">-0.15</td><td class="db-neg">-0.21%</td><td>15,800</td></tr>
+                <tr><td>NYMEX RBOB汽油</td><td>2.54</td><td class="db-pos">+0.01</td><td class="db-pos">+0.40%</td><td>22,300</td></tr>
+                <tr><td>NYMEX取暖油</td><td>2.65</td><td class="db-neg">-0.02</td><td class="db-neg">-0.75%</td><td>18,900</td></tr>
+                <tr><td>MICEX布伦特原油</td><td>71.40</td><td class="db-neg">-0.18</td><td class="db-neg">-0.25%</td><td>9,500</td></tr>
+                <tr><td>ICE荷兰TTF天然气</td><td>92.30</td><td class="db-pos">+0.45</td><td class="db-pos">+0.49%</td><td>14,600</td></tr>
+                <tr><td>USEP月度基本负荷电力</td><td>56.75</td><td class="db-pos">+0.30</td><td class="db-pos">+0.53%</td><td>5,200</td></tr>
+                <tr><td>USEP季度基本负荷电力</td><td>58.20</td><td class="db-pos">+0.25</td><td class="db-pos">+0.43%</td><td>3,800</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- 期货-上海 -->
+        <section id="db-futures-sh" class="db-section">
+          <h2>期货-上海</h2>
+          <div class="db-tbl-wrap">
+            <table class="db-tbl">
+              <thead><tr><th>名称</th><th>现价</th><th>涨跌</th><th>涨跌幅</th><th>成交量</th></tr></thead>
+              <tbody>
+                <tr><td>沪原油2501</td><td>520.50</td><td class="db-neg">-2.30</td><td class="db-neg">-0.44%</td><td>18,500</td></tr>
+                <tr><td>沪原油2502</td><td>522.80</td><td class="db-neg">-2.10</td><td class="db-neg">-0.40%</td><td>12,300</td></tr>
+                <tr><td>沪原油2503</td><td>525.10</td><td class="db-neg">-1.90</td><td class="db-neg">-0.36%</td><td>9,700</td></tr>
+                <tr><td>沪原油2504</td><td>527.40</td><td class="db-neg">-1.70</td><td class="db-neg">-0.32%</td><td>7,800</td></tr>
+                <tr><td>沪原油2505</td><td>529.70</td><td class="db-neg">-1.50</td><td class="db-neg">-0.28%</td><td>6,500</td></tr>
+                <tr><td>沪原油2506</td><td>532.00</td><td class="db-neg">-1.30</td><td class="db-neg">-0.24%</td><td>5,200</td></tr>
+                <tr><td>沪原油2507</td><td>534.30</td><td class="db-neg">-1.10</td><td class="db-neg">-0.20%</td><td>4,100</td></tr>
+                <tr><td>沪原油2508</td><td>536.60</td><td class="db-neg">-0.90</td><td class="db-neg">-0.17%</td><td>3,200</td></tr>
+                <tr><td>沪燃油2501</td><td>2,850</td><td class="db-neg">-25.00</td><td class="db-neg">-0.87%</td><td>12,600</td></tr>
+                <tr><td>沪燃油2502</td><td>2,865</td><td class="db-neg">-24.00</td><td class="db-neg">-0.83%</td><td>8,700</td></tr>
+                <tr><td>沪低硫燃油2501</td><td>3,250</td><td class="db-neg">-30.00</td><td class="db-neg">-0.91%</td><td>10,800</td></tr>
+                <tr><td>沪低硫燃油2502</td><td>3,270</td><td class="db-neg">-29.00</td><td class="db-neg">-0.88%</td><td>7,600</td></tr>
+                <tr><td>沪低硫燃油2503</td><td>3,290</td><td class="db-neg">-28.00</td><td class="db-neg">-0.84%</td><td>5,400</td></tr>
+                <tr><td>沪低硫燃油2504</td><td>3,310</td><td class="db-neg">-27.00</td><td class="db-neg">-0.81%</td><td>3,900</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- 成品油 -->
+        <section id="db-products" class="db-section">
+          <h2 style="display:flex; align-items:center; justify-content:space-between;">
+          <span style="color:var(--db-accent2);">成品油</span>
+            <div class="db-dropdown">
+              <button class="db-dropbtn">类型 ▼</button>
+              <div class="db-drop-menu">
+                <a href="javascript:void(0)" onclick="dbShowProduct('diesel')">柴油</a>
+                <a href="javascript:void(0)" onclick="dbShowProduct('gasoline')">汽油</a>
+                <a href="javascript:void(0)" onclick="dbShowProduct('fuel-oil')">燃料油</a>
+              </div>
+            </div>
+          </h2>
+          <div id="db-diesel" class="db-product-tbl">
+            <div class="db-tbl-wrap">
+              <table class="db-tbl">
+                <thead><tr><th>名称</th><th>现价</th><th>涨跌</th><th>涨跌幅</th></tr></thead>
+                <tbody>
+                  <tr><td>国际现货价:柴油</td><td>727.25</td><td class="db-neg">-7.50</td><td class="db-neg">-1.02%</td></tr>
+                  <tr><td>超低硫2号柴油:纽约港</td><td>730.80</td><td class="db-neg">-6.80</td><td class="db-neg">-0.92%</td></tr>
+                  <tr><td>超低硫2号柴油:海湾</td><td>725.60</td><td class="db-neg">-7.10</td><td class="db-neg">-0.97%</td></tr>
+                  <tr><td>超低硫CARB柴油:洛杉矶</td><td>740.20</td><td class="db-neg">-6.50</td><td class="db-neg">-0.87%</td></tr>
+                  <tr><td>柴油(0.5%):新加坡FOB</td><td>715.40</td><td class="db-neg">-5.80</td><td class="db-neg">-0.80%</td></tr>
+                  <tr><td>柴油(0.05%):新加坡FOB</td><td>735.80</td><td class="db-neg">-7.20</td><td class="db-neg">-0.97%</td></tr>
+                  <tr><td>柴油(0.05%):鹿特丹FOB</td><td>728.60</td><td class="db-neg">-6.70</td><td class="db-neg">-0.91%</td></tr>
+                  <tr><td>瓦斯油:新加坡</td><td>718.50</td><td class="db-neg">-5.90</td><td class="db-neg">-0.82%</td></tr>
+                  <tr><td>瓦斯油:地中海</td><td>722.30</td><td class="db-neg">-6.20</td><td class="db-neg">-0.85%</td></tr>
+                  <tr><td>柴油零售(含税):美国</td><td>750.80</td><td class="db-neg">-5.50</td><td class="db-neg">-0.73%</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div id="db-gasoline" class="db-product-tbl" style="display:none">
+            <div class="db-tbl-wrap">
+              <table class="db-tbl">
+                <thead><tr><th>名称</th><th>现价</th><th>涨跌</th><th>涨跌幅</th></tr></thead>
+                <tbody>
+                  <tr><td>无铅汽油(92#):新加坡FOB</td><td>2.54</td><td class="db-pos">+0.01</td><td class="db-pos">+0.40%</td></tr>
+                  <tr><td>无铅汽油(95#):新加坡FOB</td><td>2.60</td><td class="db-pos">+0.02</td><td class="db-pos">+0.78%</td></tr>
+                  <tr><td>优质无铅汽油(95#):鹿特丹</td><td>2.65</td><td class="db-pos">+0.03</td><td class="db-pos">+1.15%</td></tr>
+                  <tr><td>常规普通汽油:纽约港FOB</td><td>2.52</td><td class="db-pos">+0.01</td><td class="db-pos">+0.40%</td></tr>
+                  <tr><td>常规普通汽油:墨西哥湾</td><td>2.48</td><td>0.00</td><td>0.00%</td></tr>
+                  <tr><td>RBOB普通汽油:洛杉矶</td><td>2.58</td><td class="db-pos">+0.02</td><td class="db-pos">+0.78%</td></tr>
+                  <tr><td>汽油零售(含税):美国</td><td>3.20</td><td class="db-pos">+0.05</td><td class="db-pos">+1.59%</td></tr>
+                  <tr><td>优质汽油:地中海</td><td>2.62</td><td class="db-pos">+0.02</td><td class="db-pos">+0.77%</td></tr>
+                  <tr><td>FOB:甲基叔丁基醚:墨西哥湾</td><td>2.80</td><td class="db-pos">+0.03</td><td class="db-pos">+1.08%</td></tr>
+                  <tr><td>FOB:汽油:墨西哥湾</td><td>2.47</td><td>0.00</td><td>0.00%</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div id="db-fuel-oil" class="db-product-tbl" style="display:none">
+            <div class="db-tbl-wrap">
+              <table class="db-tbl">
+                <thead><tr><th>名称</th><th>现价</th><th>涨跌</th><th>涨跌幅</th></tr></thead>
+                <tbody>
+                  <tr><td>燃料油(高硫180):新加坡FOB</td><td>380.50</td><td class="db-neg">-5.20</td><td class="db-neg">-1.35%</td></tr>
+                  <tr><td>燃料油(高硫380):新加坡FOB</td><td>360.20</td><td class="db-neg">-4.80</td><td class="db-neg">-1.32%</td></tr>
+                  <tr><td>燃料油(低硫180):地中海FOB</td><td>420.80</td><td class="db-neg">-6.50</td><td class="db-neg">-1.52%</td></tr>
+                  <tr><td>燃料油(低硫180):鹿特丹FOB</td><td>415.60</td><td class="db-neg">-6.20</td><td class="db-neg">-1.47%</td></tr>
+                  <tr><td>燃料油(高硫180):阿拉伯湾</td><td>375.40</td><td class="db-neg">-5.00</td><td class="db-neg">-1.32%</td></tr>
+                  <tr><td>燃料油(高硫380):阿拉伯湾</td><td>355.60</td><td class="db-neg">-4.60</td><td class="db-neg">-1.28%</td></tr>
+                  <tr><td>2号取暖油:纽约港FOB</td><td>410.20</td><td class="db-neg">-6.00</td><td class="db-neg">-1.44%</td></tr>
+                  <tr><td>燃料油(含硫1.0%):地中海</td><td>395.60</td><td class="db-neg">-5.50</td><td class="db-neg">-1.37%</td></tr>
+                  <tr><td>燃料油(粘度380,含硫3.5%):新加坡</td><td>358.40</td><td class="db-neg">-4.50</td><td class="db-neg">-1.24%</td></tr>
+                  <tr><td>燃油(含硫1.0%):鹿特丹港</td><td>398.20</td><td class="db-neg">-5.60</td><td class="db-neg">-1.39%</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- K线图 -->
+        <section id="db-k-line" class="db-section" style="height:450px">
+          <h2>K线图
+            <button onclick="dbFullscreenKLine()" style="float:right; margin-left:10px; padding:3px 10px; border-radius:6px; background:rgba(228,180,74,.12); border:1px solid rgba(228,180,74,.35); color:var(--db-accent); font-size:11px; cursor:pointer; font-weight:700;" title="全屏查看">
+              ⛶ 全屏
+            </button>
+          </h2>
+          <div class="db-kctrl">
+            <label style="color:var(--db-muted);font-size:13px">品种：</label>
+            <select id="db-kline-product" onchange="dbChangeProduct(this.value)">
+              <option value="brent">布伦特原油</option>
+              <option value="wti">WTI原油</option>
+              <option value="china">中国胜利原油</option>
+              <option value="future1">主力合约期货1</option>
+              <option value="future2">主力合约期货2</option>
+              <option value="future3">主力合约期货3</option>
+            </select>
+          </div>
+          <div id="dbKLineChart" style="width:100%;height:340px;"></div>
+        </section>
+
+        <!-- 供需 -->
+        <section id="db-supply-demand" class="db-section" style="height:700px">
+          <h2>供需</h2>
+          <div class="db-sd-wrap">
+            <div class="db-sd-row">
+              <h3>欧佩克成员国原油产量</h3>
+              <div id="dbOpecPie" style="width:100%;flex:1;min-height:0"></div>
+            </div>
+            <div class="db-sd-row">
+              <h3>全球石油需求量预测</h3>
+              <div id="dbDemandBar" style="width:100%;flex:1;min-height:0"></div>
+            </div>
+            <div class="db-sd-row">
+              <h3>炼油厂开工率</h3>
+              <div class="db-tbl-wrap">
+                <table class="db-tbl">
+                  <thead><tr><th>国家/地区</th><th>开工率(%)</th><th>变化</th></tr></thead>
+                  <tbody>
+                    <tr><td>美国</td><td>87.5</td><td class="db-pos">+1.2%</td></tr>
+                    <tr><td>德国</td><td>82.3</td><td class="db-pos">+0.8%</td></tr>
+                    <tr><td>法国</td><td>79.6</td><td class="db-pos">+0.5%</td></tr>
+                    <tr><td>意大利</td><td>81.2</td><td class="db-pos">+0.7%</td></tr>
+                    <tr><td>欧洲十六国</td><td>84.1</td><td class="db-pos">+0.9%</td></tr>
+                    <tr><td>英国</td><td>78.5</td><td class="db-pos">+0.3%</td></tr>
+                    <tr><td>西班牙</td><td>76.8</td><td class="db-pos">+0.4%</td></tr>
+                    <tr><td>荷兰</td><td>80.2</td><td class="db-pos">+0.6%</td></tr>
+                    <tr><td>比利时</td><td>77.9</td><td class="db-pos">+0.2%</td></tr>
+                    <tr><td>波兰</td><td>75.4</td><td class="db-pos">+0.5%</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 右侧三格：裂解/资讯/下载 -->
+        <div id="db-right-col">
+          <section class="db-section" style="height:auto">
+            <h2>裂解/价差 <button class="db-section-btn" onclick="dbOpenModal()">自定义</button></h2>
+            <div class="db-tbl-wrap" style="max-height:200px">
+              <table class="db-tbl">
+                <thead><tr><th>名称</th><th>价差</th><th>涨跌</th><th>涨跌幅</th></tr></thead>
+                <tbody>
+                  <tr><td>WTI-布伦特</td><td>-0.85</td><td class="db-pos">+0.01</td><td class="db-neg">-1.18%</td></tr>
+                  <tr><td>WTI-上海原油</td><td>-2.35</td><td class="db-neg">-0.05</td><td class="db-pos">+2.10%</td></tr>
+                  <tr><td>布伦特-上海原油</td><td>-1.50</td><td class="db-neg">-0.06</td><td class="db-pos">+4.00%</td></tr>
+                  <tr><td>WTI原油裂解</td><td>15.20</td><td class="db-pos">+0.30</td><td class="db-pos">+2.01%</td></tr>
+                  <tr><td>ICE柴油裂解</td><td>22.50</td><td class="db-neg">-0.20</td><td class="db-neg">-0.88%</td></tr>
+                  <tr><td>布伦特原油裂解</td><td>18.30</td><td class="db-pos">+0.15</td><td class="db-pos">+0.83%</td></tr>
+                  <tr><td>汽油裂解价差</td><td>12.80</td><td class="db-neg">-0.10</td><td class="db-neg">-0.78%</td></tr>
+                  <tr><td>柴油裂解价差</td><td>20.50</td><td class="db-pos">+0.25</td><td class="db-pos">+1.23%</td></tr>
+                  <tr><td>航空煤油裂解</td><td>19.20</td><td class="db-pos">+0.18</td><td class="db-pos">+0.95%</td></tr>
+                  <tr><td>燃料油裂解</td><td>8.50</td><td class="db-neg">-0.05</td><td class="db-neg">-0.58%</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+          <section class="db-section" style="height:auto">
+            <h2>相关资讯</h2>
+            <div class="db-tbl-wrap" style="max-height:190px">
+              <table class="db-tbl">
+                <thead><tr><th>时间</th><th>机构</th><th>标题</th><th>观点</th></tr></thead>
+                <tbody>
+                  <tr><td>02-28</td><td>IEA</td><td>全球石油需求预测报告</td><td>预计2026年需求增长2.3%</td></tr>
+                  <tr><td>02-27</td><td>OPEC</td><td>月度石油市场报告</td><td>维持产量目标不变</td></tr>
+                  <tr><td>02-26</td><td>EIA</td><td>美国原油库存数据</td><td>库存下降超预期</td></tr>
+                  <tr><td>02-25</td><td>高盛</td><td>大宗商品前景分析</td><td>看涨原油价格至90美元</td></tr>
+                  <tr><td>02-24</td><td>摩根大通</td><td>能源市场周报</td><td>供应紧张局势持续</td></tr>
+                  <tr><td>02-23</td><td>BP</td><td>能源统计年报</td><td>全球能源消费结构变化</td></tr>
+                  <tr><td>02-22</td><td>壳牌</td><td>行业前景展望</td><td>天然气需求强劲增长</td></tr>
+                  <tr><td>02-21</td><td>瑞银</td><td>投资策略报告</td><td>推荐能源板块配置</td></tr>
+                  <tr><td>02-20</td><td>美林</td><td>市场情绪分析</td><td>投资者信心回升</td></tr>
+                  <tr><td>02-19</td><td>花旗</td><td>全球宏观报告</td><td>经济复苏带动需求</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+
+      </main>
+    </div>
+
+    <!-- 自定义裂解价差弹窗 -->
+    <div id="db-custom-modal">
+      <div class="db-modal-box">
+        <div class="db-modal-hd"><h2>自定义裂解价差看板</h2></div>
+        <div class="db-modal-bd">
+          <div class="db-ctrl-row">
+            <div class="db-ctrl-grp">
+              <label>起止日期：</label>
+              <input type="date" id="db-start-date" value="2026-01-01">
+              <span style="color:var(--db-muted)">至</span>
+              <input type="date" id="db-end-date" value="2026-02-28">
+            </div>
+            <div class="db-ctrl-grp">
+              <label>类型1：</label>
+              <select id="db-type1">
+                <option value="brent">布伦特原油</option>
+                <option value="wti">WTI原油</option>
+                <option value="shanghai">上海原油</option>
+                <option value="wti-crack">WTI裂解</option>
+                <option value="ice-diesel">ICE柴油裂解</option>
+              </select>
+            </div>
+            <div class="db-ctrl-grp">
+              <label>类型2：</label>
+              <select id="db-type2">
+                <option value="brent">布伦特原油</option>
+                <option value="wti" selected>WTI原油</option>
+                <option value="shanghai">上海原油</option>
+                <option value="wti-crack">WTI裂解</option>
+                <option value="ice-diesel">ICE柴油裂解</option>
+              </select>
+            </div>
+            <button class="db-modal-btn" onclick="dbRenderCustom()">查询</button>
+          </div>
+          <table class="db-modal-tbl">
+            <thead><tr><th>类型</th><th>现价</th><th>涨跌</th><th>涨跌幅</th></tr></thead>
+            <tbody id="db-modal-tbody"><tr><td colspan="4" style="text-align:center;color:var(--db-muted)">请选择条件后点击查询</td></tr></tbody>
+          </table>
+          <div class="db-chart-wrap">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+              <span style="color:var(--db-accent);font-size:14px;font-weight:800">价格趋势图</span>
+              <button class="db-modal-btn" onclick="dbDownloadChart()" style="font-size:11px;padding:4px 12px">下载图表</button>
+            </div>
+            <div id="dbCustomLineChart" style="width:100%;height:280px"></div>
+          </div>
+        </div>
+        <div class="db-modal-ft"><button class="db-close-btn" onclick="dbCloseModal()">关闭</button></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="view-api" class="view">
+    <div style="width:100%;height:100%;display:flex;flex-direction:column;overflow:hidden;">
+      <iframe id="db-download-frame" style="flex:1;width:100%;border:none;background:#0b0f14;"></iframe>
+    </div>
+  </div>
+  <div id="view-forecast" class="view">
+
+    <!-- Hero strip -->
+    <div class="fc-hero">
+      <div class="wrap">
+        <div class="fc-hero-inner">
+          <div class="fc-hero-left">
+            <div class="fc-hero-badge"><span class="fc-hero-badge-dot"></span>预测与风控 · Forecasting Hub</div>
+            <h1 class="fc-hero-title">原油价格 <span>预测中心</span></h1>
+            <div class="fc-hero-sub">多源因子驱动 · 区间预测 · 情景模拟 · 风险分解（Demo 演示版）</div>
+          </div>
+          <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+            <div class="fc-pill">
+              <svg width="10" height="10" viewBox="0 0 10 10"><circle cx="5" cy="5" r="4" fill="rgba(57,217,138,.8)"/></svg>
+              演示数据（静态）
+            </div>
+            <span id="fc-risk-badge-hero" class="fc-risk-pill" style="border:1px solid rgba(255,204,102,.3); background:rgba(255,204,102,.08);">
+              <span class="fc-risk-dot" style="background:#f5c842; box-shadow:0 0 0 3px rgba(245,200,66,.15);"></span>
+              风险等级：中
+            </span>
+          </div>
+        </div>
+
+        <!-- Tab bar -->
+        <div class="fc-tabs">
+          <button class="fc-tab active" data-tab="forecast">
+            <span class="fc-tab-icon">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M4 19V5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M4 19h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M7 14l3-3 3 2 4-5" stroke="rgba(216,179,106,.9)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+            中短期预测
+          </button>
+          <button class="fc-tab" data-tab="factors">
+            <span class="fc-tab-icon">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M6 20V10" stroke="rgba(111,208,255,.9)" stroke-width="2.2" stroke-linecap="round"/><path d="M12 20V6" stroke="rgba(216,179,106,.9)" stroke-width="2.2" stroke-linecap="round"/><path d="M18 20V13" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+            </span>
+            因子分析
+          </button>
+          <button class="fc-tab" data-tab="backtest">
+            <span class="fc-tab-icon">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M20 6 9 17l-5-5" stroke="rgba(57,217,138,.9)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+            回测验证
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Content panels -->
+    <div class="fc-content">
+      <div class="wrap">
+
+        <!-- ── Panel 1: Forecast ── -->
+        <div class="fc-panel active" id="fc-panel-forecast">
+          <div class="fc-main-grid">
+            <!-- Left: chart + stats -->
+            <div>
+              <div class="fc-card">
+                <div class="fc-card-head">
+                  <h3>价格走势 与 预测区间</h3>
+                  <div class="fc-card-meta">
+                    <span id="fc-update-pill" class="fc-pill">演示数据</span>
+                    <div style="position:relative;">
+                      <button class="fc-btn secondary" id="fc-btn-alert" style="font-size:11px; padding:6px 10px;">⚠ 预警设置</button>
+                      <!-- Alert panel -->
+                      <div class="fc-alert-panel" id="fc-alert-panel">
+                        <div class="fc-alert-head">
+                          <div class="t">预警设置（Demo）</div>
+                          <button class="fc-pop-close" id="fc-alert-close">×</button>
+                        </div>
+                        <div class="fc-alert-body">
+                          <div class="fc-alert-group">
+                            <div class="gt">价格预警</div>
+                            <label class="fc-check-line"><input type="checkbox" id="al_price_on"> 启用价格阈值预警（达到/突破即提醒）</label>
+                            <div class="fc-num-row"><span>阈值（美元）</span><input class="fc-num-input" id="al_price_level" type="number" placeholder="例如 90"/></div>
+                          </div>
+                          <div class="fc-alert-group">
+                            <div class="gt">技术位 / 区间预警</div>
+                            <label class="fc-check-line"><input type="checkbox" id="al_boll_on" checked> 突破布林带（上/下轨）</label>
+                            <label class="fc-check-line"><input type="checkbox" id="al_sr_on"> 支撑/阻力位突破</label>
+                            <div class="fc-num-row"><span>支撑位</span><input class="fc-num-input" id="al_support" type="number" placeholder="例如 82"/></div>
+                            <div class="fc-num-row"><span>阻力位</span><input class="fc-num-input" id="al_resist" type="number" placeholder="例如 88"/></div>
+                          </div>
+                          <div class="fc-alert-group">
+                            <div class="gt">风险 / 波动预警</div>
+                            <label class="fc-check-line"><input type="checkbox" id="al_risk_jump"> 风险等级跳变（低↔中↔高）</label>
+                            <label class="fc-check-line"><input type="checkbox" id="al_vol_spike"> 波动率激增</label>
+                            <div class="fc-num-row"><span>波动阈值（%）</span><input class="fc-num-input" id="al_vol_level" type="number" placeholder="例如 25"/></div>
+                          </div>
+                          <div class="fc-alert-footer">
+                            <button class="fc-btn secondary" id="fc-alert-reset" style="font-size:11px;">清空</button>
+                            <button class="fc-btn" id="fc-alert-save" style="font-size:11px;">保存设置</button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <button class="fc-btn secondary" id="fc-btn-reset" style="font-size:11px; padding:6px 10px;">重置</button>
+                    <button class="fc-btn" id="fc-btn-export" style="font-size:11px; padding:6px 10px;">导出图表</button>
+                  </div>
+                </div>
+                <div class="fc-card-body">
+                  <!-- Toolbar -->
+                  <div class="fc-toolbar">
+                    <div class="fc-control">
+                      <label>标的</label>
+                      <select class="fc-select" id="fc-asset" style="min-width:130px;">
+                        <option value="brent" selected>Brent 现货</option>
+                        <option value="wti">WTI 现货</option>
+                      </select>
+                    </div>
+                    <div class="fc-control">
+                      <label>预测期</label>
+                      <select class="fc-select" id="fc-horizon" style="min-width:80px;">
+                        <option value="1" selected>T+1</option>
+                        <option value="7">T+7</option>
+                        <option value="30">T+30</option>
+                      </select>
+                    </div>
+                    <div class="fc-control">
+                      <label>模型</label>
+                      <select class="fc-select" id="fc-model">
+                        <option value="stacking" selected>Stacking（XGB/LGBM/Cat）</option>
+                        <option value="lstm">LSTM（示例）</option>
+                        <option value="prophet">Prophet（示例）</option>
+                        <option value="arima">ARIMA（示例）</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <!-- Chart -->
+                  <div class="fc-chart-wrap" id="fc-chart-wrap" title="滚轮缩放 · 拖动平移 · 双击重置">
+                    <div class="fc-chart-label">
+                      <span class="fc-pill" id="fc-view-pill">视图：— 天</span>
+                    </div>
+                    <svg id="fc-chart" width="100%" height="100%" viewBox="0 0 1100 480"></svg>
+                    <div class="fc-tooltip" id="fc-tip"></div>
+                  </div>
+
+                  <!-- Stats -->
+                  <div class="fc-stats">
+                    <div class="fc-stat">
+                      <div class="k">当前价（Spot）</div>
+                      <div class="v gold" id="fc-stat-spot">—</div>
+                    </div>
+                    <div class="fc-stat">
+                      <div class="k" id="fc-stat-pt-label">点预测（T+1）</div>
+                      <div class="v" id="fc-stat-point">—</div>
+                    </div>
+                    <div class="fc-stat">
+                      <div class="k">80% 区间大小</div>
+                      <div class="v" id="fc-stat-80">—</div>
+                    </div>
+                    <div class="fc-stat">
+                      <div class="k">涨跌概率预测</div>
+                      <div class="v" id="fc-stat-dir">—</div>
+                    </div>
+                  </div>
+
+                  <div class="fc-hints">
+                    <span class="fc-pill">🖱 滚轮：缩放</span>
+                    <span class="fc-pill">↔ 拖动：平移</span>
+                    <span class="fc-pill">⊕ 双击：重置视图</span>
+                    <span class="fc-pill">💡 悬停：显示数值</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right: consensus -->
+            <div>
+              <div class="fc-card">
+                <div class="fc-card-head">
+                  <h3>市场一致预期</h3>
+                  <span class="fc-pill">年度均值口径</span>
+                </div>
+                <div class="fc-card-body">
+                  <table class="fc-consensus-table">
+                    <thead><tr><th>机构</th><th>年度均值</th><th>预期逻辑</th></tr></thead>
+                    <tbody id="fc-consensus-tbody"></tbody>
+                  </table>
+                  <div class="fc-note" style="margin-top:12px;">
+                    一致预期通常为<strong>年度均价</strong>，与 T+1/T+7/T+30 时间尺度不同。此处保留"逻辑摘要"用于解释观点来源。
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Scenario + Industry -->
+          <div class="fc-scenario-grid">
+            <div class="fc-card">
+              <div class="fc-card-head">
+                <h3>情景模拟</h3>
+                <span class="fc-pill">调因子 → 即时改预测</span>
+              </div>
+              <div class="fc-card-body">
+                <div class="fc-sliders" id="fc-sliders"></div>
+                <div class="fc-note" style="margin-top:12px;">
+                  地缘风险↑ → 区间加宽 · 需求↑/供给↓ → 点预测上移 · 美元↑ → 下行压力
+                </div>
+              </div>
+            </div>
+            <div class="fc-card">
+              <div class="fc-card-head">
+                <h3>行业冲击评估</h3>
+                <span class="fc-pill">当前预测下</span>
+              </div>
+              <div class="fc-card-body">
+                <div class="fc-impact-grid" id="fc-impact-grid"></div>
+                <div class="fc-note">
+                  <strong>一句话总结：</strong><span id="fc-impact-summary">—</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Panel 2: Factors ── -->
+        <div class="fc-panel" id="fc-panel-factors">
+          <div class="fc-kpi-row">
+            <div class="fc-kpi"><div class="k">驱动因子数量</div><div class="v" id="fc-kpi-count">—</div></div>
+            <div class="fc-kpi"><div class="k">主导方向</div><div class="v" id="fc-kpi-dir">—</div></div>
+            <div class="fc-kpi"><div class="k">Top1 贡献</div><div class="v" id="fc-kpi-top1">—</div></div>
+            <div class="fc-kpi"><div class="k">解释度（模拟）</div><div class="v" id="fc-kpi-expl">—</div></div>
+          </div>
+
+          <div class="fc-factors-grid">
+            <!-- Factor board -->
+            <div>
+              <div class="fc-card">
+                <div class="fc-card-head">
+                  <h3>因子重要度看板</h3>
+                  <span class="fc-pill" id="fc-factor-meta">Brent · T+1 · Stacking</span>
+                </div>
+                <div id="fc-factor-board" class="fc-factor-board"></div>
+              </div>
+              <div class="fc-note">
+                <strong>交互提示：</strong>将鼠标移到因子名称上，会弹出说明与相关新闻。弹窗可移入可点击。
+              </div>
+              <!-- Scenario sliders below factor board -->
+            </div>
+
+            <!-- Right stack: trend + timeline -->
+            <div style="display:grid; gap:16px;">
+              <div class="fc-card">
+                <div class="fc-card-head">
+                  <h3>历史涨跌解释</h3>
+                  <span class="fc-pill" id="fc-trend-meta">最近 180 天分段</span>
+                </div>
+                <div class="fc-card-body">
+                  <div class="fc-trend-list" id="fc-trend-list"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Timeline: full width -->
+          <div class="fc-card" style="margin-top:16px;">
+            <div class="fc-card-head">
+              <h3>历史事件时间轴</h3>
+              <span class="fc-pill">← 左右滚动查看</span>
+            </div>
+            <div class="fc-card-body">
+              <div class="fc-timeline" id="fc-timeline"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Panel 3: Backtest ── -->
+        <div class="fc-panel" id="fc-panel-backtest">
+          <div class="fc-kpi-row">
+            <div class="fc-kpi"><div class="k">方向准确率</div><div class="v" id="fc-bt-acc">—</div></div>
+            <div class="fc-kpi"><div class="k">区间命中率（80%）</div><div class="v" id="fc-bt-cov80">—</div></div>
+            <div class="fc-kpi"><div class="k">区间命中率（95%）</div><div class="v" id="fc-bt-cov95">—</div></div>
+            <div class="fc-kpi"><div class="k">MSE（模拟）</div><div class="v" id="fc-bt-mse">—</div></div>
+          </div>
+
+          <div class="fc-bt-grid">
+            <div>
+              <div class="fc-mini-chart-wrap">
+                <div class="fc-mini-legend">
+                  <span><span class="fc-swatch" style="background:rgba(111,208,255,.9)"></span> 真实</span>
+                  <span><span class="fc-swatch" style="background:rgba(216,179,106,.9)"></span> 预测</span>
+                  <span><span class="fc-swatch" style="background:rgba(216,179,106,.2); border:1px solid rgba(216,179,106,.3)"></span> 80%区间</span>
+                </div>
+                <svg id="fc-bt-chart" width="100%" height="100%" viewBox="0 0 1100 460"></svg>
+              </div>
+              <div class="fc-note" style="margin-top:12px;">
+                示例为"预测 vs 真实 + 80% 区间带"回测对比图。后续替换为实际历史预测序列即可。
+              </div>
+            </div>
+            <div>
+              <div class="fc-card">
+                <div class="fc-card-head"><h3>混淆矩阵（价格区间分级）</h3></div>
+                <div class="fc-card-body">
+                  <table class="fc-bt-matrix">
+                    <thead><tr><th>真实 \ 预测</th><th>低</th><th>中</th><th>高</th></tr></thead>
+                    <tbody id="fc-bt-matrix"></tbody>
+                  </table>
+                  <div class="fc-note" id="fc-bt-matrix-note" style="margin-top:10px;">—</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div><!-- /fc-content -->
+
+    <!-- Factor popover -->
+    <div class="fc-popover" id="fc-popover">
+      <div class="fc-pop-head">
+        <div>
+          <div class="fc-pop-title" id="fc-pop-title">—</div>
+          <div class="fc-pop-sub" id="fc-pop-sub">—</div>
+        </div>
+        <button class="fc-pop-close" id="fc-pop-close">×</button>
+      </div>
+      <div class="fc-pop-body">
+        <div>
+          <div class="fc-pop-sec-title">
+            <span>因子解释</span>
+            <a class="fc-link-btn gold" id="fc-pop-detail" href="#" target="_blank" rel="noopener">详细介绍 →</a>
+          </div>
+          <div class="fc-pop-text" id="fc-pop-explain">—</div>
+        </div>
+        <div>
+          <div class="fc-pop-sec-title">
+            <span>相关新闻</span>
+            <a class="fc-link-btn" id="fc-pop-morenews" href="#" target="_blank" rel="noopener">更多新闻</a>
+          </div>
+          <div class="fc-news-list" id="fc-pop-news"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="fc-toast" id="fc-toast">已保存</div>
+
+  </div>
+  <!-- /view-forecast -->
+
+  <div id="view-hedge" class="view">
+  <div style="padding-top:var(--header-h); min-height:100vh; background:#050810;">
+
+    <!-- 套保助手专属CSS（scoped via hedge- prefix） -->
+    <style>
+      #view-hedge .hg-wrap { max-width:1600px; margin:0 auto; padding:28px 20px 60px; }
+      #view-hedge .hg-page-title { color:#FFD700; font-size:22px; font-weight:900; letter-spacing:.5px; margin-bottom:24px; padding-bottom:14px; border-bottom:1px solid rgba(255,215,0,.20); display:flex; align-items:center; gap:12px; }
+      #view-hedge .hg-core { display:flex; gap:28px; }
+      #view-hedge .hg-input-area { width:40%; background:rgba(40,40,40,.75); border:1px solid rgba(255,215,0,.45); border-radius:10px; padding:28px; display:flex; flex-direction:column; gap:22px; backdrop-filter:blur(8px); }
+      #view-hedge .hg-btn-group { display:flex; gap:14px; }
+      #view-hedge .hg-btn { padding:10px 22px; border-radius:6px; cursor:pointer; font-size:14px; font-weight:700; border:1px solid #FFD700; transition:.2s; }
+      #view-hedge .hg-reset-btn { background:rgba(25,25,30,.9); color:rgba(240,240,242,.85); border-color:rgba(255,255,255,.15); }
+      #view-hedge .hg-reset-btn:hover { background:rgba(50,50,58,.9); color:#fff; }
+      #view-hedge .hg-calc-btn {
+        background: linear-gradient(135deg, #d8b36a 0%, #b8924c 100%);
+        color: rgba(8,6,2,.95); font-size:15px; font-weight:800; letter-spacing:.6px;
+        box-shadow: 0 8px 24px rgba(214,179,106,.28);
+        position:relative; overflow:hidden;
+        font-family: var(--font-display);
+      }
+      #view-hedge .hg-calc-btn::after {
+        content:'';
+        position:absolute; top:0; left:-100%; width:60%; height:100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,.2), transparent);
+        animation: calcBtnSheen 2.5s ease-in-out infinite;
+      }
+      @keyframes calcBtnSheen {
+        0% { left:-100%; }
+        100% { left:200%; }
+      }
+      #view-hedge .hg-calc-btn:hover { background:linear-gradient(135deg, #e8c37a 0%, #c8a25c 100%); transform:translateY(-1px); box-shadow:0 12px 28px rgba(214,179,106,.38); }
+      #view-hedge .hg-form-item { display:flex; flex-direction:column; gap:8px; }
+      #view-hedge .hg-form-label { font-size:14px; color:#F5DEB3; display:flex; align-items:center; gap:5px; }
+      #view-hedge .hg-required { color:#FFD700; font-size:16px; }
+      #view-hedge .hg-input { width:100%; background:rgba(5,5,8,.85); border:1px solid rgba(255,215,0,.35); color:#f0f0f2; padding:13px 16px; border-radius:10px; outline:none; font-size:15px; transition:.22s; font-family: var(--font-body); line-height:1.5; }
+      #view-hedge .hg-input:focus { border-color:#F5DEB3; border-width:2px; box-shadow:0 0 0 4px rgba(255,215,0,.10), 0 0 18px rgba(255,215,0,.15); }
+      #view-hedge .hg-input::placeholder { color:#555; }
+      #view-hedge .hg-radio-group { display:flex; gap:18px; flex-wrap:wrap; padding:4px 0; }
+      #view-hedge .hg-radio-item { display:flex; align-items:center; gap:8px; cursor:pointer; }
+      #view-hedge .hg-custom-radio { width:17px; height:17px; border:2px solid #FFD700; border-radius:50%; display:flex; justify-content:center; align-items:center; background:#0d0d0d; transition:.2s; flex-shrink:0; }
+      #view-hedge .hg-custom-radio.checked { background:#FFD700; }
+      #view-hedge .hg-custom-radio.checked::after { content:""; width:7px; height:7px; border-radius:50%; background:#000; }
+      #view-hedge .hg-radio-text { font-size:14px; color:#fff; }
+      #view-hedge .hg-tips { font-size:12px; color:#666; margin-top:2px; }
+      #view-hedge .hg-error { font-size:12px; color:#ff6666; display:none; margin-top:2px; }
+      #view-hedge .hg-contract-tips { font-size:13px; color:#F5DEB3; margin-top:5px; padding-left:8px; border-left:2px solid #FFD700; }
+      #view-hedge .hg-advanced { display:none; margin-top:10px; padding-top:10px; border-top:1px dashed #333; flex-direction:column; gap:8px; }
+      #view-hedge .hg-result-area { width:60%; display:flex; flex-direction:column; gap:18px; }
+      #view-hedge .hg-card { background:rgba(0,0,0,.70); border:1px solid rgba(255,215,0,.40); border-radius:10px; padding:22px; backdrop-filter:blur(8px); }
+      #view-hedge .hg-card-title { color:#FFD700; font-size:17px; font-weight:900; margin-bottom:18px; padding-bottom:10px; border-bottom:1px solid #222; }
+      #view-hedge .hg-result-list { display:grid; grid-template-columns:repeat(2,1fr); gap:14px 18px; }
+      #view-hedge .hg-result-item { display:flex; flex-direction:column; gap:4px; }
+      #view-hedge .hg-result-label { font-size:13px; color:#F5DEB3; letter-spacing:.4px; }
+      #view-hedge .hg-result-value { font-size:16px; color:#fff; font-weight:600; font-family: var(--font-mono); }
+      #view-hedge .hg-result-value.gold { color:#FFD700; font-size:24px; font-weight:700; font-family: var(--font-mono); }
+      #view-hedge .hg-result-value.big-gold { color:#FFD700; font-size:36px; font-weight:700; grid-column:span 2; font-family: var(--font-mono); letter-spacing:-.5px; }
+      #view-hedge .hg-result-note { font-size:11px; color:#555; margin-top:2px; }
+      #view-hedge .hg-exec-advice { display:flex; flex-direction:column; gap:10px; }
+      #view-hedge .hg-toast { position:fixed; left:50%; bottom:24px; transform:translateX(-50%); background:rgba(8,12,16,.96); border:1px solid rgba(255,215,0,.3); color:#FFD700; padding:10px 22px; border-radius:999px; font-size:13px; font-weight:800; box-shadow:0 10px 30px rgba(0,0,0,.5); display:none; z-index:3000; }
+      #view-hedge .hg-toast.show { display:block; }
+      @media (max-width:1100px) { #view-hedge .hg-core { flex-direction:column; } #view-hedge .hg-input-area, #view-hedge .hg-result-area { width:100%; } #view-hedge .hg-result-list { grid-template-columns:1fr; } #view-hedge .hg-result-value.big-gold { grid-column:span 1; } }
+    </style>
+
+    <div class="hg-wrap">
+      <div class="hg-page-title">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="#FFD700" stroke-width="2" stroke-linejoin="round"/></svg>
+        套保助手
+      </div>
+
+      <div class="hg-core">
+        <!-- 左：输入区 -->
+        <div class="hg-input-area">
+          <div class="hg-btn-group">
+            <button class="hg-btn hg-reset-btn" id="hgResetBtn">重置输入</button>
+            <button class="hg-btn hg-calc-btn" id="hgCalcBtn">计算套保方案</button>
+          </div>
+
+          <!-- 业务类型 -->
+          <div class="hg-form-item">
+            <label class="hg-form-label"><span class="hg-required">*</span>业务类型</label>
+            <div class="hg-radio-group" id="hgBizGroup">
+              <div class="hg-radio-item" data-value="采购"><div class="hg-custom-radio checked"></div><div class="hg-radio-text">采购</div></div>
+              <div class="hg-radio-item" data-value="销售"><div class="hg-custom-radio"></div><div class="hg-radio-text">销售</div></div>
+            </div>
+          </div>
+
+          <!-- 现货数量 -->
+          <div class="hg-form-item">
+            <label class="hg-form-label"><span class="hg-required">*</span>现货交易数量（桶）</label>
+            <input type="number" class="hg-input" id="hgSpotQty" placeholder="请输入正整数，≥100" min="100" step="1">
+            <div class="hg-error" id="hgSpotQtyErr">请输入≥100的正整数</div>
+            <div class="hg-tips">单位：桶，仅支持正整数，最小100桶</div>
+          </div>
+
+          <!-- 到期日期 -->
+          <div class="hg-form-item">
+            <label class="hg-form-label"><span class="hg-required">*</span>现货交易到期日期</label>
+            <input type="month" class="hg-input" id="hgExpireDate">
+            <div class="hg-error" id="hgExpireDateErr">请选择有效的到期月份</div>
+            <div class="hg-contract-tips" id="hgContractTips">系统匹配合约：SC2710</div>
+          </div>
+
+          <!-- 消费者类型 -->
+          <div class="hg-form-item">
+            <label class="hg-form-label"><span class="hg-required">*</span>消费者类型</label>
+            <div class="hg-radio-group" id="hgConsumerGroup">
+              <div class="hg-radio-item" data-value="稳健型"><div class="hg-custom-radio checked"></div><div class="hg-radio-text">稳健型</div></div>
+              <div class="hg-radio-item" data-value="中立型"><div class="hg-custom-radio"></div><div class="hg-radio-text">中立型</div></div>
+              <div class="hg-radio-item" data-value="激进型"><div class="hg-custom-radio"></div><div class="hg-radio-text">激进型</div></div>
+            </div>
+          </div>
+
+          <!-- 套保模型 -->
+          <div class="hg-form-item">
+            <label class="hg-form-label"><span class="hg-required">*</span>套保模型选择</label>
+            <div class="hg-radio-group" id="hgModelGroup">
+              <div class="hg-radio-item" data-value="最小方差模型"><div class="hg-custom-radio checked"></div><div class="hg-radio-text">最小方差模型</div></div>
+              <div class="hg-radio-item" data-value="均值-方差权衡模型"><div class="hg-custom-radio"></div><div class="hg-radio-text">均值-方差权衡模型</div></div>
+            </div>
+            <div class="hg-advanced" id="hgAdvanced">
+              <label class="hg-form-label"><span class="hg-required">*</span>最大可接受损失率（%）</label>
+              <input type="number" class="hg-input" id="hgMaxLoss" placeholder="如30代表30%" step="0.1" min="0">
+              <div class="hg-error" id="hgMaxLossErr">请输入有效的损失率数值</div>
+              <div class="hg-tips">仅均值-方差权衡模型需填写</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 右：结果区 -->
+        <div class="hg-result-area">
+          <div class="hg-card">
+            <div class="hg-card-title">套保结果</div>
+            <div class="hg-result-list">
+              <div class="hg-result-item"><div class="hg-result-label">所选模型类型</div><div class="hg-result-value" id="hgModelType">最小方差模型</div></div>
+              <div class="hg-result-item"><div class="hg-result-label">期货合约代码</div><div class="hg-result-value gold" id="hgFutCode">SC2710</div></div>
+              <div class="hg-result-item"><div class="hg-result-label">对冲类型</div><div class="hg-result-value" id="hgHedgeType">空头（采购业务）</div></div>
+              <div class="hg-result-item"><div class="hg-result-label">最终套保比例</div><div class="hg-result-value gold" id="hgHedgeRatio">85.60%</div></div>
+              <div class="hg-result-item" style="grid-column:span 2">
+                <div class="hg-result-label">期货合约数量</div>
+                <div class="hg-result-value big-gold" id="hgFutQty">5 手</div>
+                <div class="hg-result-note">已向上取整，合约单位：1000桶/手</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="hg-card">
+            <div class="hg-card-title">保证金测算</div>
+            <div class="hg-result-list">
+              <div class="hg-result-item"><div class="hg-result-label">首次开仓保证金</div><div class="hg-result-value gold" id="hgInitMargin">252,000.00 元</div><div class="hg-result-note">按交易所10%保证金比例测算</div></div>
+              <div class="hg-result-item"><div class="hg-result-label">最高补缴保证金额度</div><div class="hg-result-value gold" id="hgSuppMargin">40,320.00 元</div><div class="hg-result-note">按交易所8%维持保证金比例测算</div></div>
+              <div class="hg-result-item" style="grid-column:span 2"><div class="hg-result-label">最高总保证金</div><div class="hg-result-value big-gold" id="hgTotalMargin">292,320.00 元</div></div>
+            </div>
+          </div>
+
+          <div class="hg-card">
+            <div class="hg-card-title">执行建议</div>
+            <div class="hg-exec-advice">
+              <div class="hg-result-item"><div class="hg-result-label">开仓时机</div><div class="hg-result-value gold" id="hgOpenTime">建议3个工作日内或分仓建仓</div></div>
+              <div class="hg-result-item"><div class="hg-result-label">平仓节点</div><div class="hg-result-value gold" id="hgCloseTime">现货交易完成后1个工作日内平仓</div></div>
+            </div>
+          </div>
+
+          <!-- Export PDF -->
+          <button onclick="alert('📄 PDF导出功能即将上线！\n\n将自动生成包含套保方案、保证金测算和执行建议的完整PDF报告，可直接发送邮件或存档。')" style="
+            width:100%; padding:14px; border-radius:12px;
+            border:1px solid rgba(214,179,106,.40);
+            background:linear-gradient(135deg, rgba(214,179,106,.12) 0%, rgba(214,179,106,.04) 100%);
+            color:rgba(214,179,106,.92); font-size:14px; font-weight:700;
+            cursor:pointer; font-family: var(--font-display);
+            display:flex; align-items:center; justify-content:center; gap:10px;
+            letter-spacing:.4px; transition:.18s ease;
+          " onmouseover="this.style.borderColor='rgba(214,179,106,.70)'; this.style.transform='translateY(-1px)'; this.style.boxShadow='0 6px 20px rgba(214,179,106,.15)'" onmouseout="this.style.borderColor='rgba(214,179,106,.40)'; this.style.transform=''; this.style.boxShadow=''">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><polyline points="14 2 14 8 20 8" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><line x1="12" y1="18" x2="12" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="9" y1="15" x2="15" y2="15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            导出套保方案 PDF
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="hg-toast" id="hgToast">套保方案计算成功！</div>
+  </div>
+</div>
+
+
+  <div id="view-about" class="view"><div class="placeholder-view"><div class="placeholder-box">
+    <div class="icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
+    <h2>产品介绍 / 方法论</h2><p>了解原油罗盘的数据来源、因子体系、模型方法论与产品设计理念。<br><br>内容建设中，敬请期待。</p>
+    <button class="back-btn" onclick="switchView('view-home')">← 返回首页</button>
+  </div></div></div>
+
+  <div id="view-pricing" class="view"><div class="placeholder-view"><div class="placeholder-box">
+    <div class="icon"><svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+    <h2>订阅与定价</h2><p>灵活的个人、企业与 API 订阅方案。<br><br>定价方案建设中，敬请期待。</p>
+    <button class="back-btn" onclick="switchView('view-home')">← 返回首页</button>
+  </div></div></div>
+
+  <div id="view-contact" class="view"><div class="placeholder-view"><div class="placeholder-box">
+    <div class="icon"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+    <h2>联系我们 / 合作洽谈</h2><p>商务合作、数据定制、媒体合作或产品反馈，欢迎随时联系。<br><br>联系方式建设中，敬请期待。</p>
+    <button class="back-btn" onclick="switchView('view-home')">← 返回首页</button>
+  </div></div></div>
+
+</div><!-- /content-manager -->
+
+<!-- ═══════════════ FOOTER ═══════════════ -->
+<footer>
+  <div class="wrap">
+    <div class="footer-row">
+      <div class="footer-left">
+        <div class="footer-line">
+          <span class="footer-title">关注我们</span>
+          <div class="footer-icons">
+            <a href="javascript:void(0)" title="WeChat"><svg viewBox="0 0 24 24"><path d="M5 6h14M7 10h10M6 18l3-3h10l3 3"/></svg></a>
+            <a href="javascript:void(0)" title="X"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></a>
+            <a href="javascript:void(0)" title="LinkedIn"><svg viewBox="0 0 24 24"><path d="M4 9v11M4 5v.5"/><path d="M9 9v11"/><path d="M9 13c0-2 1.5-4 4-4 2.5 0 4 2 4 4v7"/></svg></a>
+          </div>
+        </div>
+        <div class="footer-line footer-links">
+          <span class="footer-title">联系我们</span>
+          <a href="javascript:void(0)">客户服务</a>
+          <a href="javascript:void(0)">合作洽谈</a>
+        </div>
+      </div>
+      <div class="footer-right">
+        <img src="./assets/logo.png" alt="logo" onerror="this.style.display='none'">
+        <button class="backtotop" onclick="scrollToTop()">
+          <svg viewBox="0 0 24 24"><path d="M12 19V6"/><path d="M7 10l5-5 5 5"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* ══════════════════════════════════
+   SPA VIEW SWITCHER
+══════════════════════════════════ */
+const VIEW_NAV = {
+  'view-home':null,'view-module-news':'nl-zixun','view-research':'nl-zixun',
+  'view-supply':'nl-zixun','view-database':'nl-data','view-api':'nl-data',
+  'view-forecast':'nl-forecast','view-hedge':'nl-forecast','view-warning':'nl-forecast',
+  'view-about':'nl-about','view-pricing':'nl-about','view-contact':'nl-about',
+};
+function switchView(viewId){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  const t=document.getElementById(viewId);
+  if(t) t.classList.add('active');
+  document.body.classList.toggle('view-inner', viewId!=='view-home');
+  document.querySelectorAll('.nav-link').forEach(l=>l.classList.remove('active'));
+  const navId=VIEW_NAV[viewId];
+  if(navId){const el=document.getElementById(navId);if(el)el.classList.add('active');}
+  window.scrollTo({top:0,behavior:'instant'});
+  if(viewId==='view-forecast') { setTimeout(initForecastOnce, 30); }
+  if(viewId==='view-database') { setTimeout(()=>{ if(typeof initDatabaseView==='function') initDatabaseView(); }, 30); }
+  if(viewId==='view-api') {
+    setTimeout(()=>{
+      if(typeof window._loadDbDownload==='function') window._loadDbDownload();
+      const frame = document.getElementById('db-download-frame');
+      if(frame){ frame.style.height='0'; void frame.offsetHeight; frame.style.height='calc(100vh - var(--header-h))'; }
+    }, 50);
+  }
+  if(viewId==='view-supply') {
+    setTimeout(()=>{
+      if(typeof window._loadSupplyView==='function') window._loadSupplyView();
+    }, 50);
+  }
+  if(viewId==='view-research') { setTimeout(()=>{ if(!window._rpInited){window._rpInited=true; if(typeof rpRenderAllGlobal==='function') rpRenderAllGlobal(); } }, 30); }
+  if(viewId==='view-warning') {
+    setTimeout(()=>{ 
+      if(typeof waInitSwitches==='function') waInitSwitches(); 
+      if(typeof waInitUploads==='function') waInitUploads(); 
+      if(typeof waInitCalc==='function') waInitCalc(); 
+    }, 30); 
+  }
+}
+
+
+function openLogin(){ window.location.href = 'login.html'; }
+
+// Apple 风格：滚动时导航栏背景加深
+window.addEventListener('scroll', function() {
+  const header = document.querySelector('header');
+  if (window.scrollY > 50) {
+    header.style.background = 'rgba(8,8,10,.95)';
+    header.style.borderBottomColor = 'rgba(255,255,255,.10)';
+  } else {
+    header.style.background = 'rgba(12,12,14,.80)';
+    header.style.borderBottomColor = 'rgba(255,255,255,.08)';
+  }
+});
+function scrollToTop(){window.scrollTo({top:0,behavior:'smooth'});}
+
+/* ── Update time ── */
+(function(){
+  const el=document.getElementById("updateTime");
+  if(!el)return;
+  const d=new Date(),p=n=>String(n).padStart(2,"0");
+  el.textContent=`Updated at ${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+})();
+
+/* ── Price chart (home) ── */
+(function(){
+  const wti=document.getElementById("lineWTI"),brent=document.getElementById("lineBrent");
+  if(!wti||!brent)return;
+  const x0=60,x1=870,yT=40,yB=320,N=160;
+  const mk=(seed,base,vol)=>{let v=base;const a=[];for(let i=0;i<N;i++){v+=(Math.sin((i+seed)/9)*.6+(Math.random()-.5))*vol;if(i===35)v+=35;if(i===45)v-=55;if(i===105)v-=40;if(i===118)v+=38;v=Math.max(-5,Math.min(140,v));a.push(v);}return a;};
+  const toP=a=>a.map((v,i)=>`${(x0+(x1-x0)*(i/(N-1))).toFixed(2)},${(yB-(yB-yT)*(v/100)).toFixed(2)}`).join(" ");
+  wti.setAttribute("points",toP(mk(2,55,1.5)));brent.setAttribute("points",toP(mk(7,60,1.35)));
+})();
+
+/* ── Header search ── */
+(function(){
+  const wrap=document.getElementById("searchWrap"),btn=document.getElementById("searchBtn"),input=document.getElementById("searchInput");
+  const open=()=>{document.body.classList.add("search-open");setTimeout(()=>input.focus(),0);};
+  const close=()=>{document.body.classList.remove("search-open");input.blur();};
+  const submit=()=>{const q=(input.value||"").trim();if(!q)return;alert("搜索："+q);};
+  btn.addEventListener("click",e=>{e.stopPropagation();if(!document.body.classList.contains("search-open"))open();else if((input.value||"").trim())submit();else input.focus();});
+  wrap.addEventListener("mouseenter",()=>open());
+  input.addEventListener("keydown",e=>{if(e.key==="Enter")submit();if(e.key==="Escape")close();});
+  document.addEventListener("click",e=>{if(document.body.classList.contains("search-open")&&!wrap.contains(e.target))close();});
+  input.addEventListener("blur",()=>{setTimeout(()=>{if(!wrap.matches(":hover")&&document.activeElement!==input)close();},120);});
+})();
+
+/* ══════════════════════════════════════════
+   MODULE NEWS ENGINE
+══════════════════════════════════════════ */
+(()=>{
+  const MODS=[
+    {key:"HIGHLIGHT",name:"今日重点"},{key:"Supply",name:"供给政策（OPEC+）"},{key:"Geopolitics",name:"风险事件（地缘）"},
+    {key:"Inventory",name:"数据与流向（库存）"},{key:"Freight",name:"航运与物流（运价）"},
+    {key:"Spreads",name:"结构与炼化（价差）"},{key:"Macro",name:"美元与利率（宏观）"},{key:"Demand",name:"消费与经济（需求）"},
+  ];
+  const cl=(x,a,b)=>Math.max(a,Math.min(b,x));
+  function gen(){
+    const B=[
+      {theme:"Geopolitics",title:"红海局势扰动：市场评估通道风险溢价",source:"Reuters",impact:88},
+      {theme:"Supply",title:"OPEC+ 配额与执行率：增产路径引发分歧",source:"OPEC",impact:80},
+      {theme:"Demand",title:"亚洲需求信号分化：炼厂采购节奏调整",source:"Platts",impact:62},
+      {theme:"Macro",title:"美元与实际利率波动：资金面驱动油价联动",source:"Bloomberg",impact:66},
+      {theme:"Inventory",title:"EIA/API 库存意外：成品油端变化更关键",source:"EIA",impact:72},
+      {theme:"Spreads",title:"裂解价差回落：炼厂利润边际收缩",source:"Argus",impact:55},
+      {theme:"Freight",title:"VLCC 运价波动：绕航与保险成本再定价",source:"Energy Intelligence",impact:69},
+      {theme:"Geopolitics",title:"制裁消息面升温：交易端关注执行细节",source:"Reuters",impact:64},
+      {theme:"Supply",title:"部分成员国产量偏离：市场关注纪律约束",source:"Bloomberg",impact:71},
+      {theme:"Inventory",title:"库欣库存变化：WTI 结构性驱动上升",source:"EIA",impact:70},
+      {theme:"Spreads",title:"Brent-WTI 价差调整：地区供需与物流影响",source:"Platts",impact:60},
+      {theme:"Freight",title:"Aframax 费率坚挺：区域运力短期偏紧",source:"Argus",impact:52},
+      {theme:"Macro",title:"通胀数据扰动：市场重新定价降息节奏",source:"Bloomberg",impact:58},
+      {theme:"Demand",title:"航煤/汽油需求边际改善：季节性因素升温",source:"Platts",impact:54},
+    ];
+    const now=Date.now();
+    return Array.from({length:180},(_,i)=>{
+      const b=B[i%B.length],h=cl(Math.floor(Math.random()*360),0,720);
+      const ts=now-h*3600*1000-Math.floor(Math.random()*3600*1000);
+      const impact=cl(b.impact+Math.floor((Math.random()*18)-9),1,100);
+      return{id:"n"+(20000+i),ts,theme:b.theme,title:b.title+(Math.random()>.7?"（更新）":""),source:b.source,impact,score:impact*.7+Math.max(0,100-h)*.3,summary:"示例摘要：关键事实 → 可能的价格/价差/运价影响 → 持续性判断 → 关联标的与风险点。"};
+    }).sort((a,b)=>b.ts-a.ts);
+  }
+  let S={q:"",items:gen()};
+  const $id=id=>document.getElementById(id);
+  const p2=n=>String(n).padStart(2,"0");
+  const fT=ts=>{const d=new Date(ts);return`${p2(d.getHours())}:${p2(d.getMinutes())}`;};
+  const fD=ts=>{const d=new Date(ts);return`${d.getMonth()+1}/${d.getDate()}`;};
+  const esc=s=>String(s).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;");
+  const impactCls=v=>v>=80?'impact-high':v>=50?'impact-mid':'impact-low';
+  const impactSpan=(v,prefix='影响 ')=>`<span class="${impactCls(v)}">${prefix}${v}</span>`;
+  function renderNow(){const el=$id("nowText");if(el){const d=new Date();el.textContent=`本地时间 ${p2(d.getHours())}:${p2(d.getMinutes())}`;}}
+  function hl(items){
+    const T=["Geopolitics","Supply","Inventory","Macro","Freight","Spreads","Demand"];
+    const m=new Map();for(const x of items){if(!m.has(x.theme))m.set(x.theme,[]);m.get(x.theme).push(x);}
+    for(const a of m.values())a.sort((a,b)=>b.score-a.score);
+    const s=[];for(const t of T){const a=m.get(t);if(a&&a[0])s.push(a[0]);}
+    const used=new Set(s.map(x=>x.id));
+    const sorted=items.slice().sort((a,b)=>b.score-a.score);
+    const out=s.slice();
+    for(const x of sorted){if(out.length>=40)break;if(!used.has(x.id)){out.push(x);used.add(x.id);}}
+    return out;
+  }
+  function modal({title,subtitle,mode,list,det}){
+    const w=document.createElement("div");w.className="modal-wrap";
+    let body=mode==="list"
+      ?`<div class="modal-list">${list.map(x=>`<div class="modal-item" data-id="${x.id}"><p class="tt">${esc(x.title)}</p><div class="mm"><span>${esc(x.source)} · ${fD(x.ts)} ${fT(x.ts)}</span>${impactSpan(x.impact)}</div></div>`).join("")}</div>`
+      :`<div class="modal-text">${esc(det.summary)}</div>`;
+    w.innerHTML=`<div class="modal"><div class="modal-head"><div><div class="t">${esc(title)}</div><div class="s">${esc(subtitle||"")}</div></div><button class="modal-close-btn" id="mC">关闭</button></div><div class="modal-body">${body}</div></div>`;
+    document.body.appendChild(w);
+    w.addEventListener("click",e=>{if(e.target===w)w.remove();});
+    w.querySelector("#mC").addEventListener("click",()=>w.remove());
+    if(mode==="list"){w.querySelectorAll(".modal-item").forEach(el=>{el.addEventListener("click",()=>{const item=S.items.find(x=>x.id===el.dataset.id);if(!item)return;w.remove();modal({title:item.title,subtitle:`${item.source} · ${fD(item.ts)} ${fT(item.ts)}`,mode:"detail",det:item});});});}
+  }
+  function fc(item){
+    if(!item)return`<div class="mn-feature" data-theme="Geopolitics"><div class="f-img"><div class="f-badge"><span class="f-dot"></span>暂无结果</div><div class="f-overlay"><div class="f-title">当前搜索下无匹配</div></div></div></div>`;
+    return`<div class="mn-feature" data-id="${item.id}" data-theme="${item.theme}"><div class="f-img"><div class="f-badge"><span class="f-dot"></span>今日重点 · ${impactSpan(item.impact)}</div><div class="f-overlay"><div class="f-kicker">${esc(item.source)}</div><div class="f-title">${esc(item.title)}</div><p class="f-sub">${esc(item.summary)}</p><div class="f-meta"><span>${fD(item.ts)} ${fT(item.ts)}</span><span>点击阅读</span></div></div></div></div>`;
+  }
+  function renderQuickNav(){
+    const nav=document.getElementById("mnQuickNav");if(!nav)return;
+    nav.innerHTML=MODS.map(m=>`<button class="mn-qnav-btn" data-navkey="${m.key}" onclick="document.getElementById('sec-${m.key}').scrollIntoView({behavior:'smooth',block:'nearest'})">${m.name}</button>`).join("");
+    if(nav.querySelectorAll(".mn-qnav-btn")[0])nav.querySelectorAll(".mn-qnav-btn")[0].classList.add("active");
+    const obs=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){const key=e.target.id.replace("sec-","");nav.querySelectorAll(".mn-qnav-btn").forEach(b=>b.classList.toggle("active",b.dataset.navkey===key));}});},{threshold:0.25,root:null});
+    MODS.forEach(m=>{const el=document.getElementById("sec-"+m.key);if(el)obs.observe(el);});
+  }
+  function render(){
+    const filtered=S.items.filter(x=>!S.q||(x.title+" "+x.source+" "+x.summary).toLowerCase().includes(S.q.trim().toLowerCase()));
+    const cEl=document.getElementById("resultCount");if(cEl)cEl.textContent=`${filtered.length} 条`;
+    const H=hl(filtered),hlTop=H[0]||null,hlSide=H.slice(1,14);
+    const sec=document.getElementById("mnSections");if(!sec)return;
+    sec.innerHTML=MODS.map(m=>{
+      if(m.key==="HIGHLIGHT"){
+        const sideRows=hlSide.map(x=>`<div class="hl-item" data-id="${x.id}"><div class="hl-src">${esc(x.source)}</div><p class="hl-title">${esc(x.title)}</p><div class="hl-meta"><span>${fD(x.ts)} ${fT(x.ts)}</span>${impactSpan(x.impact)}</div></div>`).join("")||`<div class="hl-item"><p class="hl-title" style="color:rgba(255,255,255,.4)">（暂无）</p></div>`;
+        return`<div class="mn-section" id="sec-HIGHLIGHT"><div class="mn-section-head"><h3>${esc(m.name)}</h3><div class="mn-section-meta"><span>${H.length} 条</span><span class="mn-sep"></span><button class="mn-btn primary" data-vm data-key="HIGHLIGHT" style="padding:4px 10px;font-size:11px;border-radius:8px;">查看更多</button></div></div><div class="mn-body mn-body-hl">${fc(hlTop)}<div class="mn-panel">${sideRows}</div></div></div>`;
+      }
+      const la=filtered.filter(x=>x.theme===m.key).sort((a,b)=>b.score-a.score);
+      const rows=la.map(x=>`<div class="mn-news-row" data-id="${x.id}"><div class="nr-src">${esc(x.source)}</div><div class="nr-title">${esc(x.title)}</div><div class="nr-meta"><span>${fD(x.ts)} ${fT(x.ts)}</span>${impactSpan(x.impact)}</div></div>`).join("")||`<div class="mn-news-row"><div class="nr-title" style="color:rgba(255,255,255,.4)">当前搜索下暂无</div></div>`;
+      return`<div class="mn-section" id="sec-${m.key}"><div class="mn-section-head"><h3>${esc(m.name)}</h3><div class="mn-section-meta"><span>${la.length} 条</span><span class="mn-sep"></span><button class="mn-btn primary" data-vm data-key="${m.key}" style="padding:4px 10px;font-size:11px;border-radius:8px;">更多</button></div></div><div class="mn-body"><div class="mn-news-list">${rows}</div></div></div>`;
+    }).join("");
+    sec.querySelectorAll("[data-id]").forEach(el=>el.addEventListener("click",()=>{const item=S.items.find(x=>x.id===el.dataset.id);if(!item)return;modal({title:item.title,subtitle:`${item.source} · ${fD(item.ts)} ${fT(item.ts)}`,mode:"detail",det:item});}));
+    sec.querySelectorAll("[data-vm]").forEach(btn=>btn.addEventListener("click",e=>{e.stopPropagation();const key=btn.dataset.key;let list=[],title="";if(key==="HIGHLIGHT"){list=H;title="今日重点 · 更多新闻";}else{const mod=MODS.find(x=>x.key===key);list=filtered.filter(x=>x.theme===key).sort((a,b)=>b.score-a.score);title=`${mod?.name||key} · 更多新闻`;}modal({title,subtitle:`共 ${list.length} 条`,mode:"list",list});}));
+  }
+  renderNow();setInterval(renderNow,20000);
+  const qEl=document.getElementById("mnQ");if(qEl)qEl.addEventListener("input",()=>{S.q=qEl.value;render();});
+  const clr=document.getElementById("mnClear");if(clr)clr.addEventListener("click",()=>{if(qEl)qEl.value="";S.q="";render();});
+  const ref=document.getElementById("mnRefresh");if(ref)ref.addEventListener("click",()=>{S.items=gen();render();});
+  render();
+  renderQuickNav();
+})();
+
+/* ══════════════════════════════════════════
+   RESEARCH PLATFORM ENGINE
+══════════════════════════════════════════ */
+(()=>{
+  const RP_TAGS=["供给","需求","宏观","库存","运价","价差","地缘冲突","航运","政策","炼化","OPEC","EIA"];
+  const RP_INSTS=["中信期货","国泰君安","中金公司","申万宏源","东证期货","华泰证券","海通证券","广发期货","某投行","OPEC","EIA"];
+  const RP_TYPES=["周报","月报","点评","策略","数据"];
+  const RP_TPLS=["地缘扰动与供需再平衡：关注库存路径与风险溢价（{type}）","Brent/WTI 曲线结构与期限价差：{tag1}与{tag2}的交易含义（{type}）","OPEC/EIA 更新速览：{tag1}变化与{tag2}信号（{type}）","宏观预期波动下的油市：{tag1}约束与{tag2}弹性（{type}）","航运与运价跟踪：运力与绕行对油价传导（{type}）","炼化开工与裂解价差：{tag1}对需求边际的指引（{type}）"];
+  function rpRand(s){let t=s+0x6D2B79F5;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return((t^(t>>>14))>>>0)/4294967296;}
+  function rpPad(n){return String(n).padStart(2,"0");}
+  function rpToISO(d){return`${d.getFullYear()}-${rpPad(d.getMonth()+1)}-${rpPad(d.getDate())}`;}
+  function rpParseDate(ts){const[d,hm]=ts.split(" ");const[y,m,dd]=d.split("-").map(Number);const[hh,mm]=(hm||"00:00").split(":").map(Number);return new Date(y,m-1,dd,hh,mm,0);}
+  function rpEsc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));}
+  function rpHL(text,q){const safe=rpEsc(text);if(!q)return safe;const re=new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"),"ig");return safe.replace(re,m=>`<span class="rp-hl">${m}</span>`);}
+  const RP_REPORTS=(()=>{const out=[];const base=20260301;for(let i=0;i<800;i++){const r1=rpRand(base+i*17),r2=rpRand(base+i*29),r3=rpRand(base+i*43);const year=2016+Math.floor(r1*11),month=1+Math.floor(r2*12),day=1+Math.floor(r3*28);const hh=Math.floor(rpRand(base+i*7)*24),mm=Math.floor(rpRand(base+i*11)*60);const inst=RP_INSTS[Math.floor(rpRand(base+i*13)*RP_INSTS.length)];const type=RP_TYPES[Math.floor(rpRand(base+i*19)*RP_TYPES.length)];const tag1=RP_TAGS[Math.floor(rpRand(base+i*23)*RP_TAGS.length)];const tag2=RP_TAGS[Math.floor(rpRand(base+i*31)*RP_TAGS.length)];const tag3=RP_TAGS[Math.floor(rpRand(base+i*37)*RP_TAGS.length)];const tpl=RP_TPLS[Math.floor(rpRand(base+i*41)*RP_TPLS.length)];const title=tpl.replace("{type}",type).replace("{tag1}",tag1).replace("{tag2}",tag2);const pages=6+Math.floor(rpRand(base+i*47)*90);const hot=10+Math.floor(rpRand(base+i*53)*90);const pool=["研究组","策略团队","能源组","张博","孙伟东","杨晓宇","陈子昂","李某","王某"];const a1=pool[Math.floor(rpRand(base+i*59)*pool.length)];const a2=pool[Math.floor(rpRand(base+i*61)*pool.length)];const tags=Array.from(new Set([tag1,tag2,tag3])).slice(0,3);out.push({id:"r"+(i+1),time:`${year}-${rpPad(month)}-${rpPad(day)} ${rpPad(hh)}:${rpPad(mm)}`,inst,title,type,pages,hot,tags,authors:a1===a2?[a1]:[a1,a2],summary:`本报告聚焦「${tags.join("、")}」主线（样例文本）。`,bullets:[`关注 ${tags[0]||"核心变量"} 的边际变化。`,`跟踪 ${tags[1]||"二级变量"} 与宏观共振。`,"结构上以区间/事件驱动为主（样例）。"]});}return out;})();
+  const LS_FAV="cc_fav_v5",LS_READ="cc_read_v5";
+  const rpFav=new Set(JSON.parse(localStorage.getItem(LS_FAV)||"[]"));
+  const rpRead=new Set(JSON.parse(localStorage.getItem(LS_READ)||"[]"));
+  const rpState={q:"",sort:"new",type:"",tags:new Set(),from:"",to:"",onlyUnread:false,showFav:false,selected:new Set(),page:1,pageSize:20};
+  const rpTodayStr=rpToISO(new Date());
+  const rpFromEl=document.getElementById("rpFrom"),rpToEl=document.getElementById("rpTo");
+  const rpFromDisp=document.getElementById("rpFromDisp"),rpToDisp=document.getElementById("rpToDisp");
+  function rpRefreshDateDisp(){rpFromDisp.textContent=rpFromEl.value||rpTodayStr;rpFromDisp.classList.toggle("rp-faint",!rpFromEl.value);rpToDisp.textContent=rpToEl.value||rpTodayStr;rpToDisp.classList.toggle("rp-faint",!rpToEl.value);}
+  function rpAttachPicker(box,input){const open=()=>{input.focus({preventScroll:true});if(typeof input.showPicker==="function")input.showPicker();};box.addEventListener("click",open);input.addEventListener("mousedown",e=>{e.preventDefault();open();});}
+  rpAttachPicker(document.getElementById("rpFromBox"),rpFromEl);
+  rpAttachPicker(document.getElementById("rpToBox"),rpToEl);
+  function rpFiltered(){let arr=RP_REPORTS.slice();if(rpState.showFav)arr=arr.filter(r=>rpFav.has(r.id));if(rpState.onlyUnread)arr=arr.filter(r=>!rpRead.has(r.id));if(rpState.type)arr=arr.filter(r=>r.type===rpState.type);if(rpState.tags.size)arr=arr.filter(r=>{const s=new Set(r.tags);for(const t of rpState.tags)if(!s.has(t))return false;return true;});if(rpState.q){const q=rpState.q.toLowerCase();arr=arr.filter(r=>r.title.toLowerCase().includes(q)||r.inst.toLowerCase().includes(q)||r.authors.join(",").toLowerCase().includes(q)||r.tags.join(",").toLowerCase().includes(q));}if(rpState.from||rpState.to){arr=arr.filter(r=>{const d=rpParseDate(r.time);if(rpState.from&&d<new Date(rpState.from+"T00:00:00"))return false;if(rpState.to&&d>new Date(rpState.to+"T23:59:59"))return false;return true;});}if(rpState.sort==="new")arr.sort((a,b)=>rpParseDate(b.time)-rpParseDate(a.time));if(rpState.sort==="hot")arr.sort((a,b)=>b.hot-a.hot);if(rpState.sort==="pages")arr.sort((a,b)=>b.pages-a.pages);return arr;}
+  function rpPageCount(n){return Math.max(1,Math.ceil(n/rpState.pageSize));}
+  function rpRenderTagChips(){const box=document.getElementById("rpTagChips");box.innerHTML="";RP_TAGS.forEach(tag=>{const el=document.createElement("div");el.className="rp-chip"+(rpState.tags.has(tag)?" active":"");el.textContent=tag;el.onclick=()=>{rpState.tags.has(tag)?rpState.tags.delete(tag):rpState.tags.add(tag);rpState.page=1;rpRenderAll();};box.appendChild(el);});}
+  function rpRenderPills(){const el=document.getElementById("rpPills");const pills=[];if(rpState.q)pills.push({k:"q",v:`搜索：${rpState.q}`});if(rpState.type)pills.push({k:"type",v:`类型：${rpState.type}`});if(rpState.tags.size)pills.push({k:"tags",v:`标签：${[...rpState.tags].join("、")}`});if(rpState.from||rpState.to)pills.push({k:"date",v:`日期：${rpState.from||"…"} ~ ${rpState.to||"…"}`});if(rpState.onlyUnread)pills.push({k:"unread",v:"仅看未读"});if(rpState.showFav)pills.push({k:"fav",v:"仅看收藏"});if(!pills.length){el.innerHTML=`<span class="rp-muted">当前筛选：无</span>`;return;}el.innerHTML=pills.map(p=>`<div class="rp-pill"><span>${rpEsc(p.v)}</span><span class="x" data-k="${p.k}">×</span></div>`).join("");el.querySelectorAll(".x").forEach(x=>x.addEventListener("click",()=>{const k=x.getAttribute("data-k");if(k==="q")rpState.q="";if(k==="type")rpState.type="";if(k==="tags")rpState.tags.clear();if(k==="date"){rpState.from="";rpState.to="";rpFromEl.value="";rpToEl.value="";rpRefreshDateDisp();}if(k==="unread")rpState.onlyUnread=false;if(k==="fav")rpState.showFav=false;rpState.page=1;rpRenderAll();}));}
+  function rpDlIcon(){return`<svg viewBox="0 0 24 24" fill="none"><path d="M12 3v10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M7 11l5 5 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 20h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`;}
+  function rpStarIcon(f){return f?`<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 17.3l-6.18 3.7 1.64-7.03L2 9.24l7.19-.61L12 2l2.81 6.63 7.19.61-5.46 4.73 1.64 7.03L12 17.3z"/></svg>`:`<svg viewBox="0 0 24 24" fill="none"><path d="M12 17.3l-6.18 3.7 1.64-7.03L2 9.24l7.19-.61L12 2l2.81 6.63 7.19.61-5.46 4.73 1.64 7.03L12 17.3z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>`;}
+  function rpDlBlob(blob,name){const u=URL.createObjectURL(blob);const a=document.createElement("a");a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),1000);}
+  function rpBuildPDF(reports,hint="研报"){if(!window.jspdf){alert("PDF 库尚未加载。");return null;}const{jsPDF}=window.jspdf;const doc=new jsPDF({unit:"pt",format:"a4"});const mg=48,w=doc.internal.pageSize.getWidth(),lw=w-mg*2,now=new Date();function hdr(){doc.setFont("helvetica","bold");doc.setFontSize(16);doc.text("研究报告（Demo）",mg,70);doc.setDrawColor(200,162,74);doc.setLineWidth(1);doc.line(mg,82,w-mg,82);doc.setFont("helvetica","normal");doc.setFontSize(10);doc.setTextColor(120);doc.text(`Generated by Crude Compass · ${now.toISOString().slice(0,19).replace("T"," ")}`,mg,98);doc.setTextColor(0);}function addRep(rep,idx){if(idx>0)doc.addPage();hdr();let y=130;doc.setFont("helvetica","bold");doc.setFontSize(14);doc.text(rep.title,mg,y,{maxWidth:lw});y+=26;doc.setFont("helvetica","normal");doc.setFontSize(11);doc.setTextColor(60);doc.text(`机构：${rep.inst}  时间：${rep.time}  类型：${rep.type}  页数：${rep.pages}p`,mg,y,{maxWidth:lw});y+=22;doc.setTextColor(0);doc.setFont("helvetica","bold");doc.setFontSize(12);doc.text("摘要",mg,y);y+=16;doc.setFont("helvetica","normal");doc.setFontSize(11);const sl=doc.splitTextToSize(rep.summary,lw);doc.text(sl,mg,y);y+=sl.length*14+14;doc.setFont("helvetica","bold");doc.text("核心观点",mg,y);y+=16;doc.setFont("helvetica","normal");rep.bullets.forEach(b=>{const bl=doc.splitTextToSize("• "+b,lw);if(y+bl.length*14>780){doc.addPage();y=80;}doc.text(bl,mg,y);y+=bl.length*14+6;});}(Array.isArray(reports)?reports:[reports]).forEach((r,i)=>addRep(r,i));return{blob:doc.output("blob"),fileName:`${hint}_${now.toISOString().slice(0,10)}.pdf`};}
+  function rpDownload(rep){rpRead.add(rep.id);localStorage.setItem(LS_READ,JSON.stringify([...rpRead]));const res=rpBuildPDF(rep,"研报_"+rep.inst.slice(0,12));if(res)rpDlBlob(res.blob,res.fileName);rpRenderAll(false);}
+  function rpRenderPager(total){const tp=rpPageCount(total);if(rpState.page>tp)rpState.page=tp;document.getElementById("rpPageInfo").textContent=`共 ${total} 条 · 第 ${rpState.page} / ${tp} 页`;const box=document.getElementById("rpPageBtns");box.innerHTML="";const mk=(label,page,cls="rp-page-btn")=>{const b=document.createElement("button");b.className=cls;b.textContent=label;b.onclick=()=>{rpState.page=page;rpRenderAll(false);};return b;};box.appendChild(mk("上一页",Math.max(1,rpState.page-1)));const s=Math.max(1,rpState.page-2),e=Math.min(tp,rpState.page+2);if(s>1)box.appendChild(mk("1",1));if(s>2){const el=document.createElement("span");el.className="rp-muted";el.textContent="…";box.appendChild(el);}for(let p=s;p<=e;p++)box.appendChild(mk(String(p),p,"rp-page-btn"+(p===rpState.page?" active":"")));if(e<tp-1){const el=document.createElement("span");el.className="rp-muted";el.textContent="…";box.appendChild(el);}if(e<tp)box.appendChild(mk(String(tp),tp));box.appendChild(mk("下一页",Math.min(tp,rpState.page+1)));}
+  function rpSyncSel(){const bar=document.getElementById("rpSelBar"),n=rpState.selected.size;document.getElementById("rpSelInfo").textContent=`已选 ${n} 篇`;n>0?bar.classList.add("show"):bar.classList.remove("show");}
+  function rpRenderTable(){const all=rpFiltered(),start=(rpState.page-1)*rpState.pageSize;const rows=all.slice(start,start+rpState.pageSize);const tbody=document.getElementById("rpTbody");tbody.innerHTML=rows.map(r=>{const tags=r.tags.map(t=>`<span class="rp-tag">${rpEsc(t)}</span>`).join("");return`<tr data-id="${r.id}"><td><input class="rp-checkbox rp-row-check" type="checkbox" ${rpState.selected.has(r.id)?"checked":""}/></td><td><div>${rpEsc(r.time.slice(5))}</div><div class="rp-muted">${rpRead.has(r.id)?"已读":"未读"} · ${rpFav.has(r.id)?"已收藏":"—"}</div></td><td><div>${rpEsc(r.inst)}</div><div class="rp-muted">${rpEsc(r.authors[0]||"")}${r.authors.length>1?" 等":""}</div></td><td class="rp-title-cell"><div class="tt">${rpHL(r.title,rpState.q)}</div><div>${tags}</div><div class="rp-row-actions"><button class="rp-action-btn rp-act-dl">${rpDlIcon()}<span>下载</span></button><button class="rp-action-btn rp-star rp-act-fav">${rpStarIcon(rpFav.has(r.id))}<span>${rpFav.has(r.id)?"已收藏":"收藏"}</span></button></div></td><td>${rpEsc(r.type)}</td><td>${r.pages}</td><td><div style="font-weight:800;color:#A27933">${r.hot}</div><div class="rp-muted">热度</div></td></tr>`;}).join("");tbody.querySelectorAll("tr").forEach(tr=>{const id=tr.getAttribute("data-id"),rep=RP_REPORTS.find(x=>x.id===id);tr.querySelector(".rp-row-check").addEventListener("change",e=>{e.target.checked?rpState.selected.add(id):rpState.selected.delete(id);rpSyncSel();});tr.querySelector(".rp-act-dl").addEventListener("click",()=>rpDownload(rep));tr.querySelector(".rp-act-fav").addEventListener("click",()=>{rpFav.has(rep.id)?rpFav.delete(rep.id):rpFav.add(rep.id);localStorage.setItem(LS_FAV,JSON.stringify([...rpFav]));rpRenderAll(false);});});const ca=document.getElementById("rpCheckAll"),pids=rows.map(r=>r.id),allSel=pids.length>0&&pids.every(id=>rpState.selected.has(id));ca.checked=allSel;ca.indeterminate=!allSel&&pids.some(id=>rpState.selected.has(id));ca.onchange=()=>{pids.forEach(id=>ca.checked?rpState.selected.add(id):rpState.selected.delete(id));rpSyncSel();rpRenderAll(false);};rpRenderPager(all.length);}
+  function rpRenderAll(resetSel=true){if(resetSel){rpState.selected.clear();rpSyncSel();}rpRefreshDateDisp();rpRenderTagChips();rpRenderPills();rpRenderTable();}
+  document.getElementById("rpQ").addEventListener("input",e=>{rpState.q=e.target.value.trim();rpState.page=1;rpRenderAll();});
+  document.getElementById("rpSort").addEventListener("change",e=>{rpState.sort=e.target.value;rpState.page=1;rpRenderAll();});
+  document.getElementById("rpType").addEventListener("change",e=>{rpState.type=e.target.value;rpState.page=1;rpRenderAll();});
+  document.getElementById("rpUnread").onclick=()=>{rpState.onlyUnread=!rpState.onlyUnread;rpState.page=1;rpRenderAll();};
+  document.getElementById("rpFavBtn").onclick=()=>{rpState.showFav=!rpState.showFav;rpState.page=1;rpRenderAll();};
+  document.getElementById("rpClearAll").onclick=()=>{rpState.q="";rpState.type="";rpState.tags.clear();rpState.from="";rpState.to="";rpState.onlyUnread=false;rpState.showFav=false;rpState.page=1;rpFromEl.value="";rpToEl.value="";rpRenderAll();};
+  document.getElementById("rpExport").onclick=()=>{const rows=rpFiltered();const head=["time","inst","title","type","pages","hot","tags"];const lines=[head.join(","),...rows.map(r=>[r.time,r.inst,`"${r.title.replaceAll('"','""')}"`,r.type,r.pages,r.hot,r.tags.join("|")].join(","))];rpDlBlob(new Blob([lines.join("\n")],{type:"text/csv;charset=utf-8"}),`研报清单_${rpToISO(new Date())}.csv`);};
+  rpFromEl.addEventListener("change",e=>{rpState.from=e.target.value;rpState.page=1;rpRefreshDateDisp();rpRenderAll();});
+  rpToEl.addEventListener("change",e=>{rpState.to=e.target.value;rpState.page=1;rpRefreshDateDisp();rpRenderAll();});
+  const rpSetRange=(f,t)=>{rpState.from=rpFromEl.value=f;rpState.to=rpToEl.value=t;rpState.page=1;rpRenderAll();};
+  document.getElementById("rpQ7").onclick=()=>{const n=new Date(),f=new Date(n);f.setDate(n.getDate()-6);rpSetRange(rpToISO(f),rpToISO(n));};
+  document.getElementById("rpQ30").onclick=()=>{const n=new Date(),f=new Date(n);f.setDate(n.getDate()-29);rpSetRange(rpToISO(f),rpToISO(n));};
+  document.getElementById("rpQY").onclick=()=>{const n=new Date();rpSetRange(`${n.getFullYear()}-01-01`,rpToISO(n));};
+  document.getElementById("rpQAll").onclick=()=>{rpState.from=rpState.to="";rpFromEl.value=rpToEl.value="";rpState.page=1;rpRenderAll();};
+  document.getElementById("rpBulkFav").onclick=()=>{rpState.selected.forEach(id=>rpFav.add(id));localStorage.setItem(LS_FAV,JSON.stringify([...rpFav]));rpRenderAll(false);};
+  document.getElementById("rpBulkDl").onclick=()=>{const reps=[...rpState.selected].map(id=>RP_REPORTS.find(r=>r.id===id)).filter(Boolean);reps.forEach((r,i)=>setTimeout(()=>rpDownload(r),i*350));};
+  document.getElementById("rpBulkMerge").onclick=()=>{const reps=[...rpState.selected].map(id=>RP_REPORTS.find(r=>r.id===id)).filter(Boolean);if(!reps.length)return;const res=rpBuildPDF(reps,"今日研报包");if(res)rpDlBlob(res.blob,res.fileName);reps.forEach(r=>rpRead.add(r.id));localStorage.setItem(LS_READ,JSON.stringify([...rpRead]));rpRenderAll(false);};
+  document.getElementById("rpBulkClear").onclick=()=>{rpState.selected.clear();rpSyncSel();rpRenderAll(false);};
+  document.getElementById("rpGoPage").onclick=()=>{const v=Number(document.getElementById("rpJumpInput").value),tp=rpPageCount(rpFiltered().length);if(!v||v<1||v>tp)return;rpState.page=v;rpRenderAll(false);};
+  window.rpRenderAllGlobal = rpRenderAll;
+})();
+
+/* ══════════════════════════════════════════════════════
+   FORECAST CENTER ENGINE
+══════════════════════════════════════════════════════ */
+let fcInited = false;
+function initForecastOnce(){
+  if(fcInited) return;
+  fcInited = true;
+  initForecast();
+}
+
+function initForecast(){
+  const $ = id => document.getElementById(id);
+  const money = x => "$" + x.toFixed(2);
+  const pct = x => (x*100).toFixed(1) + "%";
+  const clamp = (x,a,b) => Math.max(a,Math.min(b,x));
+  function seededNoise(i,seed=7){const t=Math.sin((i+1)*12.9898+seed*78.233)*43758.5453;return(t-Math.floor(t))-.5;}
+  function erf(x){const sign=x>=0?1:-1;x=Math.abs(x);const a1=.254829592,a2=-.284496736,a3=1.421413741,a4=-1.453152027,a5=1.061405429,p=.3275911;const t=1/(1+p*x);const y=1-((((a5*t+a4)*t+a3)*t+a2)*t+a1)*t*Math.exp(-x*x);return sign*y;}
+  function normCdf(z){return .5*(1+erf(z/Math.SQRT2));}
+  function pad2(n){return String(n).padStart(2,"0");}
+  function fmtDate(d){return`${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;}
+  function addDays(d,n){const r=new Date(d);r.setDate(r.getDate()+n);return r;}
+  function buildDates(nH,nF){const end=new Date();end.setHours(0,0,0,0);return Array.from({length:nH},(_,i)=>addDays(end,-(nH-1-i))).concat(Array.from({length:nF},(_,i)=>addDays(end,i+1)));}
+  function toast(msg){const el=$("fc-toast");el.textContent=msg;el.classList.add("show");clearTimeout(toast._t);toast._t=setTimeout(()=>el.classList.remove("show"),1200);}
+  function svgEl(tag,attrs={}){const el=document.createElementNS("http://www.w3.org/2000/svg",tag);Object.entries(attrs).forEach(([k,v])=>el.setAttribute(k,v));return el;}
+  function pathD(xs,ys){return xs.map((x,i)=>(i===0?"M":"L")+x.toFixed(2)+" "+ys[i].toFixed(2)).join(" ");}
+
+  const state = {
+    asset:"brent", horizon:1, model:"stacking",
+    histLen:360, viewCount:120, viewStart:0,
+    factors:{opec:0,inventory:0,usd:0,geo:0,shipping:0,demand:0}
+  };
+
+  /* ── Data ── */
+  function buildSeries(){
+    const nH=state.histLen,nF=state.horizon;
+    const base=state.asset==="brent"?85:82;
+    const hist=[];
+    for(let i=0;i<nH;i++){
+      const drift=(state.asset==="brent"?.010:.009)*i;
+      const cyc=Math.sin(i/12)*.65+Math.sin(i/29)*.35;
+      const noise=seededNoise(i,state.asset==="brent"?11:13)*.55;
+      hist.push(base+drift+cyc+noise);
+    }
+    const dir=(state.factors.opec*.18*-1)+(state.factors.shipping*.12)+(state.factors.demand*.15)+(state.factors.inventory*.12*-1)+(state.factors.usd*.10*-1);
+    const volBoost=1.0+Math.abs(state.factors.geo)*.06+Math.abs(state.factors.shipping)*.03+Math.abs(state.factors.usd)*.02;
+    const mGain=state.model==="stacking"?1:state.model==="lstm"?1.12:state.model==="prophet"?.86:.78;
+    const spot=hist[hist.length-1];
+    const fut=[];
+    for(let t=1;t<=nF;t++){
+      const mr=(spot-base)*Math.exp(-t/28);
+      const tr=(state.asset==="brent"?.030:.026)*t;
+      const sh=dir*mGain*(.35+t/60);
+      const noise=seededNoise(nH+t,17)*.25;
+      fut.push(base+mr+tr+sh+noise);
+    }
+    const bands=fut.map((y,idx)=>{
+      const t=idx+1;
+      const sigma=(state.asset==="brent"?1.10:1.05)*(.75+t/24)*volBoost;
+      return{y,p80:[y-1.28*sigma,y+1.28*sigma],p95:[y-1.96*sigma,y+1.96*sigma],sigma};
+    });
+    return{hist,fut,bands,spot,volBoost,combined:hist.concat(fut),dates:buildDates(nH,nF)};
+  }
+
+  function resetView(total){
+    state.viewCount=clamp(120,60,Math.min(300,total));
+    state.viewStart=Math.max(0,total-state.viewCount);
+  }
+
+  /* ── Draw forecast chart ── */
+  function drawForecast(){
+    const series=buildSeries();
+    const nH=series.hist.length,total=series.combined.length;
+    state.viewCount=clamp(state.viewCount,60,Math.min(300,total));
+    state.viewStart=clamp(state.viewStart,0,Math.max(0,total-state.viewCount));
+    $("fc-view-pill").textContent=`视图：${state.viewCount} 天`;
+
+    const v0=state.viewStart,v1=v0+state.viewCount-1;
+    let vMin=Infinity,vMax=-Infinity;
+    for(let gi=v0;gi<=v1;gi++){
+      vMin=Math.min(vMin,series.combined[gi]);vMax=Math.max(vMax,series.combined[gi]);
+      if(gi>=nH){const j=gi-nH;if(series.bands[j]){vMin=Math.min(vMin,series.bands[j].p95[0]);vMax=Math.max(vMax,series.bands[j].p95[1]);}}
+    }
+    vMin-=2.5;vMax+=2.5;
+
+    const svg=$("fc-chart");svg.innerHTML="";
+    const W=1100,H=480,pL=56,pR=20,pT=24,pB=40,plotW=W-pL-pR,plotH=H-pT-pB;
+    const x=vi=>pL+(vi/(state.viewCount-1))*plotW;
+    const y=v=>pT+(1-(v-vMin)/(vMax-vMin))*plotH;
+
+    // Grid
+    for(let i=0;i<=5;i++){
+      const yy=pT+(i/5)*plotH;
+      svg.appendChild(svgEl("line",{x1:pL,x2:W-pR,y1:yy,y2:yy,stroke:"rgba(255,255,255,.05)","stroke-width":"1","stroke-dasharray":"4 6"}));
+      const txt=svgEl("text",{x:8,y:yy+4,fill:"rgba(200,180,130,.55)","font-size":"11"});
+      txt.textContent=money(vMax-(i/5)*(vMax-vMin));svg.appendChild(txt);
+    }
+    // X axis ticks
+    const yBase=pT+plotH;
+    for(let i=0;i<6;i++){
+      const vi=Math.round(i/5*(state.viewCount-1));
+      const gi=v0+vi,xx=x(vi);
+      svg.appendChild(svgEl("line",{x1:xx,x2:xx,y1:yBase,y2:yBase+5,stroke:"rgba(255,255,255,.1)","stroke-width":"1"}));
+      const txt=svgEl("text",{x:xx,y:yBase+18,fill:"rgba(200,180,130,.55)","font-size":"11","text-anchor":"middle"});
+      txt.textContent=fmtDate(series.dates[gi]).slice(5);svg.appendChild(txt);
+    }
+    // Now line
+    const splitGi=nH-1;
+    if(splitGi>=v0&&splitGi<=v1){
+      const sl=svgEl("line",{x1:x(splitGi-v0),x2:x(splitGi-v0),y1:pT,y2:pT+plotH,stroke:"rgba(216,179,106,.28)","stroke-width":"1.5","stroke-dasharray":"6 6"});
+      svg.appendChild(sl);
+    }
+    // Future bands
+    const visF=[];for(let gi=v0;gi<=v1;gi++){if(gi>=nH)visF.push({gi,vi:gi-v0});}
+    if(visF.length>=2){
+      function bandPath(key){
+        const top=visF.map(p=>[x(p.vi),y(series.bands[p.gi-nH][key][1])]);
+        const bot=visF.slice().reverse().map(p=>[x(p.vi),y(series.bands[p.gi-nH][key][0])]);
+        return top.concat(bot).map((pt,i)=>(i===0?"M":"L")+pt[0].toFixed(2)+" "+pt[1].toFixed(2)).join(" ")+"Z";
+      }
+      svg.appendChild(svgEl("path",{d:bandPath("p95"),fill:"url(#band95Grad)",stroke:"rgba(216,179,106,.10)","stroke-width":"1"}));
+      svg.appendChild(svgEl("path",{d:bandPath("p80"),fill:"url(#band80Grad)",stroke:"rgba(216,179,106,.18)","stroke-width":"1"}));
+      // Add gradient defs for smooth bands
+      const defs=svgEl("defs",{});
+      defs.innerHTML=`
+        <linearGradient id="band95Grad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="rgba(216,179,106,.04)"/>
+          <stop offset="50%" stop-color="rgba(216,179,106,.08)"/>
+          <stop offset="100%" stop-color="rgba(216,179,106,.04)"/>
+        </linearGradient>
+        <linearGradient id="band80Grad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="rgba(216,179,106,.08)"/>
+          <stop offset="50%" stop-color="rgba(216,179,106,.16)"/>
+          <stop offset="100%" stop-color="rgba(216,179,106,.08)"/>
+        </linearGradient>
+      `;
+      svg.insertBefore(defs, svg.firstChild);
+    }
+    // History line
+    const hPts=[];for(let gi=v0;gi<=v1&&gi<nH;gi++)hPts.push({gi,vi:gi-v0});
+    if(hPts.length>=2){
+      svg.appendChild(svgEl("path",{d:pathD(hPts.map(p=>x(p.vi)),hPts.map(p=>y(series.combined[p.gi]))),fill:"none",stroke:"rgba(111,208,255,.9)","stroke-width":"2"}));
+    }
+    // Forecast line
+    if(visF.length>=1){
+      let cxs=[],cys=[];
+      if(splitGi>=v0&&splitGi<=v1){cxs=[x(splitGi-v0)];cys=[y(series.hist[splitGi])];}
+      cxs=cxs.concat(visF.map(p=>x(p.vi)));cys=cys.concat(visF.map(p=>y(series.combined[p.gi])));
+      svg.appendChild(svgEl("path",{d:pathD(cxs,cys),fill:"none",stroke:"rgba(216,179,106,.9)","stroke-width":"2","stroke-dasharray":"8 5"}));
+      const last=visF[visF.length-1];
+      svg.appendChild(svgEl("circle",{cx:x(last.vi),cy:y(series.combined[last.gi]),r:"5",fill:"rgba(216,179,106,1)",stroke:"rgba(8,12,16,.9)","stroke-width":"2"}));
+    }
+    // Hover
+    const cross=svgEl("line",{y1:pT,y2:pT+plotH,stroke:"rgba(216,179,106,.25)","stroke-width":"1","stroke-dasharray":"5 5"});cross.style.display="none";svg.appendChild(cross);
+    const hdot=svgEl("circle",{r:"4.5",fill:"rgba(232,237,245,.9)",stroke:"rgba(8,12,16,.9)","stroke-width":"2"});hdot.style.display="none";svg.appendChild(hdot);
+    const overlay=svgEl("rect",{x:pL,y:pT,width:plotW,height:plotH,fill:"transparent"});overlay.style.cursor="crosshair";svg.appendChild(overlay);
+    const tip=$("fc-tip");
+    overlay.addEventListener("mousemove",e=>{
+      const rect=$("fc-chart-wrap").getBoundingClientRect();
+      const vi=Math.round(clamp((e.clientX-rect.left)/rect.width,0,1)*(state.viewCount-1));
+      const gi=v0+vi,xx=x(vi);
+      cross.setAttribute("x1",xx);cross.setAttribute("x2",xx);cross.style.display="block";
+      hdot.setAttribute("cx",xx);hdot.setAttribute("cy",y(series.combined[gi]));hdot.style.display="block";
+      const isFut=gi>=nH;
+      let html=`<div style="font-weight:900;color:var(--fc-gold);margin-bottom:4px">${state.asset==="brent"?"Brent":"WTI"} · ${isFut?"预测":"历史"}</div>`;
+      html+=`<div class="row"><span class="k">日期</span><span>${fmtDate(series.dates[gi])}</span></div>`;
+      if(isFut){
+        const b=series.bands[gi-nH];
+        const mu=b.y,sigma=Math.max(1e-6,b.sigma);
+        const w80=b.p80[1]-b.p80[0];
+        const pUp=clamp(1-normCdf((series.spot-mu)/sigma),0,1);
+        html+=`<div class="row"><span class="k">点预测</span><span><strong>${money(mu)}</strong></span></div>`;
+        html+=`<div class="row"><span class="k">80% 区间</span><span>${money(b.p80[0])} ~ ${money(b.p80[1])}</span></div>`;
+        html+=`<div class="row"><span class="k">涨跌概率</span><span>↑${(pUp*100).toFixed(0)}% / ↓${((1-pUp)*100).toFixed(0)}%</span></div>`;
+      }else{
+        html+=`<div class="row"><span class="k">价格</span><span><strong>${money(series.combined[gi])}</strong></span></div>`;
+      }
+      tip.innerHTML=html;tip.style.left=(e.clientX-rect.left)+"px";tip.style.top=(e.clientY-rect.top)+"px";tip.style.display="block";
+    });
+    overlay.addEventListener("mouseleave",()=>{tip.style.display="none";cross.style.display="none";hdot.style.display="none";});
+
+    // Stats
+    const last=series.bands[series.bands.length-1];
+    const mu=last.y,sigma=Math.max(1e-6,last.sigma);
+    const w80=last.p80[1]-last.p80[0];
+    const pUp=clamp(1-normCdf((series.spot-mu)/sigma),0,1);
+    $("fc-stat-pt-label").textContent=`点预测（T+${state.horizon}）`;
+    $("fc-stat-spot").textContent=money(series.spot);
+    $("fc-stat-point").textContent=money(mu);
+    $("fc-stat-80").textContent=`${money(w80)} (±${money(w80/2)})`;
+    $("fc-stat-dir").textContent=`↑${(pUp*100).toFixed(0)}% / ↓${((1-pUp)*100).toFixed(0)}%`;
+
+    // Risk badge
+    const score=series.volBoost*(1+(state.horizon/30)*.6);
+    let lvl="低",dotStyle="background:#39d98a;box-shadow:0 0 0 3px rgba(57,217,138,.15)",borderC="rgba(57,217,138,.3)",bgC="rgba(57,217,138,.08)";
+    if(score>=1.9){lvl="高";dotStyle="background:#ff5c7c;box-shadow:0 0 0 3px rgba(255,92,124,.15)";borderC="rgba(255,92,124,.3)";bgC="rgba(255,92,124,.08)";}
+    else if(score>=1.35){lvl="中";dotStyle="background:#f5c842;box-shadow:0 0 0 3px rgba(245,200,66,.15)";borderC="rgba(245,200,66,.3)";bgC="rgba(245,200,66,.08)";}
+    const rhEl=$("fc-risk-badge-hero");
+    rhEl.style.border=`1px solid ${borderC}`;rhEl.style.background=bgC;
+    rhEl.innerHTML=`<span class="fc-risk-dot" style="${dotStyle}"></span> 风险等级：${lvl}`;
+
+    updateIndustry(series);
+    drawFactors(series);
+    drawBacktest(series);
+  }
+
+  /* ── Industry impact ── */
+  const industries=[
+    {name:"航空",key:"air",note:"燃油成本敏感"},
+    {name:"航运",key:"ship",note:"燃油/运价联动"},
+    {name:"化工",key:"chem",note:"原料端压力"},
+    {name:"炼化",key:"ref",note:"裂解价差驱动"},
+    {name:"物流",key:"log",note:"运力+油价叠加"},
+    {name:"钢铁",key:"steel",note:"能源成本上升"},
+  ];
+  function renderImpactGrid(){
+    const grid=$("fc-impact-grid");grid.innerHTML="";
+    industries.forEach(ind=>{
+      const div=document.createElement("div");div.className="fc-impact";
+      div.innerHTML=`<div class="fc-impact-name"><span>${ind.name}</span><span class="fc-pill" id="imp-tag-${ind.key}">—</span></div>
+        <div class="fc-bars">
+          <div class="fc-bar-row"><span class="k">成本</span><span class="fc-bar-bg"><i id="imp-c-${ind.key}"></i></span></div>
+          <div class="fc-bar-row"><span class="k">利润</span><span class="fc-bar-bg"><i id="imp-m-${ind.key}"></i></span></div>
+          <div class="fc-bar-row"><span class="k">融资</span><span class="fc-bar-bg"><i id="imp-f-${ind.key}"></i></span></div>
+        </div>
+        <div style="font-size:11px;color:var(--fc-muted);margin-top:8px">${ind.note}</div>`;
+      grid.appendChild(div);
+    });
+  }
+  function updateIndustry(series){
+    const ret=(series.bands[series.bands.length-1].y-series.spot)/series.spot;
+    const vol=series.volBoost;
+    const dirUp=clamp((ret+.03)/.10,0,1),uncert=clamp((vol-1.0)/1.2,0,1);
+    const w={air:{c:.95,m:.85,f:.55},ship:{c:.70,m:.60,f:.45},chem:{c:.75,m:.70,f:.55},ref:{c:.55,m:.80,f:.50},log:{c:.80,m:.65,f:.45},steel:{c:.60,m:.70,f:.55}};
+    const scores=[];
+    industries.forEach(ind=>{
+      const ww=w[ind.key];
+      const cost=clamp(.15+dirUp*ww.c*.75+uncert*.20,0,1);
+      const margin=clamp(.15+dirUp*ww.m*.55+uncert*.35,0,1);
+      const fin=clamp(.10+dirUp*ww.f*.35+uncert*.55,0,1);
+      const c=$("imp-c-"+ind.key),m=$("imp-m-"+ind.key),f=$("imp-f-"+ind.key);
+      if(c)c.style.width=Math.round(cost*100)+"%";
+      if(m)m.style.width=Math.round(margin*100)+"%";
+      if(f)f.style.width=Math.round(fin*100)+"%";
+      const ov=cost*.45+margin*.35+fin*.20;
+      scores.push({name:ind.name,ov});
+      const tag=$("imp-tag-"+ind.key);
+      if(tag)tag.textContent=ov>.72?"压力偏高":ov>.48?"压力适中":"压力可控";
+    });
+    scores.sort((a,b)=>b.ov-a.ov);
+    const top3=scores.slice(0,3).map(x=>x.name).join("、");
+    $("fc-impact-summary").textContent=`T+${state.horizon} 预测${ret>=0?"上行":"下行"}倾向，${vol>=1.9?"不确定性偏高":vol>=1.35?"不确定性中等":"不确定性偏低"}。压力突出行业：${top3}。`;
+  }
+
+  /* ── Consensus ── */
+  const consensusData=[
+    {name:"EIA",annual:86.2,bias:"mid",logic:"供需再平衡；库存回落但产量弹性仍在"},
+    {name:"Wind一致",annual:84.7,bias:"mid",logic:"宏观偏中性；供给扰动与需求修复抵消"},
+    {name:"德意志银行",annual:89.4,bias:"low",logic:"OPEC+纪律性偏强；风险溢价维持"},
+    {name:"高盛",annual:91.8,bias:"low",logic:"需求韧性 + 低库存 → 上行尾部更重"},
+    {name:"摩根士丹利",annual:82.9,bias:"high",logic:"经济放缓风险；供给增长压制油价"},
+  ];
+  function renderConsensus(){
+    const tbody=$("fc-consensus-tbody");tbody.innerHTML="";
+    const dotColor=b=>b==="low"?"#39d98a":b==="high"?"#ff5c7c":"#f5c842";
+    consensusData.forEach(r=>{
+      const tr=document.createElement("tr");
+      tr.innerHTML=`<td><div style="display:flex;align-items:center;gap:8px"><span style="width:7px;height:7px;border-radius:50%;background:${dotColor(r.bias)};flex-shrink:0;display:inline-block"></span><strong style="font-size:12px">${r.name}</strong></div></td><td><strong style="color:var(--fc-gold)">${money(r.annual)}</strong></td><td><div class="fc-logic">${r.logic}</div></td>`;
+      tbody.appendChild(tr);
+    });
+  }
+
+  /* ── Sliders ── */
+  const sliderDefs=[
+    {key:"opec",name:"OPEC+供给",hint:"↓更紧 → 上行",sign:-1},
+    {key:"inventory",name:"美国库存",hint:"↑偏空 → 下行",sign:-1},
+    {key:"usd",name:"美元指数",hint:"↑压制 → 下行",sign:-1},
+    {key:"geo",name:"地缘风险",hint:"↑→ 区间加宽",sign:0},
+    {key:"shipping",name:"航运紧张(BDTI)",hint:"↑→ 上行+波动",sign:1},
+    {key:"demand",name:"需求动能",hint:"↑→ 上行",sign:1},
+  ];
+  function renderSliders(){
+    const grid=$("fc-sliders");grid.innerHTML="";
+    sliderDefs.forEach(d=>{
+      const div=document.createElement("div");div.className="fc-slider";
+      div.innerHTML=`<div class="fc-slider-top"><div class="name">${d.name}</div><div class="val"><span id="fc-sv-${d.key}">0</span>/10</div></div><input type="range" min="-10" max="10" step="1" value="0" id="fc-rng-${d.key}"><div class="fc-slider-hint">${d.hint}</div>`;
+      grid.appendChild(div);
+      div.querySelector(`#fc-rng-${d.key}`).addEventListener("input",e=>{
+        state.factors[d.key]=Number(e.target.value);
+        $(`fc-sv-${d.key}`).textContent=e.target.value;
+        drawForecast();
+      });
+    });
+  }
+
+  /* ── Factor names/explains/news ── */
+  const fNames={demand:"需求动能",opec:"OPEC+供给",inventory:"美国库存",usd:"美元指数",shipping:"航运紧张(BDTI)",geo:"地缘风险",volatility:"波动(地缘)"};
+  const fExplains={
+    demand:"需求动能上行通常抬升价格中枢，并提升上行尾部概率（消费、炼厂开工、航空出行等共同驱动）。",
+    opec:"OPEC+供给策略影响市场紧缺程度：减产/延长自愿减产会抬升风险溢价；增产则缓解紧张。",
+    inventory:"美国原油与成品油库存变化反映短期供需平衡；库存超预期上升通常偏空，下降偏多。",
+    usd:"美元走强往往压制以美元计价的大宗商品（融资成本与定价效应），反之亦然。",
+    shipping:"航运紧张意味着物流摩擦/成本上升，可能通过「运输瓶颈+风险溢价」推升价格与波动。",
+    geo:"地缘风险通常不改变长期供需，但会显著放大不确定性（尾部风险）并加宽预测区间。",
+    volatility:"波动因子用于刻画不确定性与尾部风险：地缘、金融条件、流动性变化都会抬升波动。"
+  };
+  const fNews={
+    demand:[{title:"全球炼厂开工率回升，需求预期上调",src:"Research",date:"2025-11-08"},{title:"航空出行旺季推升成品油裂解价差",src:"Market",date:"2025-12-02"}],
+    opec:[{title:"OPEC+会议释放产量指引信号",src:"EIA/Media",date:"2025-10-05"},{title:"主要产油国表态：将视库存调整策略",src:"Macro",date:"2025-10-18"}],
+    inventory:[{title:"美国商业库存意外下降，短端价格走强",src:"EIA",date:"2025-09-27"},{title:"成品油库存累积，裂解价差承压",src:"Market",date:"2025-10-12"}],
+    usd:[{title:"美元走强抑制大宗商品风险偏好",src:"Macro",date:"2025-08-21"},{title:"美债收益率上行，商品资金流出加速",src:"Rates",date:"2025-09-03"}],
+    shipping:[{title:"航线扰动抬升运价指数，物流成本攀升",src:"Shipping",date:"2025-07-19"},{title:"港口拥堵缓解，运价回落但波动仍高",src:"Shipping",date:"2025-08-02"}],
+    geo:[{title:"地缘紧张升级，市场风险溢价迅速抬升",src:"Geo",date:"2025-06-15"},{title:"关键通道扰动引发短线波动加剧",src:"Geo",date:"2025-06-28"}],
+    volatility:[{title:"隐含波动率抬升，期权保护需求增强",src:"Derivatives",date:"2025-11-22"},{title:"流动性收缩导致尾部风险再定价",src:"Risk",date:"2025-12-10"}],
+  };
+
+  function getContrib(){
+    const w={demand:.20,shipping:.14,opec:.18,inventory:-.16,usd:-.12,geo:.00};
+    const raw=Object.keys(w).map(k=>{
+      const v=(state.factors[k]||0)*w[k]+seededNoise((state.horizon*10+(k.charCodeAt(0)%7)),23)*.03;
+      return{k,v};
+    });
+    raw.push({k:"volatility",v:Math.abs(state.factors.geo)*.015+.03});
+    const sumAbs=raw.reduce((s,x)=>s+Math.abs(x.v),0)||1;
+    return raw.map(x=>({key:x.k,name:fNames[x.k]||x.k,val:x.v/sumAbs})).sort((a,b)=>Math.abs(b.val)-Math.abs(a.val)).slice(0,7);
+  }
+
+  let popTimer=null;
+  const pop=$("fc-popover");
+  function openPop(key,anchor){
+    clearTimeout(popTimer);
+    $("fc-pop-title").textContent=fNames[key]||key;
+    $("fc-pop-sub").textContent=`${state.asset==="brent"?"Brent":"WTI"} · T+${state.horizon} · ${state.model.toUpperCase()}`;
+    $("fc-pop-explain").textContent=fExplains[key]||"该因子通过供需/风险溢价通道影响价格。";
+    $("fc-pop-detail").href=`#factor=${encodeURIComponent(key)}`;
+    $("fc-pop-morenews").href=`#news=${encodeURIComponent(key)}`;
+    const news=fNews[key]||[];
+    $("fc-pop-news").innerHTML=news.length?news.slice(0,2).map(n=>`<div class="fc-news-item"><a href="#" target="_blank">${n.title}</a><div class="fc-news-meta"><span>${n.src}</span><span>${n.date}</span></div></div>`).join(""):`<div class="fc-pop-text">暂无新闻（Demo）</div>`;
+    const r=anchor.getBoundingClientRect(),gap=10,pw=340,ph=320;
+    let left=r.right+gap,top=r.top-10;
+    if(left+pw>window.innerWidth-10)left=r.left-pw-gap;
+    left=clamp(left,10,window.innerWidth-pw-10);top=clamp(top,10,window.innerHeight-ph-10);
+    pop.style.left=left+"px";pop.style.top=top+"px";pop.style.display="block";
+  }
+  function schedulePopClose(){clearTimeout(popTimer);popTimer=setTimeout(()=>pop.style.display="none",180);}
+  pop.addEventListener("mouseenter",()=>clearTimeout(popTimer));
+  pop.addEventListener("mouseleave",()=>schedulePopClose());
+  $("fc-pop-close").addEventListener("click",()=>pop.style.display="none");
+  document.addEventListener("mousedown",e=>{if(pop.style.display!=="block")return;if(pop.contains(e.target))return;if(e.target&&e.target.classList&&e.target.classList.contains("fc-factor-name"))return;pop.style.display="none";});
+
+  /* ── Factors panel ── */
+  function drawFactors(series){
+    const asset=state.asset==="brent"?"Brent":"WTI";
+    $("fc-factor-meta").textContent=`${asset} · T+${state.horizon} · ${state.model.toUpperCase()}`;
+    const contrib=getContrib();
+    $("fc-kpi-count").textContent=String(contrib.length);
+    const dom=contrib[0];
+    $("fc-kpi-top1").textContent=`${dom.name} · ${pct(Math.abs(dom.val))}`;
+    $("fc-kpi-dir").textContent=dom.val>=0?"偏多（上行）":"偏空（下行）";
+    const mBase=state.model==="stacking"?.62:state.model==="lstm"?.58:state.model==="prophet"?.49:.45;
+    $("fc-kpi-expl").textContent=pct(clamp(mBase-clamp(Math.abs(state.factors.geo)/10,0,1)*.10+.06,.30,.75));
+
+    // Factor board
+    const board=$("fc-factor-board");board.innerHTML="";
+    const maxAbs=Math.max(...contrib.map(x=>Math.abs(x.val)))||.1;
+    contrib.forEach(d=>{
+      const isNeg=d.val<0,abs=Math.abs(d.val);
+      const w=clamp(abs/maxAbs,0,1)*100;
+      const left=isNeg?50-w:50,width=w;
+      const row=document.createElement("div");row.className="fc-factor-row";
+      row.innerHTML=`<div class="fc-factor-name" data-key="${d.key}" title="悬停查看解释">${d.name}</div>
+        <div class="fc-factor-bar"><div class="fc-factor-zero"></div><div class="fc-factor-fill ${isNeg?"neg":""}" style="left:${left}%;width:${width}%"></div></div>
+        <div class="fc-factor-val"><span class="fc-factor-sign">${isNeg?"−":"+"}</span>${pct(abs)}</div>`;
+      board.appendChild(row);
+      row.querySelector(".fc-factor-name").addEventListener("mouseenter",e=>openPop(d.key,e.target));
+      row.querySelector(".fc-factor-name").addEventListener("mouseleave",()=>schedulePopClose());
+    });
+
+    // Trend explain
+    if(!series)series=buildSeries();
+    const n=series.hist.length,days=180,si=Math.max(0,n-days);
+    const histP=series.hist.slice(si),histD=series.dates.slice(si,si+histP.length);
+    const segN=3,segLen=Math.floor(histP.length/segN);
+    const segs=[];
+    for(let s=0;s<segN;s++){
+      const a=s*segLen,b=s===segN-1?histP.length-1:(s+1)*segLen-1;
+      const p0=histP[a],p1=histP[b],ret=(p1-p0)/p0,abs=Math.abs(ret);
+      let tag="震荡",cls="side",drivers=["地缘风险","波动(地缘)","美国库存"],summary="震荡阶段：多空分歧与事件扰动并存，方向不明但波动上升。";
+      if(abs>=.02){if(ret>0){tag="上升";cls="up";drivers=["需求动能","OPEC+供给","航运紧张(BDTI)"];summary="价格上行：需求与供给约束共同抬升价格中枢；风险溢价对尾部贡献更大。";}else{tag="下跌";cls="down";drivers=["美国库存","美元指数","需求动能"];summary="价格回撤：库存/美元等偏空因子主导；资金面变化放大短端波动。";}}
+      if(s===1){drivers=[drivers[1],drivers[2],drivers[0]];}
+      if(s===2){drivers=[drivers[2],drivers[0],drivers[1]];}
+      segs.push({from:histD[a],to:histD[b],ret,tag,cls,drivers,summary});
+    }
+    const tl=$("fc-trend-list");tl.innerHTML=segs.map(s=>`
+      <div class="fc-trend-item">
+        <div class="fc-trend-top">
+          <div class="fc-trend-range">${fmtDate(s.from)} ~ ${fmtDate(s.to)}</div>
+          <div class="fc-trend-tag ${s.cls}">${s.tag} · ${(s.ret*100).toFixed(1)}%</div>
+        </div>
+        <div style="font-size:11px;font-weight:800;color:var(--fc-text);margin-bottom:4px">主要解释因子</div>
+        <div class="fc-chip-row">${s.drivers.map(d=>`<span class="fc-chip">${d}<small>主导</small></span>`).join("")}</div>
+        <div class="fc-trend-summary">${s.summary}</div>
+      </div>`).join("");
+
+    // Timeline
+    const events=[
+      {date:"2025-06-15",type:"geo",title:"关键通道风险升温，市场风险溢价快速抬升",desc:"地缘扰动推升短端波动，区间显著加宽。"},
+      {date:"2025-07-19",type:"macro",title:"美元走强 + 利率上行引发商品资金再平衡",desc:"资金面变化导致价格短线承压，波动上行。"},
+      {date:"2025-08-02",type:"inventory",title:"EIA库存超预期变化触发短线反转",desc:"库存数据成为当周核心定价因子。"},
+      {date:"2025-10-05",type:"opec",title:"OPEC+会议释放产量指引，供给预期再定价",desc:"供给路径不确定性下降，价格中枢上移。"},
+      {date:"2025-11-22",type:"macro",title:"隐含波动率抬升，期权保护需求上升",desc:"尾部风险被重新定价，风险等级阶段性上调。"},
+      {date:"2025-12-10",type:"geo",title:"事件驱动冲击：市场从方向转向波动交易",desc:"方向争夺减弱，波动成为主要交易维度。"},
+    ];
+    $("fc-timeline").innerHTML=events.map(e=>`
+      <div class="fc-event-card">
+        <div class="fc-event-top"><div class="fc-event-date">${e.date}</div><div class="fc-etype ${e.type}">${e.type.toUpperCase()}</div></div>
+        <div class="fc-event-title">${e.title}</div>
+        <div class="fc-event-desc">${e.desc}</div>
+      </div>`).join("");
+  }
+
+  /* ── Backtest ── */
+  function drawBacktest(series){
+    const asset=state.asset==="brent"?"Brent":"WTI";
+    $("fc-bt-mse")&&($("fc-bt-mse").textContent="—");
+    const n=60,base=state.asset==="brent"?84:81;
+    const actual=[],pred=[];
+    for(let i=0;i<n;i++){
+      const cyc=Math.sin(i/9)*.7+Math.sin(i/21)*.4;
+      const drift=i*(state.asset==="brent"?.01:.008);
+      const noise=seededNoise(i,state.asset==="brent"?31:37)*.55;
+      const a=base+drift+cyc+noise;actual.push(a);
+      const mN=state.model==="stacking"?.35:state.model==="lstm"?.45:state.model==="prophet"?.60:.70;
+      const bias=(state.horizon/30)*.25*seededNoise(i,41);
+      const fac=state.factors.demand*.02+state.factors.shipping*.015-state.factors.usd*.012;
+      pred.push(a+seededNoise(i,47)*mN+bias+fac);
+    }
+    const w=(state.asset==="brent"?1.0:.95)*(.9+state.horizon/30*.9)*(1+Math.abs(state.factors.geo)/10*.8);
+    const lo80=pred.map((p,i)=>p-1.28*w*(.6+i/n*.5));
+    const hi80=pred.map((p,i)=>p+1.28*w*(.6+i/n*.5));
+    let dirOK=0,mse=0,cov80=0,cov95=0;
+    const lo95=pred.map((p,i)=>p-1.96*w*(.6+i/n*.5));
+    const hi95=pred.map((p,i)=>p+1.96*w*(.6+i/n*.5));
+    for(let i=1;i<n;i++){
+      const da=actual[i]-actual[i-1],dp=pred[i]-pred[i-1];
+      if((da>=0&&dp>=0)||(da<0&&dp<0))dirOK++;
+      mse+=(pred[i]-actual[i])**2;
+      if(actual[i]>=lo80[i]&&actual[i]<=hi80[i])cov80++;
+      if(actual[i]>=lo95[i]&&actual[i]<=hi95[i])cov95++;
+    }
+    const acc=dirOK/(n-1);
+    mse=mse/(n-1);cov80=cov80/n;cov95=cov95/n;
+    $("fc-bt-acc").textContent=pct(acc);
+    $("fc-bt-cov80").textContent=pct(cov80);
+    $("fc-bt-cov95").textContent=pct(cov95);
+    $("fc-bt-mse").textContent=mse.toFixed(3);
+
+    // Matrix
+    const baseN=240,noise2=clamp(Math.abs(state.factors.geo)/10,0,1);
+    const good=clamp(acc-.05+.03*(1-noise2),.35,.85);
+    const rL=Math.round(baseN*.33),rM=Math.round(baseN*.44),rH=baseN-rL-rM;
+    function splitRow(rn,d){const di=Math.round(rn*d),rest=rn-di,a=Math.round(rest*.55);return[di,a,rest-a];}
+    const sL=splitRow(rL,.62+(good-.5)*.3),sM=splitRow(rM,clamp(.58+(good-.5)*.3,.45,.85)),sH=splitRow(rH,.60+(good-.5)*.3);
+    const m=[[sL[0],sL[1],sL[2]],[sM[1],sM[0],sM[2]],[sH[2],sH[1],sH[0]]];
+    $("fc-bt-matrix").innerHTML=`<tr><th>低</th><td>${m[0][0]}</td><td>${m[0][1]}</td><td>${m[0][2]}</td></tr><tr><th>中</th><td>${m[1][0]}</td><td>${m[1][1]}</td><td>${m[1][2]}</td></tr><tr><th>高</th><td>${m[2][0]}</td><td>${m[2][1]}</td><td>${m[2][2]}</td></tr>`;
+    $("fc-bt-matrix-note").textContent=`示例矩阵总样本：${baseN}（仅用于展示 UI）`;
+
+    // Backtest chart
+    const svg=$("fc-bt-chart");svg.innerHTML="";
+    const all=actual.concat(pred).concat(lo80).concat(hi80);
+    const mn=Math.min(...all)-2.5,mx=Math.max(...all)+2.5;
+    const W=1100,H=460,pL=48,pR=16,pT=20,pB=36,plotW=W-pL-pR,plotH=H-pT-pB;
+    const bx=i=>pL+(i/(n-1))*plotW,by=v=>pT+(1-(v-mn)/(mx-mn))*plotH;
+    for(let i=0;i<=4;i++){const yy=pT+(i/4)*plotH;svg.appendChild(svgEl("line",{x1:pL,x2:W-pR,y1:yy,y2:yy,stroke:"rgba(255,255,255,.05)","stroke-width":"1"}));}
+    // Band
+    const xsA=Array.from({length:n},(_,i)=>bx(i));
+    const bandPts=xsA.map((x,i)=>[x,by(hi80[i])]).concat(xsA.slice().reverse().map((x,i)=>[x,by(lo80[n-1-i])]));
+    svg.appendChild(svgEl("path",{d:bandPts.map((p,i)=>(i===0?"M":"L")+p[0].toFixed(2)+" "+p[1].toFixed(2)).join(" ")+"Z",fill:"rgba(216,179,106,.14)",stroke:"rgba(216,179,106,.18)","stroke-width":"1"}));
+    svg.appendChild(svgEl("path",{d:pathD(xsA,actual.map(v=>by(v))),fill:"none",stroke:"rgba(111,208,255,.85)","stroke-width":"2"}));
+    svg.appendChild(svgEl("path",{d:pathD(xsA,pred.map(v=>by(v))),fill:"none",stroke:"rgba(216,179,106,.85)","stroke-width":"2","stroke-dasharray":"8 5"}));
+  }
+
+  /* ── Tab switching ── */
+  document.querySelectorAll(".fc-tab").forEach(btn=>{
+    btn.addEventListener("click",()=>{
+      document.querySelectorAll(".fc-tab").forEach(t=>t.classList.remove("active"));
+      document.querySelectorAll(".fc-panel").forEach(p=>p.classList.remove("active"));
+      btn.classList.add("active");
+      const tab=btn.dataset.tab;
+      $(`fc-panel-${tab}`).classList.add("active");
+    });
+  });
+
+  /* ── Chart interactions ── */
+  let dragging=false,dragStartX=0,dragStartVS=0;
+  $("fc-chart-wrap").addEventListener("wheel",e=>{
+    e.preventDefault();
+    const series=buildSeries();const total=series.combined.length;
+    const rect=$("fc-chart-wrap").getBoundingClientRect();
+    const relX=clamp((e.clientX-rect.left)/rect.width,0,1);
+    const anchor=state.viewStart+Math.round(relX*(state.viewCount-1));
+    const factor=e.deltaY<0?.87:1.15;
+    const newCount=clamp(Math.round(state.viewCount*factor),60,Math.min(300,total));
+    let newStart=Math.round(anchor-relX*(newCount-1));
+    newStart=clamp(newStart,0,Math.max(0,total-newCount));
+    state.viewCount=newCount;state.viewStart=newStart;
+    drawForecast();
+  },{passive:false});
+  $("fc-chart-wrap").addEventListener("pointerdown",e=>{dragging=true;dragStartX=e.clientX;dragStartVS=state.viewStart;$("fc-chart-wrap").setPointerCapture(e.pointerId);$("fc-chart-wrap").style.cursor="grabbing";});
+  $("fc-chart-wrap").addEventListener("pointermove",e=>{
+    if(!dragging)return;
+    const series=buildSeries();const total=series.combined.length;
+    const rect=$("fc-chart-wrap").getBoundingClientRect();
+    const shift=Math.round(-(e.clientX-dragStartX)/rect.width*state.viewCount);
+    state.viewStart=clamp(dragStartVS+shift,0,Math.max(0,total-state.viewCount));
+    drawForecast();
+  });
+  function endDrag(e){if(!dragging)return;dragging=false;$("fc-chart-wrap").style.cursor="crosshair";try{$("fc-chart-wrap").releasePointerCapture(e.pointerId);}catch{}}
+  $("fc-chart-wrap").addEventListener("pointerup",endDrag);
+  $("fc-chart-wrap").addEventListener("pointercancel",endDrag);
+  $("fc-chart-wrap").addEventListener("dblclick",()=>{resetView(buildSeries().combined.length);drawForecast();});
+
+  /* ── Control bindings ── */
+  $("fc-asset").addEventListener("change",e=>{state.asset=e.target.value;resetView(buildSeries().combined.length);drawForecast();});
+  $("fc-horizon").addEventListener("change",e=>{state.horizon=Number(e.target.value);resetView(buildSeries().combined.length);drawForecast();});
+  $("fc-model").addEventListener("change",e=>{state.model=e.target.value;drawForecast();});
+  $("fc-btn-reset").addEventListener("click",()=>{
+    state.asset="brent";state.horizon=1;state.model="stacking";
+    Object.keys(state.factors).forEach(k=>state.factors[k]=0);
+    $("fc-asset").value="brent";$("fc-horizon").value="1";$("fc-model").value="stacking";
+    sliderDefs.forEach(d=>{const r=$(`fc-rng-${d.key}`),v=$(`fc-sv-${d.key}`);if(r)r.value=0;if(v)v.textContent="0";});
+    resetView(buildSeries().combined.length);pop.style.display="none";
+    drawForecast();toast("已重置");
+  });
+  $("fc-btn-export").addEventListener("click",()=>{
+    const svg=$("fc-chart");const blob=new Blob([new XMLSerializer().serializeToString(svg)],{type:"image/svg+xml"});
+    const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="forecast.svg";document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
+  });
+
+  // Alert panel
+  const alertPanel=$("fc-alert-panel");
+  $("fc-btn-alert").addEventListener("click",e=>{e.stopPropagation();alertPanel.classList.toggle("show");});
+  $("fc-alert-close").addEventListener("click",()=>alertPanel.classList.remove("show"));
+  $("fc-alert-save").addEventListener("click",()=>{alertPanel.classList.remove("show");toast("预警设置已保存");});
+  $("fc-alert-reset").addEventListener("click",()=>{["al_price_on","al_boll_on","al_sr_on","al_risk_jump","al_vol_spike"].forEach(id=>{const el=$(id);if(el)el.checked=false;});["al_price_level","al_support","al_resist","al_vol_level"].forEach(id=>{const el=$(id);if(el)el.value="";});toast("已清空");});
+  document.addEventListener("mousedown",e=>{if(alertPanel.classList.contains("show")&&!alertPanel.contains(e.target)&&e.target!==$("fc-btn-alert"))alertPanel.classList.remove("show");});
+
+  /* ── Init render ── */
+  renderConsensus();
+  renderSliders();
+  renderImpactGrid();
+  resetView(buildSeries().combined.length);
+  drawForecast();
+}
+</script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script>
+/* ══════════════════════════════════════════════════════
+   DATABASE VIEW — JS
+══════════════════════════════════════════════════════ */
+(()=>{
+  /* ── 工具函数 ── */
+  function dbGenKline(days){
+    const data=[]; let price=65;
+    for(let i=days;i>=0;i--){
+      const d=new Date(); d.setDate(d.getDate()-i);
+      const ds=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+      const chg=(Math.random()-.48)*2.5;
+      const open=price; price+=chg; const close=price;
+      const high=Math.max(open,close)+Math.random()*.5;
+      const low=Math.min(open,close)-Math.random()*.5;
+      data.push({date:ds,open:+open.toFixed(2),close:+close.toFixed(2),high:+high.toFixed(2),low:+low.toFixed(2),vol:Math.floor(Math.random()*200000+150000)});
+    }
+    return data;
+  }
+  function dbCalcMA(data,n){
+    return data.map((_,i)=>{
+      if(i<n-1)return[data[i][0],null];
+      const s=data.slice(i-n+1,i+1).reduce((a,v)=>a+v[2],0);
+      return[data[i][0],+(s/n).toFixed(2)];
+    });
+  }
+  function dbGenMock(start,end,base){
+    const data=[]; const bases={brent:75,wti:72,shanghai:70,'wti-crack':15,'ice-diesel':22};
+    const bp=bases[base]||50;
+    for(let d=new Date(start);d<=new Date(end);d.setDate(d.getDate()+1)){
+      const p=bp+(Math.random()-.5)*4;
+      data.push({date:d.toISOString().split('T')[0],price:+p.toFixed(2)});
+    }
+    return data;
+  }
+
+  /* ── 成品油切换 ── */
+  window.dbShowProduct=function(type){
+    document.querySelectorAll('#view-database .db-product-tbl').forEach(t=>t.style.display='none');
+    const el=document.getElementById('db-'+type);
+    if(el) el.style.display='block';
+  };
+
+  /* ── K线图 ── */
+  let dbKChart=null, dbKProduct='brent';
+  function dbRenderKline(product){
+    const wrap=document.getElementById('dbKLineChart');
+    if(!wrap) return;
+    if(!dbKChart) dbKChart=echarts.init(wrap);
+    const raw=dbGenKline(365);
+    const mult={brent:1,wti:.95,china:.85,future1:1.05,future2:1.1,future3:1.15}[product]||1;
+    const kd=raw.map(r=>[new Date(r.date).getTime(),+(r.open*mult).toFixed(2),+(r.close*mult).toFixed(2),+(r.low*mult).toFixed(2),+(r.high*mult).toFixed(2),r.vol]);
+    const ma5=dbCalcMA(kd,5), ma20=dbCalcMA(kd,20);
+    dbKChart.setOption({
+      animation:false, backgroundColor:'#000',
+      tooltip:{trigger:'axis',axisPointer:{type:'cross'},borderColor:'#d4af37',backgroundColor:'rgba(42,42,42,.9)',textStyle:{color:'#d4af37'},
+        formatter(p){const d=p[0].data,dt=new Date(d[0]);return`日期:${dt.toISOString().slice(0,10)}<br>开:${d[1]} 收:${d[2]}<br>低:${d[3]} 高:${d[4]}<br>量:${d[5]}`;}},
+      legend:{data:['K线','MA5','MA20'],textStyle:{color:'#d4af37'},right:'5%',top:'2%'},
+      grid:{left:'3%',right:'3%',bottom:'5%',top:'15%',containLabel:true},
+      xAxis:{type:'time',scale:true,axisLine:{lineStyle:{color:'#444'}},splitLine:{show:false},axisLabel:{color:'#888',formatter(v){const d=new Date(v);return(d.getMonth()+1)+'/'+d.getDate();}}},
+      yAxis:{scale:true,axisLine:{lineStyle:{color:'#444'}},splitLine:{lineStyle:{color:'rgba(255,255,255,.06)',type:'dashed'}},axisLabel:{color:'#888'}},
+      dataZoom:[{type:'inside',start:50,end:100}],
+      series:[
+        {name:'K线',type:'candlestick',data:kd,itemStyle:{color:'#ef232a',color0:'#14b143',borderColor:'#ef232a',borderColor0:'#14b143'}},
+        {name:'MA5',type:'line',data:ma5,smooth:true,lineStyle:{width:1,color:'#d4af37'},symbol:'none'},
+        {name:'MA20',type:'line',data:ma20,smooth:true,lineStyle:{width:1,color:'#daa520'},symbol:'none'}
+      ]
+    });
+  }
+  window.dbChangeProduct=function(p){ dbKProduct=p; dbRenderKline(p); };
+
+  /* ── K线图全屏 ── */
+  window.dbFullscreenKLine = function(){
+    const el = document.getElementById('db-k-line');
+    if(!document.fullscreenElement){ el.requestFullscreen && el.requestFullscreen(); }
+    else { document.exitFullscreen && document.exitFullscreen(); }
+  };
+
+  /* ── 供需图表 ── */
+  let dbOpecChart=null, dbDemandChart=null;
+  function dbRenderSupply(){
+    const opecEl=document.getElementById('dbOpecPie');
+    const demEl=document.getElementById('dbDemandBar');
+    if(!opecEl||!demEl) return;
+    if(!dbOpecChart) dbOpecChart=echarts.init(opecEl);
+    if(!dbDemandChart) dbDemandChart=echarts.init(demEl);
+    dbOpecChart.setOption({
+      tooltip:{trigger:'item',formatter:'{b}: {c}千桶/日 ({d}%)',textStyle:{color:'#d4af37'}},
+      legend:{orient:'horizontal',bottom:1,textStyle:{color:'#d4af37',fontSize:8},itemWidth:6,itemHeight:6,itemGap:2},
+      series:[{name:'欧佩克产量',type:'pie',radius:['25%','50%'],center:['50%','42%'],
+        label:{show:true,formatter:'{b}',color:'#d4af37',fontSize:10},
+        labelLine:{lineStyle:{color:'#d4af37'}},
+        itemStyle:{borderRadius:5,borderColor:'#1a1a1a',borderWidth:2},
+        data:[{value:2641,name:'沙特阿拉伯'},{value:1680,name:'伊拉克'},{value:1402,name:'阿联酋'},{value:1320,name:'科威特'},{value:1100,name:'伊朗'},{value:880,name:'尼日利亚'},{value:720,name:'安哥拉'},{value:650,name:'刚果'},{value:580,name:'加蓬'},{value:520,name:'赤道几内亚'}]}]
+    });
+    dbDemandChart.setOption({
+      tooltip:{trigger:'axis',axisPointer:{type:'shadow'},textStyle:{color:'#d4af37'},formatter:'{b}: {c}百万桶/日'},
+      grid:{left:'3%',right:'4%',bottom:'3%',top:'8%',containLabel:true},
+      xAxis:{type:'category',data:['2026Q3','2026Q4','2027Q1','2027Q2','2027Q3','2027Q4'],axisLine:{lineStyle:{color:'#d4af37'}},axisLabel:{color:'#d4af37',fontSize:10}},
+      yAxis:{type:'value',name:'百万桶/日',nameTextStyle:{color:'#d4af37',fontSize:10},axisLine:{lineStyle:{color:'#d4af37'}},axisLabel:{color:'#d4af37',fontSize:10},splitLine:{lineStyle:{color:'#444'}}},
+      series:[{type:'bar',barWidth:'50%',data:[103.5,104.2,105.0,105.8,104.8,106.2],
+        itemStyle:{color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'#d4af37'},{offset:1,color:'#8a7015'}]),borderRadius:[5,5,0,0]},
+        label:{show:true,position:'top',color:'#d4af37',fontSize:11}}]
+    });
+  }
+
+  /* ── 自定义弹窗 ── */
+  let dbLineChart=null;
+  window.dbOpenModal=function(){
+    document.getElementById('db-custom-modal').style.display='block';
+    document.body.style.overflow='hidden';
+  };
+  window.dbCloseModal=function(){
+    document.getElementById('db-custom-modal').style.display='none';
+    document.body.style.overflow='auto';
+  };
+  document.addEventListener('click',e=>{ if(e.target===document.getElementById('db-custom-modal')) dbCloseModal(); });
+  window.dbRenderCustom=function(){
+    const s=document.getElementById('db-start-date').value;
+    const e=document.getElementById('db-end-date').value;
+    const t1=document.getElementById('db-type1');
+    const t2=document.getElementById('db-type2');
+    const n1=t1.options[t1.selectedIndex].text, n2=t2.options[t2.selectedIndex].text;
+    const d1=dbGenMock(s,e,t1.value), d2=dbGenMock(s,e,t2.value);
+    const l1=d1[d1.length-1].price, p1=d1[d1.length-2].price;
+    const l2=d2[d2.length-1].price, p2=d2[d2.length-2].price;
+    const c1=+(l1-p1).toFixed(2), c2=+(l2-p2).toFixed(2);
+    document.getElementById('db-modal-tbody').innerHTML=`
+      <tr><td>${n1}</td><td>${l1}</td><td class="${c1>=0?'db-pos':'db-neg'}">${c1>=0?'+':''}${c1}</td><td class="${c1>=0?'db-pos':'db-neg'}">${c1>=0?'+':''}${((c1/p1)*100).toFixed(2)}%</td></tr>
+      <tr><td>${n2}</td><td>${l2}</td><td class="${c2>=0?'db-pos':'db-neg'}">${c2>=0?'+':''}${c2}</td><td class="${c2>=0?'db-pos':'db-neg'}">${c2>=0?'+':''}${((c2/p2)*100).toFixed(2)}%</td></tr>
+      <tr><td>价差</td><td colspan="3">${+(l1-l2).toFixed(2)}</td></tr>`;
+    const chartEl=document.getElementById('dbCustomLineChart');
+    if(dbLineChart) dbLineChart.dispose();
+    dbLineChart=echarts.init(chartEl);
+    dbLineChart.setOption({
+      tooltip:{trigger:'axis'},
+      legend:{data:[n1,n2],textStyle:{color:'#9fb0c7'},bottom:0},
+      grid:{left:'3%',right:'4%',bottom:'15%',top:'10%',containLabel:true},
+      xAxis:{type:'category',boundaryGap:false,data:d1.map(x=>x.date),axisLabel:{color:'#9fb0c7',fontSize:10},splitLine:{show:false}},
+      yAxis:{axisLabel:{color:'#9fb0c7',fontSize:10},splitLine:{lineStyle:{color:'rgba(28,39,53,.5)'}}},
+      series:[
+        {name:n1,type:'line',data:d1.map(x=>x.price),smooth:true,lineStyle:{color:'#e4b44a',width:2},areaStyle:{color:'rgba(228,180,74,.1)'}},
+        {name:n2,type:'line',data:d2.map(x=>x.price),smooth:true,lineStyle:{color:'#6fd0ff',width:2},areaStyle:{color:'rgba(111,208,255,.1)'}}
+      ]
+    });
+  };
+  window.dbDownloadChart=function(){
+    if(dbLineChart){ const a=document.createElement('a');a.href=dbLineChart.getDataURL({type:'png',pixelRatio:2,backgroundColor:'#0f1620'});a.download='crack-spread.png';a.click(); }
+  };
+
+  /* ── 初始化入口（由 switchView 触发，双 rAF 等布局稳定） ── */
+  window.dbInitOnce=false;
+  window.initDatabaseView=function(){
+    if(window.dbInitOnce) return;
+    window.dbInitOnce=true;
+    dbShowProduct('diesel');
+    requestAnimationFrame(()=>{
+      requestAnimationFrame(()=>{
+        dbRenderKline('brent');
+        dbRenderSupply();
+      });
+    });
+    window.addEventListener('resize',()=>{
+      dbKChart?.resize();
+      dbOpecChart?.resize();
+      dbDemandChart?.resize();
+    });
+  };
+})();
+
+/* ── 数据库页面内容 ── */
+window._loadDbDownload = function(){
+  var frame = document.getElementById('db-download-frame');
+  if(!frame || frame.dataset.loaded) return;
+  frame.src = '0316.html';
+  frame.dataset.loaded = '1';
+};
+
+</script>
+<script>
+/* ══════════════════════════════════════════
+   套保助手 JS（hg_ 前缀避免全局变量冲突）
+══════════════════════════════════════════ */
+(function(){
+  function hgInit(){
+    const $=id=>document.getElementById(id);
+    const bizItems=document.querySelectorAll('#hgBizGroup .hg-radio-item');
+    const consumerItems=document.querySelectorAll('#hgConsumerGroup .hg-radio-item');
+    const modelItems=document.querySelectorAll('#hgModelGroup .hg-radio-item');
+    if(!bizItems.length) return; // view未激活时跳过
+
+    // 设置默认到期日
+    const now=new Date();
+    const curMonth=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
+    $('hgExpireDate').value=curMonth;
+    hgUpdateContract(curMonth);
+
+    function hgToggleRadio(items,clicked){
+      items.forEach(i=>i.querySelector('.hg-custom-radio').classList.remove('checked'));
+      clicked.querySelector('.hg-custom-radio').classList.add('checked');
+      return clicked.dataset.value;
+    }
+    function hgGetVal(items){let v='';items.forEach(i=>{if(i.querySelector('.hg-custom-radio').classList.contains('checked'))v=i.dataset.value;});return v;}
+    function hgUpdateContract(date){
+      if(!date)return;
+      const[y,m]=date.split('-');
+      const code='SC'+y.slice(2)+m;
+      $('hgContractTips').textContent='系统匹配合约：'+code;
+      $('hgFutCode').textContent=code;
+    }
+    function hgUpdateHedgeType(biz){$('hgHedgeType').textContent=biz==='采购'?'空头（采购业务）':'多头（销售业务）';}
+    function hgUpdateOpenTime(model,consumer){
+      $('hgOpenTime').textContent=(model==='均值-方差权衡模型'&&consumer==='激进型')?'建议1个工作日内开仓':'建议3个工作日内或分仓建仓';
+    }
+    function hgToast(msg){const t=$('hgToast');t.textContent=msg;t.classList.add('show');clearTimeout(hgToast._t);hgToast._t=setTimeout(()=>t.classList.remove('show'),1600);}
+    function hgFmt(n){return n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',');}
+
+    // 绑定事件
+    bizItems.forEach(item=>item.addEventListener('click',()=>{hgUpdateHedgeType(hgToggleRadio(bizItems,item));}));
+    consumerItems.forEach(item=>item.addEventListener('click',()=>{hgToggleRadio(consumerItems,item);hgUpdateOpenTime(hgGetVal(modelItems),item.dataset.value);}));
+    modelItems.forEach(item=>item.addEventListener('click',()=>{
+      const sel=hgToggleRadio(modelItems,item);
+      $('hgModelType').textContent=sel;
+      $('hgAdvanced').style.display=sel==='均值-方差权衡模型'?'flex':'none';
+      hgUpdateOpenTime(sel,hgGetVal(consumerItems));
+    }));
+    $('hgExpireDate').addEventListener('change',e=>{hgUpdateContract(e.target.value);$('hgExpireDateErr').style.display='none';});
+    $('hgSpotQty').addEventListener('input',()=>{
+      const v=Number($('hgSpotQty').value.trim());
+      $('hgSpotQtyErr').style.display=(isNaN(v)||v<100||v%1!==0)?'block':'none';
+    });
+    $('hgMaxLoss').addEventListener('input',()=>{
+      const v=Number($('hgMaxLoss').value.trim());
+      $('hgMaxLossErr').style.display=(isNaN(v)||v<0)?'block':'none';
+    });
+
+    function hgCheckForm(){
+      let ok=true;
+      const qty=Number($('hgSpotQty').value.trim());
+      if(isNaN(qty)||qty<100||qty%1!==0){$('hgSpotQtyErr').style.display='block';ok=false;}else{$('hgSpotQtyErr').style.display='none';}
+      if(!$('hgExpireDate').value){$('hgExpireDateErr').style.display='block';ok=false;}else{$('hgExpireDateErr').style.display='none';}
+      if(hgGetVal(modelItems)==='均值-方差权衡模型'){
+        const lv=Number($('hgMaxLoss').value.trim());
+        if(isNaN(lv)||lv<0){$('hgMaxLossErr').style.display='block';ok=false;}else{$('hgMaxLossErr').style.display='none';}
+      }
+      return ok;
+    }
+
+    function hgCalc(){
+      const biz=hgGetVal(bizItems);
+      const qty=Number($('hgSpotQty').value.trim());
+      const consumer=hgGetVal(consumerItems);
+      const model=hgGetVal(modelItems);
+      let ratio=0.856;
+      if(consumer==='中立型') ratio=0.856*0.9;
+      else if(consumer==='激进型') ratio=0.856*0.8;
+      $('hgHedgeRatio').textContent=(ratio*100).toFixed(2)+'%';
+      const hands=Math.ceil(ratio*qty/1000);
+      $('hgFutQty').textContent=hands+' 手';
+      const fp=504,init=fp*1000*hands*0.1,supp=fp*1000*hands*0.08;
+      $('hgInitMargin').textContent=hgFmt(init)+' 元';
+      $('hgSuppMargin').textContent=hgFmt(supp)+' 元';
+      $('hgTotalMargin').textContent=hgFmt(init+supp)+' 元';
+      hgUpdateOpenTime(model,consumer);
+    }
+
+    $('hgCalcBtn').addEventListener('click',()=>{if(hgCheckForm()){hgCalc();hgToast('套保方案计算成功！');}});
+    $('hgResetBtn').addEventListener('click',()=>{
+      hgToggleRadio(bizItems,bizItems[0]);hgUpdateHedgeType('采购');
+      $('hgSpotQty').value='';$('hgSpotQtyErr').style.display='none';
+      $('hgExpireDate').value=curMonth;hgUpdateContract(curMonth);$('hgExpireDateErr').style.display='none';
+      hgToggleRadio(consumerItems,consumerItems[0]);
+      hgToggleRadio(modelItems,modelItems[0]);$('hgModelType').textContent='最小方差模型';$('hgAdvanced').style.display='none';
+      $('hgMaxLoss').value='';$('hgMaxLossErr').style.display='none';
+      hgUpdateOpenTime('最小方差模型','稳健型');
+    });
+  }
+
+  // 首次切换到套保助手时初始化
+  const _orig=window.switchView;
+  window.switchView=function(viewId){
+    _orig(viewId);
+    if(viewId==='view-hedge') setTimeout(hgInit,30);
+  };
+})();
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script>
+/* ══════════════════════════════════════════
+   预警机制 JS（wa_ 前缀避免冲突）
+══════════════════════════════════════════ */
+(function(){
+  const $=id=>document.getElementById(id);
+
+  let waHistoryData=[], waRealTimePrice=0;
+
+  // ── Excel读取 ──
+  function waReadExcel(file){
+    return new Promise((resolve,reject)=>{
+      const reader=new FileReader();
+      reader.onload=e=>{
+        try{
+          const wb=XLSX.read(new Uint8Array(e.target.result),{type:'array'});
+          resolve(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]));
+        }catch(err){reject(err);}
+      };
+      reader.readAsArrayBuffer(file);
+    });
+  }
+
+  // ── 开关逻辑 ──
+  function waInitSwitches(){
+    // 价格开关
+    $('waPriceSwitch').addEventListener('click',()=>{
+      $('waPriceSwitch').classList.toggle('active');
+      const on=$('waPriceSwitch').classList.contains('active');
+      $('waPriceUp').disabled=!on; $('waPriceDown').disabled=!on;
+    });
+    // 波动率开关
+    $('waVolSwitch').addEventListener('click',()=>{
+      $('waVolSwitch').classList.toggle('active');
+      const on=$('waVolSwitch').classList.contains('active');
+      $('waVolCycle').disabled=!on; $('waVolThreshold').disabled=!on;
+    });
+    // 技术指标开关
+    $('waTechSwitch').addEventListener('click',()=>{
+      $('waTechSwitch').classList.toggle('active');
+      const on=$('waTechSwitch').classList.contains('active');
+      ['waTech1','waTech2','waTech3','waTech4','waTech5'].forEach(id=>{
+        $( id).style.pointerEvents=on?'auto':'none';
+        $( id).style.opacity=on?'1':'0.4';
+      });
+    });
+    // 技术指标复选框
+    ['waTech1','waTech2','waTech3','waTech4','waTech5'].forEach(id=>{
+      $(id).addEventListener('click',()=>$(id).classList.toggle('checked'));
+    });
+    // 初始禁用状态视觉
+    ['waTech1','waTech2','waTech3','waTech4','waTech5'].forEach(id=>{
+      $(id).style.pointerEvents='none'; $(id).style.opacity='0.4';
+    });
+  }
+
+  // ── 上传事件 ──
+  function waInitUploads(){
+    $('waHistoryExcel').addEventListener('change',async e=>{
+      if(!e.target.files[0]) return;
+      try{
+        const data=await waReadExcel(e.target.files[0]);
+        waHistoryData=data
+          .sort((a,b)=>new Date(a.日期)-new Date(b.日期))
+          .map(item=>({date:item.日期, price:parseFloat(item['价格(元/桶)'])||0}))
+          .filter(item=>!isNaN(item.price)&&item.price>0);
+        alert('历史价格Excel读取成功！共'+waHistoryData.length+'条数据');
+      }catch(err){ alert('读取历史Excel失败：'+err.message); }
+    });
+
+    $('waRealTimeExcel').addEventListener('change',async e=>{
+      if(!e.target.files[0]) return;
+      try{
+        const data=await waReadExcel(e.target.files[0]);
+        waRealTimePrice=parseFloat(data[0]['实时价格(元/桶)'])||0;
+        alert('实时价格读取成功：'+waRealTimePrice+'元/桶');
+      }catch(err){ alert('读取实时Excel失败：'+err.message); }
+    });
+  }
+
+  // ── 计算函数 ──
+  function waCalcVol(priceList,cycle){
+    const returns=[];
+    for(let i=1;i<priceList.length;i++){
+      if(priceList[i-1]>0) returns.push((priceList[i]-priceList[i-1])/priceList[i-1]);
+    }
+    const recent=returns.slice(-cycle);
+    if(recent.length<2) return '0.00';
+    const mean=recent.reduce((a,b)=>a+b,0)/recent.length;
+    const std=Math.sqrt(recent.reduce((a,b)=>a+Math.pow(b-mean,2),0)/(recent.length-1));
+    return (std*100).toFixed(2);
+  }
+
+  function waCalcTech(priceList){
+    const r90=priceList.slice(-90);
+    if(!r90.length) return{support:0,resistance:0,bollMid:0,bollUp:0,bollDown:0};
+    const support=Math.min(...r90).toFixed(1), resistance=Math.max(...r90).toFixed(1);
+    const r20=priceList.slice(-20);
+    if(r20.length<2) return{support,resistance,bollMid:0,bollUp:0,bollDown:0};
+    const ma=r20.reduce((a,b)=>a+b,0)/r20.length;
+    const std=Math.sqrt(r20.reduce((a,b)=>a+Math.pow(b-ma,2),0)/(r20.length-1));
+    return{support,resistance,bollMid:ma.toFixed(1),bollUp:(ma+2*std).toFixed(1),bollDown:(ma-2*std).toFixed(1)};
+  }
+
+  // ── 主计算按钮 ──
+  function waInitCalc(){
+    $('waCalcBtn').addEventListener('click',()=>{
+      if(waHistoryData.length<2){ alert('历史数据不足，请先上传Excel1'); return; }
+      if(!waRealTimePrice){ alert('未读取实时价格，请先上传Excel2'); return; }
+
+      const prices=waHistoryData.map(d=>d.price);
+      const cycle=parseInt($('waVolCycle').value);
+      const vol=waCalcVol(prices,cycle);
+      const tech=waCalcTech(prices);
+
+      $('waHistoryCycle').textContent=waHistoryData.length;
+      $('waRealPrice').textContent=waRealTimePrice.toFixed(1);
+      $('waVolCycleShow').textContent=cycle;
+      $('waVolValue').textContent=vol;
+      $('waSupportPrice').textContent=tech.support;
+      $('waResistancePrice').textContent=tech.resistance;
+      $('waBollUp').textContent=tech.bollUp;
+      $('waBollMid').textContent=tech.bollMid;
+      $('waBollDown').textContent=tech.bollDown;
+
+      let alertMsg='未触发任何预警', isAlert=false;
+
+      if($('waPriceSwitch').classList.contains('active')){
+        const up=parseFloat($('waPriceUp').value)||0;
+        const down=parseFloat($('waPriceDown').value)||0;
+        if(up&&waRealTimePrice>=up){ alertMsg=`价格超过上限：${waRealTimePrice} ≥ ${up}元/桶`; isAlert=true; }
+        else if(down&&waRealTimePrice<=down){ alertMsg=`价格低于下限：${waRealTimePrice} ≤ ${down}元/桶`; isAlert=true; }
+      }
+      if(!isAlert&&$('waVolSwitch').classList.contains('active')){
+        const thr=parseFloat($('waVolThreshold').value)||0;
+        if(thr&&parseFloat(vol)>=thr){ alertMsg=`波动率超阈值：${vol}% ≥ ${thr}%`; isAlert=true; }
+      }
+      if(!isAlert&&$('waTechSwitch').classList.contains('active')){
+        const names=['突破支撑价','突破阻力位','突破布林带上轨','突破布林带中轨','突破布林带下轨'];
+        const conds=[
+          waRealTimePrice<=parseFloat(tech.support),
+          waRealTimePrice>=parseFloat(tech.resistance),
+          waRealTimePrice>=parseFloat(tech.bollUp),
+          waRealTimePrice>=parseFloat(tech.bollMid),
+          waRealTimePrice<=parseFloat(tech.bollDown),
+        ];
+        ['waTech1','waTech2','waTech3','waTech4','waTech5'].forEach((id,i)=>{
+          if(!isAlert&&$(id).classList.contains('checked')&&conds[i]){
+            alertMsg=`技术指标触发：${names[i]}（当前价：${waRealTimePrice}）`; isAlert=true;
+          }
+        });
+      }
+
+      $('waAlertResult').textContent=alertMsg;
+      $('waResultArea').style.display='block';
+
+      if(isAlert){
+        $('waAlertModal').style.display='block';
+        setTimeout(()=>$('waAlertModal').style.display='none',5000);
+      }
+    });
+  }
+  
+
+})();
+
+</script>
+<script src="supply_ship_embed.js"></script>
+
+<script src="js/main.js"></script> <script src="js/charts-config.js"></script>
+</body>
+</html>

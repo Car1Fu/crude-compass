@@ -1,0 +1,1494 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>原油数据中心 - Crude Oil Data Center</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <style>
+        :root {
+            --primary: #D4AF37;
+            --primary-light: #E5C158;
+            --primary-dark: #B8962E;
+            --secondary: #C9A227;
+            --accent: #FFD700;
+            --bg-main: #0a0a0a;
+            --bg-panel: #141414;
+            --bg-card: #1a1a1a;
+            --border: #2a2a2a;
+            --border-light: #3d3d3d;
+            --text: #f5f5f5;
+            --text-muted: #a0a0a0;
+            --text-secondary: #707070;
+            --positive: #4ADE80;
+            --negative: #F87171;
+            --shadow: 0 8px 24px rgba(212, 175, 55, 0.1);
+            --radius: 8px;
+            --radius-lg: 12px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: var(--bg-main);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
+            border-bottom: 1px solid var(--primary);
+            padding: 0 24px;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 20px rgba(212, 175, 55, 0.15);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--accent) 0%, #d4923a 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: bold;
+            color: #fff;
+        }
+
+        .site-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .site-title span {
+            color: var(--accent);
+        }
+
+        .header-center {
+            flex: 1;
+            max-width: 500px;
+            margin: 0 40px;
+        }
+
+        .global-search {
+            position: relative;
+            width: 100%;
+        }
+
+        .global-search input {
+            width: 100%;
+            padding: 10px 16px 10px 42px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            color: var(--text);
+            font-size: 14px;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .global-search input:focus {
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2);
+        }
+
+        .global-search input::placeholder {
+            color: var(--text-secondary);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+            font-size: 16px;
+        }
+
+        .search-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            margin-top: 8px;
+            max-height: 400px;
+            overflow-y: auto;
+            display: none;
+            z-index: 1000;
+            box-shadow: var(--shadow);
+        }
+
+        .search-dropdown.show {
+            display: block;
+        }
+
+        .search-result-item {
+            padding: 12px 16px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+            transition: background 0.15s;
+        }
+
+        .search-result-item:last-child {
+            border-bottom: none;
+        }
+
+        .search-result-item:hover {
+            background: rgba(212, 175, 55, 0.1);
+        }
+
+        .search-result-name {
+            font-size: 14px;
+            color: var(--text);
+        }
+
+        .search-result-category {
+            font-size: 12px;
+            color: var(--text-secondary);
+            background: var(--bg-panel);
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .download-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: #fff;
+            border: 1px solid var(--primary-light);
+            border-radius: var(--radius);
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 2px 8px rgba(212, 175, 55, 0.3);
+        }
+
+        .download-btn:hover {
+            background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary) 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(212, 175, 55, 0.5);
+        }
+
+        .main-container {
+            display: flex;
+            min-height: calc(100vh - 64px);
+        }
+
+        .sidebar {
+            width: 280px;
+            background: var(--bg-panel);
+            border-right: 1px solid var(--border);
+            overflow-y: auto;
+            flex-shrink: 0;
+        }
+
+        .sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .sidebar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 3px;
+        }
+
+        .category-nav {
+            padding: 16px 0;
+        }
+
+        .category-item {
+            border-bottom: 1px solid var(--border);
+        }
+
+        .category-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 20px;
+            cursor: pointer;
+            transition: background 0.15s;
+            user-select: none;
+        }
+
+        .category-header:hover {
+            background: rgba(212, 175, 55, 0.1);
+        }
+
+        .category-header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .category-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .category-icon.price { background: rgba(212, 175, 55, 0.2); color: var(--accent); }
+        .category-icon.supply { background: rgba(212, 175, 55, 0.2); color: var(--primary-light); }
+        .category-icon.shipping { background: rgba(212, 175, 55, 0.2); color: var(--primary-light); }
+        .category-icon.macro { background: rgba(212, 175, 55, 0.2); color: var(--primary-light); }
+        .category-icon.derivative { background: rgba(212, 175, 55, 0.2); color: var(--primary-light); }
+
+        .category-title {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text);
+        }
+
+        .category-arrow {
+            color: var(--text-secondary);
+            font-size: 12px;
+            transition: transform 0.2s;
+        }
+
+        .category-item.expanded .category-arrow {
+            transform: rotate(90deg);
+        }
+
+        .category-children {
+            display: none;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 8px 0;
+        }
+
+        .category-item.expanded .category-children {
+            display: block;
+        }
+
+        .subcategory-header {
+            display: flex;
+            align-items: center;
+            padding: 10px 20px 10px 64px;
+            cursor: pointer;
+            color: var(--text-muted);
+            font-size: 13px;
+            transition: all 0.15s;
+        }
+
+        .subcategory-header:hover {
+            color: var(--text);
+            background: rgba(212, 175, 55, 0.08);
+        }
+
+        .subcategory-header .arrow {
+            margin-right: 8px;
+            font-size: 10px;
+            transition: transform 0.2s;
+        }
+
+        .subcategory-header.expanded .arrow {
+            transform: rotate(90deg);
+        }
+
+        .subcategory-children {
+            display: none;
+            padding: 4px 0;
+        }
+
+        .subcategory-header.expanded + .subcategory-children {
+            display: block;
+        }
+
+        .data-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 20px 10px 80px;
+            cursor: pointer;
+            font-size: 13px;
+            color: var(--text-muted);
+            transition: all 0.15s;
+            border-left: 2px solid transparent;
+        }
+
+        .data-item:hover {
+            color: var(--text);
+            background: rgba(212, 175, 55, 0.08);
+            border-left-color: var(--primary-light);
+        }
+
+        .data-item.active {
+            color: var(--primary-light);
+            background: rgba(212, 175, 55, 0.12);
+            border-left-color: var(--primary-light);
+        }
+
+        .data-item-name {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .data-item-freq {
+            font-size: 11px;
+            color: var(--text-secondary);
+            background: var(--bg-card);
+            padding: 2px 6px;
+            border-radius: 3px;
+            margin-left: 8px;
+        }
+
+        .content-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .content-header {
+            background: var(--bg-panel);
+            border-bottom: 1px solid var(--border);
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .content-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .content-title h2 {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .content-title .badge {
+            font-size: 12px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-weight: normal;
+        }
+
+        .content-title .badge.source {
+            background: rgba(63, 185, 80, 0.15);
+            color: var(--positive);
+        }
+
+        .content-title .badge.freq {
+            background: rgba(212, 175, 55, 0.15);
+            color: var(--primary-light);
+        }
+
+        .content-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .view-toggle {
+            display: flex;
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            padding: 4px;
+            border: 1px solid var(--border);
+        }
+
+        .view-btn {
+            padding: 6px 14px;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 13px;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.15s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .view-btn.active {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: #fff;
+            box-shadow: 0 2px 8px rgba(212, 175, 55, 0.3);
+        }
+
+        .view-btn:hover:not(.active) {
+            color: var(--text);
+        }
+
+        .freq-selector {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--bg-card);
+            padding: 4px 8px;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+        }
+
+        .freq-selector label {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .freq-selector select {
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+            outline: none;
+        }
+
+        .freq-selector select:focus {
+            border-color: var(--primary-light);
+        }
+
+        .action-btn {
+            padding: 8px 16px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--text);
+            font-size: 13px;
+            cursor: pointer;
+            border-radius: var(--radius);
+            transition: all 0.15s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .action-btn:hover {
+            background: var(--border);
+            border-color: var(--border-light);
+        }
+
+        .action-btn.primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            border-color: var(--primary);
+            color: #fff;
+            box-shadow: 0 2px 8px rgba(212, 175, 55, 0.3);
+        }
+
+        .action-btn.primary:hover {
+            background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary) 100%);
+            box-shadow: 0 4px 12px rgba(212, 175, 55, 0.5);
+        }
+
+        .content-body {
+            flex: 1;
+            overflow: auto;
+            padding: 24px;
+        }
+
+        .data-meta {
+            display: flex;
+            gap: 24px;
+            margin-bottom: 20px;
+            padding: 16px;
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border);
+        }
+
+        .meta-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .meta-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .meta-value {
+            font-size: 14px;
+            color: var(--text);
+            font-weight: 500;
+        }
+
+        .table-container {
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table th {
+            background: var(--bg-panel);
+            padding: 14px 16px;
+            text-align: left;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text);
+            border-bottom: 2px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .data-table th:not(:first-child) {
+            text-align: right;
+        }
+
+        .data-table td {
+            padding: 12px 16px;
+            font-size: 13px;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .data-table td:not(:first-child) {
+            text-align: right;
+            font-family: "SF Mono", Monaco, Consolas, monospace;
+        }
+
+        .data-table tr:hover td {
+            background: rgba(212, 175, 55, 0.05);
+        }
+
+        .data-table .positive {
+            color: var(--positive);
+        }
+
+        .data-table .negative {
+            color: var(--negative);
+        }
+
+        .chart-container {
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border);
+            padding: 20px;
+            height: 500px;
+        }
+
+        #mainChart {
+            width: 100%;
+            height: 100%;
+        }
+
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 400px;
+            color: var(--text-secondary);
+        }
+
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .empty-state-text {
+            font-size: 16px;
+        }
+
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            color: var(--text-secondary);
+        }
+
+        .footer-bar {
+            background: var(--bg-panel);
+            border-top: 1px solid var(--border);
+            padding: 12px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .footer-info {
+            display: flex;
+            gap: 24px;
+        }
+
+        .footer-info span {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        @media (max-width: 1200px) {
+            .sidebar {
+                width: 240px;
+            }
+            .header-center {
+                max-width: 350px;
+            }
+        }
+
+        @media (max-width: 992px) {
+            .sidebar {
+                position: fixed;
+                left: -280px;
+                top: 64px;
+                height: calc(100vh - 64px);
+                z-index: 50;
+                transition: left 0.3s;
+            }
+            .sidebar.show {
+                left: 0;
+            }
+            .menu-toggle {
+                display: flex;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-left">
+            <div class="logo-section">
+                <div class="logo-icon">油</div>
+                <div class="site-title">原油<span>数据中心</span></div>
+            </div>
+        </div>
+        <div class="header-center">
+            <div class="global-search">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="globalSearch" placeholder="搜索指标名称、数据类别或关键字..." 
+                       autocomplete="off" oninput="handleSearch(this.value)" 
+                       onfocus="showSearchResults(this.value)" onblur="hideSearchResults()">
+                <div class="search-dropdown" id="searchDropdown"></div>
+            </div>
+        </div>
+        <div class="header-right">
+            <button class="download-btn" onclick="exportData()">
+                <span>📥</span> 导出数据
+            </button>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <aside class="sidebar" id="sidebar">
+            <nav class="category-nav">
+                <div class="category-item expanded" data-category="price">
+                    <div class="category-header" onclick="toggleCategory(this)">
+                        <div class="category-header-left">
+                            <div class="category-icon price">💰</div>
+                            <span class="category-title">价格</span>
+                        </div>
+                        <span class="category-arrow">▶</span>
+                    </div>
+                    <div class="category-children">
+                        <div class="subcategory-header" onclick="toggleSubcategory(this)">
+                            <span class="arrow">▶</span> 原油价格
+                        </div>
+                        <div class="subcategory-children">
+                            <div class="data-item" onclick="selectData(this, 'WTI原油现货价', 'price', '日', '美元/桶')">
+                                <span class="data-item-name">WTI原油现货价</span>
+                                <span class="data-item-freq">日度</span>
+                            </div>
+                            <div class="data-item" onclick="selectData(this, '布伦特原油现货价', 'price', '日', '美元/桶')">
+                                <span class="data-item-name">布伦特原油现货价</span>
+                                <span class="data-item-freq">日度</span>
+                            </div>
+                            <div class="data-item" onclick="selectData(this, '迪拜原油现货价', 'price', '日', '美元/桶')">
+                                <span class="data-item-name">迪拜原油现货价</span>
+                                <span class="data-item-freq">日度</span>
+                            </div>
+                            <div class="data-item" onclick="selectData(this, '中国原油进口到岸价', 'price', '日', '美元/桶')">
+                                <span class="data-item-name">中国原油进口到岸价</span>
+                                <span class="data-item-freq">日度</span>
+                            </div>
+                        </div>
+                        <div class="subcategory-header" onclick="toggleSubcategory(this)">
+                            <span class="arrow">▶</span> 成品油价
+                        </div>
+                        <div class="subcategory-children">
+                            <div class="data-item" onclick="selectData(this, '汽油现货价', 'price', '日', '美元/吨')">
+                                <span class="data-item-name">汽油现货价</span>
+                                <span class="data-item-freq">日度</span>
+                            </div>
+                            <div class="data-item" onclick="selectData(this, '柴油现货价', 'price', '日', '美元/桶')">
+                                <span class="data-item-name">柴油现货价</span>
+                                <span class="data-item-freq">日度</span>
+                            </div>
+                            <div class="data-item" onclick="selectData(this, '燃料油现货价', 'price', '日', '美元/吨')">
+                                <span class="data-item-name">燃料油现货价</span>
+                                <span class="data-item-freq">日度</span>
+                            </div>
+                            <div class="data-item" onclick="selectData(this, '航空煤油现货价', 'price', '日', '美元/桶')">
+                                <span class="data-item-name">航空煤油现货价</span>
+                                <span class="data-item-freq">日度</span>
+                            </div>
+                        </div>
+                        <div class="subcategory-header" onclick="toggleSubcategory(this)">
+                            <span class="arrow">▶</span> 期货价格
+                        </div>
+                        <div class="subcategory-children">
+                            <div class="data-item" onclick="selectData(this, 'WTI原油期货收盘价', 'price', '日', '美元/桶')">
+                                <span class="data-item-name">WTI原油期货收盘价</span>
+                                <span class="data-item-freq">日度</span>
+                            </div>
+                            <div class="data-item" onclick="selectData(this, '布伦特原油期货收盘价', 'price', '日', '美元/桶')">
+                                <span class="data-item-name">布伦特原油期货收盘价</span>
+                                <span class="data-item-freq">日度</span>
+                            </div>
+                            <div class="data-item" onclick="selectData(this, '上海原油期货结算价', 'price', '日', '元/桶')">
+                                <span class="data-item-name">上海原油期货结算价</span>
+                                <span class="data-item-freq">日度</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="category-item" data-category="supply">
+                    <div class="category-header" onclick="toggleCategory(this)">
+                        <div class="category-header-left">
+                            <div class="category-icon supply">📊</div>
+                            <span class="category-title">供需基本面</span>
+                        </div>
+                        <span class="category-arrow">▶</span>
+                    </div>
+                    <div class="category-children">
+                        <div class="subcategory-header" onclick="toggleSubcategory(this)">
+                            <span class="arrow">▶</span> OPEC产量
+                        </div>
+                        <div class="subcategory-children">
+                            <div class="data-item" onclick="selectData(this, 'OPEC原油产量', 'supply', '月', '万桶/日')">
+                                <span class="data-item-name">OPEC原油产量</span>
+                                <span class="data-item-freq">月度</span>
+                            </div>
+                            <div class="data-item" onclick="selectData(this, '沙特阿拉伯原油产量', 'supply', '月', '万桶/日')">
+                                <span class="data-item-name">沙特阿拉伯原油产量</span>
+                                <span class="data-item-freq">月度</span>
+                            </div>
+                            <div class="data-item" onclick="selectData(this, '伊拉克原油产量', 'supply', '月', '万桶/日')">
+                                <span class="data-item-name">伊拉克原油产量</span>
+                                <span class="data-item-freq">月度</span>
+                            </div>
+                        </div>
+                        <div class="subcategory-header" onclick="toggleSubcategory(this)">
+                            <span class="arrow">▶</span> 全球库存
+                        </div>
+                        <div class="subcategory-children">
+                            <div class="data-item" onclick="selectData(this, '美国原油库存', 'supply', '周', '万桶')">
+                                <span class="data-item-name">美国原油库存</span>
+                                <span class="data-item-freq">周度</span>
+                            </div>
+                            <div class="data-item" onclick="selectData(this, '美国汽油库存', 'supply', '周', '万桶')">
+                                <span class="data-item-name">美国汽油库存</span>
+                                <span class="data-item-freq">周度</span>
+                            </div>
+                            <div class="data-item" onclick="selectData(this, '美国馏分油库存', 'supply', '周', '万桶')">
+                                <span class="data-item-name">美国馏分油库存</span>
+                                <span class="data-item-freq">周度</span>
+                            </div>
+                            <div class="data-item" onclick="selectData(this, 'OECD原油库存', 'supply', '月', '百万桶')">
+                                <span class="data-item-name">OECD原油库存</span>
+                                <span class="data-item-freq">月度</span>
+                            </div>
+                        </div>
+                        <div class="subcategory-header" onclick="toggleSubcategory(this)">
+                            <span class="arrow">▶</span> 炼厂开工率
+                        </div>
+                        <div class="subcategory-children">
+                            <div class="data-item" onclick="selectData(this, '美国炼厂开工率', 'supply', '周', '%')">
+                                <span class="data-item-name">美国炼厂开工率</span>
+                                <span class="data-item-freq">周度</span>
+                            </div>
+                            <div class="data-item" onclick="selectData(this, '欧洲炼厂开工率', 'supply', '周', '%')">
+                                <span class="data-item-name">欧洲炼厂开工率</span>
+                                <span class="data-item-freq">周度</span>
+                            </div>
+                            <div class="data-item" onclick="selectData(this, '中国炼厂开工率', 'supply', '周', '%')">
+                                <span class="data-item-name">中国炼厂开工率</span>
+                                <span class="data-item-freq">周度</span>
+                            </div>
+                        </div>
+                        <div class="subcategory-header" onclick="toggleSubcategory(this)">
+                            <span class="arrow">▶</span> 消费需求
+                        </div>
+                        <div class="subcategory-children">
+                            <div class="data-item" onclick="selectData(this, '全球石油消费', 'supply', '月', '万桶/日')">
+                                <span class="data-item-name">全球石油消费</span>
+                                <span class="data-item-freq">月度</span>
+                            </div>
+                            <div class="data-item" onclick="selectData(this, '中国石油消费', 'supply', '月', '万吨')">
+                                <span class="data-item-name">中国石油消费</span>
+                                <span class="data-item-freq">月度</span>
+                            </div>
+                            <div class="data-item" onclick="selectData(this, '美国石油消费', 'supply', '月', '万桶/日')">
+                                <span class="data-item-name">美国石油消费</span>
+                                <span class="data-item-freq">月度</span>
+                            </div>
+                            <div class="data-item" onclick="selectData(this, '印度石油消费', 'supply', '月', '万吨')">
+                                <span class="data-item-name">印度石油消费</span>
+                                <span class="data-item-freq">月度</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="category-item" data-category="shipping">
+                    <div class="category-header" onclick="toggleCategory(this)">
+                        <div class="category-header-left">
+                            <div class="category-icon shipping">🚢</div>
+                            <span class="category-title">航运与物流</span>
+                        </div>
+                        <span class="category-arrow">▶</span>
+                    </div>
+                    <div class="category-children">
+                        <div class="subcategory-header" onclick="toggleSubcategory(this)">
+                            <span class="arrow">▶</span> 运费指数
+                        </div>
+                        <div class="subcategory-children">
+                            <div class="data-item" onclick="selectData(this, 'BDI波罗的海指数', 'shipping', '日', '点')">
+                                <span class="data-item-name">BDI波罗的海指数</span>
+                                <span class="data-item-freq">日度</span>
+                            </div>
+                            <div class="data-item" onclick="selectData(this, 'VLCC运费', 'shipping', '日', '美元/吨')">
+                                <span class="data-item-name">VLCC运费</span>
+                                <span class="data-item-freq">日度</span>
+                            </div>
+                            <div class="data-item" onclick="selectData(this, '苏伊士型运费', 'shipping', '日', '美元/吨')">
+                                <span class="data-item-name">苏伊士型运费</span>
+                                <span class="data-item-freq">日度</span>
+                            </div>
+                            <div class="data-item" onclick="selectData(this, '阿芙拉型运费', 'shipping', '日', '美元/吨')">
+                                <span class="data-item-name">阿芙拉型运费</span>
+                                <span class="data-item-freq">日度</span>
+                            </div>
+                        </div>
+                        <div class="subcategory-header" onclick="toggleSubcategory(this)">
+                            <span class="arrow">▶</span> 港口数据
+                        </div>
+                        <div class="subcategory-children">
+                            <div class="data-item" onclick="selectData(this, '中国原油进口量', 'shipping', '月', '万吨')">
+                                <span class="data-item-name">中国原油进口量</span>
+                                <span class="data-item-freq">月度</span>
+                            </div>
+                            <div class="data-item" onclick="selectData(this, '印度原油进口量', 'shipping', '月', '万吨')">
+                                <span class="data-item-name">印度原油进口量</span>
+                                <span class="data-item-freq">月度</span>
+                            </div>
+                            <div class="data-item" onclick="selectData(this, '日本原油进口量', 'shipping', '月', '万千升')">
+                                <span class="data-item-name">日本原油进口量</span>
+                                <span class="data-item-freq">月度</span>
+                            </div>
+                            <div class="data-item" onclick="selectData(this, '韩国原油进口量', 'shipping', '月', '万吨')">
+                                <span class="data-item-name">韩国原油进口量</span>
+                                <span class="data-item-freq">月度</span>
+                            </div>
+                        </div>
+                        <div class="subcategory-header" onclick="toggleSubcategory(this)">
+                            <span class="arrow">▶</span> 库存变化
+                        </div>
+                        <div class="subcategory-children">
+                            <div class="data-item" onclick="selectData(this, '美国原油净进口量', 'shipping', '周', '万桶/日')">
+                                <span class="data-item-name">美国原油净进口量</span>
+                                <span class="data-item-freq">周度</span>
+                            </div>
+                            <div class="data-item" onclick="selectData(this, '中国原油加工量', 'shipping', '月', '万吨')">
+                                <span class="data-item-name">中国原油加工量</span>
+                                <span class="data-item-freq">月度</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="category-item" data-category="macro">
+                    <div class="category-header" onclick="toggleCategory(this)">
+                        <div class="category-header-left">
+                            <div class="category-icon macro">🌍</div>
+                            <span class="category-title">宏观与金融</span>
+                        </div>
+                        <span class="category-arrow">▶</span>
+                    </div>
+                    <div class="category-children">
+                        <div class="subcategory-header" onclick="toggleSubcategory(this)">
+                            <span class="arrow">▶</span> 经济指标
+                        </div>
+                        <div class="subcategory-children">
+                            <div class="data-item" onclick="selectData(this, '美国GDP增速', 'macro', '季', '%')">
+                                <span class="data-item-name">美国GDP增速</span>
+                                <span class="data-item-freq">季度</span>
+                            </div>
+                            <div class="data-item" onclick="selectData(this, '中国GDP增速', 'macro', '季', '%')">
+                                <span class="data-item-name">中国GDP增速</span>
+                                <span class="data-item-freq">季度</span>
+                            </div>
+                            <div class="data-item" onclick="selectData(this, '欧元区GDP增速', 'macro', '季', '%')">
+                                <span class="data-item-name">欧元区GDP增速</span>
+                                <span class="data-item-freq">季度</span>
+                            </div>
+                            <div class="data-item" onclick="selectData(this, '印度GDP增速', 'macro', '季', '%')">
+                                <span class="data-item-name">印度GDP增速</span>
+                                <span class="data-item-freq">季度</span>
+                            </div>
+                        </div>
+                        <div class="subcategory-header" onclick="toggleSubcategory(this)">
+                            <span class="arrow">▶</span> 汇率
+                        </div>
+                        <div class="subcategory-children">
+                            <div class="data-item" onclick="selectData(this, '美元指数', 'macro', '日', '点')">
+                                <span class="data-item-name">美元指数</span>
+                                <span class="data-item-freq">日度</span>
+                            </div>
+                            <div class="data-item" onclick="selectData(this, '美元兑人民币', 'macro', '日', '元')">
+                                <span class="data-item-name">美元兑人民币</span>
+                                <span class="data-item-freq">日度</span>
+                            </div>
+                            <div class="data-item" onclick="selectData(this, '欧元兑美元', 'macro', '日', '美元')">
+                                <span class="data-item-name">欧元兑美元</span>
+                                <span class="data-item-freq">日度</span>
+                            </div>
+                        </div>
+                        <div class="subcategory-header" onclick="toggleSubcategory(this)">
+                            <span class="arrow">▶</span> 大宗商品
+                        </div>
+                        <div class="subcategory-children">
+                            <div class="data-item" onclick="selectData(this, '黄金价格', 'macro', '日', '美元/盎司')">
+                                <span class="data-item-name">黄金价格</span>
+                                <span class="data-item-freq">日度</span>
+                            </div>
+                            <div class="data-item" onclick="selectData(this, '铜价', 'macro', '日', '美元/吨')">
+                                <span class="data-item-name">铜价</span>
+                                <span class="data-item-freq">日度</span>
+                            </div>
+                            <div class="data-item" onclick="selectData(this, '天然气价格', 'macro', '日', '美元/MMBtu')">
+                                <span class="data-item-name">天然气价格</span>
+                                <span class="data-item-freq">日度</span>
+                            </div>
+                        </div>
+                        <div class="subcategory-header" onclick="toggleSubcategory(this)">
+                            <span class="arrow">▶</span> 利率
+                        </div>
+                        <div class="subcategory-children">
+                            <div class="data-item" onclick="selectData(this, '美联储利率', 'macro', '月', '%')">
+                                <span class="data-item-name">美联储利率</span>
+                                <span class="data-item-freq">月度</span>
+                            </div>
+                            <div class="data-item" onclick="selectData(this, '中国LPR利率', 'macro', '月', '%')">
+                                <span class="data-item-name">中国LPR利率</span>
+                                <span class="data-item-freq">月度</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="category-item" data-category="derivative">
+                    <div class="category-header" onclick="toggleCategory(this)">
+                        <div class="category-header-left">
+                            <div class="category-icon derivative">📈</div>
+                            <span class="category-title">衍生品与交易结构</span>
+                        </div>
+                        <span class="category-arrow">▶</span>
+                    </div>
+                    <div class="category-children">
+                        <div class="subcategory-header" onclick="toggleSubcategory(this)">
+                            <span class="arrow">▶</span> 期货持仓
+                        </div>
+                        <div class="subcategory-children">
+                            <div class="data-item" onclick="selectData(this, 'WTI期货持仓量', 'derivative', '周', '手')">
+                                <span class="data-item-name">WTI期货持仓量</span>
+                                <span class="data-item-freq">周度</span>
+                            </div>
+                            <div class="data-item" onclick="selectData(this, '布伦特期货持仓量', 'derivative', '周', '手')">
+                                <span class="data-item-name">布伦特期货持仓量</span>
+                                <span class="data-item-freq">周度</span>
+                            </div>
+                            <div class="data-item" onclick="selectData(this, '上海原油期货持仓量', 'derivative', '日', '手')">
+                                <span class="data-item-name">上海原油期货持仓量</span>
+                                <span class="data-item-freq">日度</span>
+                            </div>
+                        </div>
+                        <div class="subcategory-header" onclick="toggleSubcategory(this)">
+                            <span class="arrow">▶</span> 价差数据
+                        </div>
+                        <div class="subcategory-children">
+                            <div class="data-item" onclick="selectData(this, 'WTI-Brent价差', 'derivative', '日', '美元/桶')">
+                                <span class="data-item-name">WTI-Brent价差</span>
+                                <span class="data-item-freq">日度</span>
+                            </div>
+                            <div class="data-item" onclick="selectData(this, 'Dubai-Brent价差', 'derivative', '日', '美元/桶')">
+                                <span class="data-item-name">Dubai-Brent价差</span>
+                                <span class="data-item-freq">日度</span>
+                            </div>
+                            <div class="data-item" onclick="selectData(this, '日历价差', 'derivative', '日', '美元/桶')">
+                                <span class="data-item-name">原油日历价差</span>
+                                <span class="data-item-freq">日度</span>
+                            </div>
+                        </div>
+                        <div class="subcategory-header" onclick="toggleSubcategory(this)">
+                            <span class="arrow">▶</span> 波动率
+                        </div>
+                        <div class="subcategory-children">
+                            <div class="data-item" onclick="selectData(this, '原油波动率指数', 'derivative', '日', '%')">
+                                <span class="data-item-name">原油波动率指数</span>
+                                <span class="data-item-freq">日度</span>
+                            </div>
+                            <div class="data-item" onclick="selectData(this, '历史波动率', 'derivative', '日', '%')">
+                                <span class="data-item-name">WTI历史波动率</span>
+                                <span class="data-item-freq">日度</span>
+                            </div>
+                            <div class="data-item" onclick="selectData(this, '隐含波动率', 'derivative', '日', '%')">
+                                <span class="data-item-name">WTI隐含波动率</span>
+                                <span class="data-item-freq">日度</span>
+                            </div>
+                        </div>
+                        <div class="subcategory-header" onclick="toggleSubcategory(this)">
+                            <span class="arrow">▶</span> 裂解价差
+                        </div>
+                        <div class="subcategory-children">
+                            <div class="data-item" onclick="selectData(this, '汽油裂解价差', 'derivative', '日', '美元/桶')">
+                                <span class="data-item-name">汽油裂解价差</span>
+                                <span class="data-item-freq">日度</span>
+                            </div>
+                            <div class="data-item" onclick="selectData(this, '柴油裂解价差', 'derivative', '日', '美元/桶')">
+                                <span class="data-item-name">柴油裂解价差</span>
+                                <span class="data-item-freq">日度</span>
+                            </div>
+                            <div class="data-item" onclick="selectData(this, '航空煤油裂解价差', 'derivative', '日', '美元/桶')">
+                                <span class="data-item-name">航空煤油裂解价差</span>
+                                <span class="data-item-freq">日度</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+        </aside>
+
+        <main class="content-area">
+            <div class="content-header">
+                <div class="content-title">
+                    <h2 id="dataTitle">请选择数据指标</h2>
+                    <span class="badge source" id="dataSource">来源: -</span>
+                    <span class="badge freq" id="dataFreq">频率: -</span>
+                </div>
+                <div class="content-actions">
+                    <div class="view-toggle">
+                        <button class="view-btn active" data-view="table" onclick="switchViewMode('table')">
+                            <span>📊</span> 表格
+                        </button>
+                        <button class="view-btn" data-view="chart" onclick="switchViewMode('chart')">
+                            <span>📈</span> 图表
+                        </button>
+                    </div>
+                    <div class="freq-selector">
+                        <label>频率:</label>
+                        <select id="freqSelect" onchange="changeFrequency(this.value)">
+                            <option value="日">日度</option>
+                            <option value="周">周度</option>
+                            <option value="月">月度</option>
+                            <option value="年">年度</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-body" id="contentBody">
+                <div class="empty-state">
+                    <div class="empty-state-icon">📊</div>
+                    <div class="empty-state-text">请在左侧选择数据指标开始查询</div>
+                </div>
+            </div>
+
+            <div class="footer-bar">
+                <div class="footer-info">
+                    <span>📅 更新时间: <span id="updateTime">-</span></span>
+                    <span>📌 单位: <span id="dataUnit">-</span></span>
+                </div>
+                <div class="footer-actions">
+                    <button class="action-btn" onclick="exportData('excel')">导出Excel</button>
+                    <button class="action-btn" onclick="exportData('csv')">导出CSV</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        let currentData = null;
+        let currentView = 'table';
+        let chartInstance = null;
+
+        function toggleCategory(header) {
+            const item = header.parentElement;
+            item.classList.toggle('expanded');
+        }
+
+        function toggleSubcategory(header) {
+            header.classList.toggle('expanded');
+        }
+
+        function selectData(element, name, category, freq, unit) {
+            document.querySelectorAll('.data-item').forEach(item => item.classList.remove('active'));
+            element.classList.add('active');
+
+            currentData = { name, category, freq, unit };
+            document.getElementById('dataTitle').textContent = name;
+            document.getElementById('dataUnit').textContent = unit;
+            document.getElementById('dataFreq').textContent = '频率: ' + (freq === '日' ? '日度' : freq === '周' ? '周度' : freq === '月' ? '月度' : '年度');
+            document.getElementById('dataSource').textContent = '来源: ' + getSource(name);
+            document.getElementById('updateTime').textContent = getUpdateTime();
+
+            renderData(name, freq, unit);
+        }
+
+        function getSource(name) {
+            const sources = {
+                'WTI原油现货价': 'EIA',
+                '布伦特原油现货价': 'ICE',
+                '迪拜原油现货价': 'Platts',
+                '中国原油进口到岸价': '海关总署',
+                '汽油现货价': 'Platts',
+                '柴油现货价': 'Platts',
+                '燃料油现货价': 'Platts',
+                '航空煤油现货价': 'Platts',
+                'WTI原油期货收盘价': 'NYMEX',
+                '布伦特原油期货收盘价': 'ICE',
+                '上海原油期货结算价': '上期所',
+                'OPEC原油产量': 'OPEC',
+                '沙特阿拉伯原油产量': 'OPEC',
+                '伊拉克原油产量': 'OPEC',
+                '美国原油库存': 'EIA',
+                '美国汽油库存': 'EIA',
+                '美国馏分油库存': 'EIA',
+                'OECD原油库存': 'IEA',
+                '美国炼厂开工率': 'EIA',
+                '欧洲炼厂开工率': 'Euroilstock',
+                '中国炼厂开工率': '隆众资讯',
+                '全球石油消费': 'IEA',
+                '中国石油消费': '国家统计局',
+                '美国石油消费': 'EIA',
+                '印度石油消费': 'MoPNG',
+                'BDI波罗的海指数': 'Baltic Exchange',
+                'VLCC运费': '波罗的海交易所',
+                '中国原油进口量': '海关总署',
+                '印度原油进口量': 'Oil Ministry',
+                '美元指数': 'ICE',
+                '美元兑人民币': '中国外汇交易中心',
+                '黄金价格': 'COMEX',
+                '铜价': 'LME',
+                '天然气价格': 'NYMEX',
+                '美联储利率': 'FOMC',
+                '中国LPR利率': '人民银行',
+                'WTI期货持仓量': 'CFTC',
+                '布伦特期货持仓量': 'ICE',
+                '上海原油期货持仓量': '上期所',
+                'WTI-Brent价差': '交易所',
+                '汽油裂解价差': 'Platts',
+                '柴油裂解价差': 'Platts',
+                '原油波动率指数': 'CBOE'
+            };
+            return sources[name] || '权威机构';
+        }
+
+        function getUpdateTime() {
+            const now = new Date();
+            return now.getFullYear() + '-' + 
+                   String(now.getMonth() + 1).padStart(2, '0') + '-' + 
+                   String(now.getDate()).padStart(2, '0');
+        }
+
+        function generateMockData(name, freq, count = 20) {
+            const data = [];
+            const now = new Date();
+            const basePrice = Math.random() * 50 + 50;
+            
+            for (let i = count - 1; i >= 0; i--) {
+                const date = new Date(now);
+                if (freq === '日') date.setDate(date.getDate() - i);
+                else if (freq === '周') date.setDate(date.getDate() - i * 7);
+                else if (freq === '月') date.setMonth(date.getMonth() - i);
+                else date.setFullYear(date.getFullYear() - i);
+                
+                const value = basePrice + (Math.random() - 0.5) * 20;
+                const change = (Math.random() - 0.5) * 5;
+                
+                data.push({
+                    date: freq === '年' ? date.getFullYear() : date.toISOString().split('T')[0],
+                    value: value.toFixed(2),
+                    change: change.toFixed(2),
+                    changeRate: ((change / value) * 100).toFixed(2)
+                });
+            }
+            return data;
+        }
+
+        function renderData(name, freq, unit) {
+            const data = generateMockData(name, freq);
+            
+            if (currentView === 'table') {
+                renderTable(data, unit);
+            } else {
+                renderChart(data, name, unit);
+            }
+        }
+
+        function renderTable(data, unit) {
+            let html = `
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>时间</th>
+                            <th>数值 (${unit})</th>
+                            <th>变化</th>
+                            <th>变化率</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            data.forEach(row => {
+                const changeClass = parseFloat(row.change) >= 0 ? 'positive' : 'negative';
+                html += `
+                    <tr>
+                        <td>${row.date}</td>
+                        <td>${row.value}</td>
+                        <td class="${changeClass}">${parseFloat(row.change) >= 0 ? '+' : ''}${row.change}</td>
+                        <td class="${changeClass}">${parseFloat(row.changeRate) >= 0 ? '+' : ''}${row.changeRate}%</td>
+                    </tr>
+                `;
+            });
+            
+            html += '</tbody></table>';
+            document.getElementById('contentBody').innerHTML = html;
+        }
+
+        function renderChart(data, name, unit) {
+            const dates = data.map(d => d.date);
+            const values = data.map(d => parseFloat(d.value));
+            
+            let chartHtml = `<div class="chart-container"><div id="mainChart"></div></div>`;
+            document.getElementById('contentBody').innerHTML = chartHtml;
+            
+            const chartDom = document.getElementById('mainChart');
+            if (chartInstance) {
+                chartInstance.dispose();
+            }
+            
+            chartInstance = echarts.init(chartDom);
+            
+            const option = {
+                backgroundColor: 'transparent',
+                tooltip: {
+                    trigger: 'axis',
+                    backgroundColor: '#1a1a1a',
+                    borderColor: '#D4AF37',
+                    textStyle: { color: '#f5f5f5' }
+                },
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '3%',
+                    top: '10%',
+                    containLabel: true
+                },
+                xAxis: {
+                    type: 'category',
+                    data: dates,
+                    axisLine: { lineStyle: { color: '#3d3d3d' } },
+                    axisLabel: { color: '#a0a0a0' }
+                },
+                yAxis: {
+                    type: 'value',
+                    name: unit,
+                    nameTextStyle: { color: '#a0a0a0' },
+                    axisLine: { lineStyle: { color: '#3d3d3d' } },
+                    axisLabel: { color: '#a0a0a0' },
+                    splitLine: { lineStyle: { color: '#3d3d3d', type: 'dashed' } }
+                },
+                series: [{
+                    name: name,
+                    type: 'line',
+                    data: values,
+                    smooth: true,
+                    lineStyle: { color: '#D4AF37', width: 2 },
+                    areaStyle: {
+                        color: {
+                            type: 'linear',
+                            x: 0, y: 0, x2: 0, y2: 1,
+                            colorStops: [
+                                { offset: 0, color: 'rgba(212, 175, 55, 0.3)' },
+                                { offset: 1, color: 'rgba(212, 175, 55, 0.05)' }
+                            ]
+                        }
+                    },
+                    itemStyle: { color: '#D4AF37' }
+                }]
+            };
+            
+            chartInstance.setOption(option);
+        }
+
+        function switchViewMode(view) {
+            currentView = view;
+            document.querySelectorAll('.view-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.view === view);
+            });
+            
+            if (currentData) {
+                renderData(currentData.name, currentData.freq, currentData.unit);
+            }
+        }
+
+        function changeFrequency(freq) {
+            if (currentData) {
+                currentData.freq = freq;
+                renderData(currentData.name, freq, currentData.unit);
+            }
+        }
+
+        function handleSearch(keyword) {
+            if (keyword.length < 2) {
+                document.getElementById('searchDropdown').classList.remove('show');
+                return;
+            }
+            showSearchResults(keyword);
+        }
+
+        function showSearchResults(keyword) {
+            const dropdown = document.getElementById('searchDropdown');
+            const items = document.querySelectorAll('.data-item');
+            const results = [];
+            
+            items.forEach(item => {
+                const name = item.querySelector('.data-item-name').textContent;
+                if (name.toLowerCase().includes(keyword.toLowerCase())) {
+                    const freq = item.querySelector('.data-item-freq').textContent;
+                    results.push({ name, freq, element: item });
+                }
+            });
+            
+            if (results.length === 0) {
+                dropdown.innerHTML = '<div style="padding:16px;color:var(--text-secondary)">未找到相关指标</div>';
+            } else {
+                dropdown.innerHTML = results.slice(0, 10).map(r => `
+                    <div class="search-result-item" onclick="selectFromSearch(this)" data-name="${r.name}">
+                        <span class="search-result-name">${r.name}</span>
+                        <span class="search-result-category">${r.freq}</span>
+                    </div>
+                `).join('');
+            }
+            
+            dropdown.classList.add('show');
+        }
+
+        function hideSearchResults() {
+            setTimeout(() => {
+                document.getElementById('searchDropdown').classList.remove('show');
+            }, 200);
+        }
+
+        function selectFromSearch(element) {
+            const name = element.dataset.name;
+            const item = document.querySelector(`.data-item[data-name="${name}"]`) || 
+                        [...document.querySelectorAll('.data-item')].find(i => 
+                            i.querySelector('.data-item-name').textContent === name);
+            if (item) {
+                item.click();
+            }
+            document.getElementById('globalSearch').value = name;
+            document.getElementById('searchDropdown').classList.remove('show');
+        }
+
+        function exportData(format) {
+            if (!currentData) {
+                alert('请先选择数据指标');
+                return;
+            }
+            
+            const data = generateMockData(currentData.name, currentData.freq);
+            let content = '';
+            let filename = currentData.name;
+            let mimeType = 'text/plain';
+            
+            if (format === 'csv' || !format) {
+                content = '时间,数值,变化,变化率\n';
+                data.forEach(row => {
+                    content += `${row.date},${row.value},${row.change},${row.changeRate}%\n`;
+                });
+                filename += '.csv';
+                mimeType = 'text/csv';
+            } else {
+                content = `<html><body><table border="1"><tr><th>时间</th><th>数值</th><th>变化</th><th>变化率</th></tr>`;
+                data.forEach(row => {
+                    content += `<tr><td>${row.date}</td><td>${row.value}</td><td>${row.change}</td><td>${row.changeRate}%</td></tr>`;
+                });
+                content += '<\/table><\/body><\/html>';
+                filename += '.xls';
+                mimeType = 'application/vnd.ms-excel';
+            }
+            
+            const blob = new Blob([content], { type: mimeType });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        window.addEventListener('resize', function() {
+            if (chartInstance) {
+                chartInstance.resize();
+            }
+        });
+    </script>
+</body>
+</html>

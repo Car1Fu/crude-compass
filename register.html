@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>注册 · 原油罗盘</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Noto+Sans+SC:wght@300;400;500;700;900&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --gold-1: #f6e3b2;
+      --gold-2: #d8b36a;
+      --gold-3: #9a7638;
+      --ink:    #0c0c0e;
+      --ink2:   #121214;
+      --text:   #f0f0f2;
+      --muted:  rgba(240,240,242,.55);
+      --border: rgba(214,179,106,.18);
+      --border-focus: rgba(214,179,106,.60);
+      --font-body:    "Noto Sans SC", "PingFang SC", "Microsoft YaHei UI", sans-serif;
+      --font-display: "Syne", "PingFang SC", sans-serif;
+      --font-mono:    "DM Mono", "SF Mono", "Consolas", monospace;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { min-height: 100%; font-family: var(--font-body); background: var(--ink); color: var(--text); -webkit-font-smoothing: antialiased; }
+
+    /* ── Background ── */
+    .bg { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+    .bg-grid {
+      position: absolute; inset: 0;
+      background-image:
+        linear-gradient(rgba(214,179,106,.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(214,179,106,.04) 1px, transparent 1px);
+      background-size: 64px 64px;
+      animation: gridBreath 10s ease-in-out infinite;
+    }
+    @keyframes gridBreath { 0%, 100% { opacity: .5; } 50% { opacity: 1; } }
+    .bg-glow1 {
+      position: absolute; width: 900px; height: 900px;
+      top: -300px; right: -300px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(214,179,106,.06) 0%, transparent 60%);
+    }
+    .bg-glow2 {
+      position: absolute; width: 600px; height: 600px;
+      bottom: -200px; left: -200px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(91,156,255,.05) 0%, transparent 60%);
+    }
+
+    .topline {
+      position: fixed; top: 0; left: 0; right: 0; height: 1px; z-index: 1000;
+      background: linear-gradient(90deg, transparent 0%, var(--gold-2) 50%, transparent 100%);
+    }
+
+    /* ── Layout: two-column on desktop, single on mobile ── */
+    .page {
+      position: relative; z-index: 1;
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 1fr 480px;
+    }
+    @media (max-width: 960px) {
+      .page { grid-template-columns: 1fr; }
+      .visual-side { display: none; }
+    }
+
+    /* ── Left: visual/info side ── */
+    .visual-side {
+      display: flex; flex-direction: column; justify-content: center;
+      padding: 64px 60px;
+      border-right: 1px solid rgba(214,179,106,.10);
+      position: relative; overflow: hidden;
+    }
+    .visual-side::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(900px 700px at 25% 45%, rgba(214,179,106,.07), transparent 60%);
+      pointer-events: none;
+    }
+
+    /* Plan cards */
+    .plan-intro {
+      margin-bottom: 44px;
+    }
+    .plan-kicker {
+      font-family: var(--font-display);
+      font-size: 11px; font-weight: 600; letter-spacing: 2.5px;
+      text-transform: uppercase; color: rgba(214,179,106,.60);
+      margin-bottom: 12px;
+    }
+    .plan-heading {
+      font-family: var(--font-display);
+      font-size: 34px; font-weight: 800; line-height: 1.15;
+      letter-spacing: .5px; margin-bottom: 14px;
+    }
+    .plan-heading span {
+      background: linear-gradient(135deg, #f6e3b2, #d8b36a);
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+    .plan-desc { font-size: 14px; color: var(--muted); line-height: 1.75; max-width: 460px; }
+
+    /* Plan tier cards */
+    .plans { display: flex; flex-direction: column; gap: 12px; }
+    .plan-card {
+      border-radius: 16px; padding: 18px 20px;
+      border: 1px solid rgba(255,255,255,.08);
+      background: rgba(255,255,255,.025);
+      display: flex; align-items: flex-start; gap: 14px;
+      transition: .18s ease;
+      cursor: default;
+      animation: planIn .5s ease both;
+    }
+    .plan-card:nth-child(1) { animation-delay: .05s; }
+    .plan-card:nth-child(2) { animation-delay: .12s; }
+    .plan-card:nth-child(3) { animation-delay: .19s; }
+    @keyframes planIn {
+      from { opacity: 0; transform: translateX(-16px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+    .plan-card.featured {
+      border-color: rgba(214,179,106,.35);
+      background: linear-gradient(135deg, rgba(214,179,106,.10) 0%, rgba(214,179,106,.04) 100%);
+      box-shadow: 0 0 0 1px rgba(214,179,106,.06) inset;
+    }
+    .plan-icon {
+      width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0;
+      display: grid; place-items: center; font-size: 18px;
+      border: 1px solid rgba(255,255,255,.08);
+      background: rgba(255,255,255,.04);
+    }
+    .plan-card.featured .plan-icon {
+      border-color: rgba(214,179,106,.30);
+      background: rgba(214,179,106,.10);
+    }
+    .plan-info { flex: 1; }
+    .plan-name {
+      font-family: var(--font-display); font-size: 14px; font-weight: 700;
+      color: var(--text); margin-bottom: 4px; display: flex; align-items: center; gap: 8px;
+    }
+    .plan-badge {
+      font-size: 10px; padding: 2px 7px; border-radius: 999px;
+      background: rgba(214,179,106,.18); color: rgba(214,179,106,.90);
+      border: 1px solid rgba(214,179,106,.28); letter-spacing: .5px;
+    }
+    .plan-perks { font-size: 12px; color: var(--muted); line-height: 1.55; }
+    .plan-price {
+      font-family: var(--font-mono); font-size: 14px; font-weight: 500;
+      color: rgba(214,179,106,.80); white-space: nowrap; padding-top: 2px;
+    }
+    .plan-price .free { color: rgba(57,217,138,.80); }
+
+    /* Testimonial */
+    .testimonial {
+      margin-top: 40px; padding: 20px 22px;
+      border-radius: 14px; border: 1px solid rgba(255,255,255,.07);
+      background: rgba(255,255,255,.02);
+      animation: planIn .5s .3s ease both;
+    }
+    .testimonial-text {
+      font-size: 13px; color: rgba(240,240,242,.65); line-height: 1.7;
+      font-style: italic; margin-bottom: 12px;
+    }
+    .testimonial-text::before { content: '"'; color: var(--gold-2); font-size: 20px; line-height: 0; vertical-align: -4px; margin-right: 2px; font-style: normal; }
+    .testimonial-text::after { content: '"'; color: var(--gold-2); font-size: 20px; line-height: 0; vertical-align: -4px; margin-left: 2px; font-style: normal; }
+    .testimonial-author { display: flex; align-items: center; gap: 10px; }
+    .author-avatar {
+      width: 30px; height: 30px; border-radius: 50%;
+      background: linear-gradient(135deg, rgba(214,179,106,.4), rgba(214,179,106,.15));
+      border: 1px solid rgba(214,179,106,.25);
+      display: grid; place-items: center; font-size: 12px; font-weight: 700;
+      color: rgba(214,179,106,.85);
+    }
+    .author-name { font-size: 12px; color: var(--muted); }
+    .author-title { font-size: 11px; color: rgba(240,240,242,.35); }
+
+    /* ── Right: form side ── */
+    .form-side {
+      background: rgba(10,10,12,.60);
+      border-left: 1px solid rgba(255,255,255,.05);
+      display: flex; flex-direction: column;
+      justify-content: flex-start;
+      padding: 48px 44px;
+      overflow-y: auto;
+    }
+
+    .form-card { animation: cardIn .45s cubic-bezier(.22,.61,.36,1) both; }
+    @keyframes cardIn { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Logo at top of form */
+    .form-logo {
+      display: flex; align-items: center; gap: 10px; margin-bottom: 32px;
+    }
+    .logo-mark {
+      width: 36px; height: 36px; border-radius: 10px;
+      background: radial-gradient(18px 18px at 30% 25%, rgba(214,179,106,.95), rgba(214,179,106,.22));
+      border: 1px solid rgba(214,179,106,.45);
+      box-shadow: 0 6px 18px rgba(214,179,106,.12);
+      flex-shrink: 0;
+    }
+    .logo-text { font-family: var(--font-display); font-size: 15px; font-weight: 700; color: var(--text); letter-spacing: .4px; }
+    .logo-sub { font-size: 11px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; }
+
+    .form-title { font-family: var(--font-display); font-size: 26px; font-weight: 800; letter-spacing: .5px; margin-bottom: 6px; }
+    .form-title span { background: linear-gradient(135deg, #f6e3b2, #d8b36a); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .form-sub { font-size: 13px; color: var(--muted); margin-bottom: 28px; line-height: 1.6; }
+
+    /* Step indicator */
+    .steps {
+      display: flex; align-items: center; gap: 0;
+      margin-bottom: 28px;
+    }
+    .step {
+      display: flex; align-items: center; gap: 7px;
+      font-size: 12px; color: var(--muted);
+    }
+    .step.active { color: rgba(214,179,106,.90); }
+    .step.done { color: rgba(57,217,138,.75); }
+    .step-circle {
+      width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0;
+      display: grid; place-items: center; font-size: 11px; font-weight: 700;
+      border: 1.5px solid rgba(255,255,255,.15);
+      background: rgba(255,255,255,.04); color: var(--muted);
+      transition: .2s;
+    }
+    .step.active .step-circle { border-color: rgba(214,179,106,.60); background: rgba(214,179,106,.12); color: rgba(214,179,106,.90); }
+    .step.done .step-circle { border-color: rgba(57,217,138,.50); background: rgba(57,217,138,.12); color: rgba(57,217,138,.90); }
+    .step-line { flex: 1; height: 1px; background: rgba(255,255,255,.08); margin: 0 8px; min-width: 20px; }
+    .step-line.done { background: linear-gradient(90deg, rgba(57,217,138,.40), rgba(214,179,106,.40)); }
+
+    /* Fields */
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (max-width: 500px) { .field-row { grid-template-columns: 1fr; } }
+
+    .field { margin-bottom: 16px; }
+    .field-label { display: flex; align-items: center; justify-content: space-between; margin-bottom: 7px; font-size: 12.5px; color: rgba(240,240,242,.65); letter-spacing: .3px; }
+    .field-hint { font-size: 11px; color: rgba(214,179,106,.50); }
+
+    .input-wrap { position: relative; }
+    .input-icon { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); color: rgba(214,179,106,.40); pointer-events: none; display: flex; align-items: center; }
+    .input-icon svg { width: 15px; height: 15px; }
+    .input-suffix { position: absolute; right: 13px; top: 50%; transform: translateY(-50%); }
+
+    input[type="text"], input[type="email"], input[type="password"], input[type="tel"], select {
+      width: 100%; height: 48px;
+      padding: 0 40px 0 38px;
+      border-radius: 11px; border: 1px solid rgba(255,255,255,.09);
+      background: rgba(14,14,18,.70); color: var(--text);
+      font-family: var(--font-body); font-size: 14px;
+      outline: none; transition: border-color .22s, box-shadow .22s, background .22s;
+      appearance: none;
+    }
+    input::placeholder { color: rgba(240,240,242,.25); }
+    select { padding-right: 36px; cursor: pointer; }
+    input:focus, select:focus {
+      border-color: rgba(214,179,106,.52);
+      background: rgba(18,18,22,.85);
+      box-shadow: 0 0 0 3px rgba(214,179,106,.07), 0 0 14px rgba(214,179,106,.07);
+    }
+    input.err { border-color: rgba(255,80,80,.45); }
+    input.ok { border-color: rgba(54,199,107,.40); }
+
+    .toggle-pw { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); cursor: pointer; border: none; background: transparent; color: rgba(240,240,242,.32); padding: 4px; line-height: 0; transition: color .15s; }
+    .toggle-pw:hover { color: rgba(214,179,106,.70); }
+    .toggle-pw svg { width: 15px; height: 15px; }
+
+    .field-error { margin-top: 5px; font-size: 11px; color: rgba(255,110,110,.80); display: none; }
+    .field-error.show { display: block; }
+
+    /* Password strength */
+    .pw-strength { margin-top: 8px; }
+    .pw-bar-track { height: 3px; border-radius: 999px; background: rgba(255,255,255,.06); overflow: hidden; margin-bottom: 5px; }
+    .pw-bar-fill { height: 100%; border-radius: 999px; width: 0; transition: width .3s ease, background .3s ease; }
+    .pw-label { font-size: 11px; color: var(--muted); }
+
+    /* Checkboxes */
+    .check-field { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 14px; }
+    .custom-check {
+      width: 18px; height: 18px; border-radius: 5px; flex-shrink: 0; margin-top: 1px;
+      border: 1.5px solid rgba(214,179,106,.35); background: rgba(14,14,18,.70);
+      cursor: pointer; display: grid; place-items: center;
+      transition: .15s; position: relative;
+    }
+    .custom-check.checked { background: rgba(214,179,106,.20); border-color: rgba(214,179,106,.65); }
+    .custom-check.checked::after {
+      content: '';
+      width: 8px; height: 5px; border-left: 2px solid rgba(214,179,106,.95); border-bottom: 2px solid rgba(214,179,106,.95);
+      transform: rotate(-45deg) translate(1px, -1px);
+    }
+    .check-text { font-size: 12px; color: var(--muted); line-height: 1.6; }
+    .check-text a { color: rgba(214,179,106,.70); text-decoration: none; }
+    .check-text a:hover { color: var(--gold-2); text-decoration: underline; }
+
+    /* Submit */
+    .submit-btn {
+      width: 100%; height: 50px;
+      border-radius: 13px; border: none; cursor: pointer;
+      font-family: var(--font-display); font-size: 15px; font-weight: 700; letter-spacing: .8px;
+      color: rgba(10,8,4,.95);
+      background: linear-gradient(135deg, #d8b36a 0%, #b8924c 100%);
+      box-shadow: 0 8px 28px rgba(214,179,106,.26);
+      transition: transform .18s, box-shadow .18s;
+      position: relative; overflow: hidden; margin-top: 4px;
+    }
+    .submit-btn::after {
+      content: ''; position: absolute; top: 0; left: -100%; width: 60%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,.18), transparent);
+      animation: btnSheen 2.8s ease-in-out infinite;
+    }
+    @keyframes btnSheen { 0% { left: -100%; } 100% { left: 200%; } }
+    .submit-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 36px rgba(214,179,106,.36); }
+    .submit-btn:active { transform: translateY(0); }
+    .submit-btn:disabled { opacity: .5; pointer-events: none; }
+    .submit-btn.loading .btn-text { opacity: 0; }
+    .submit-btn.loading .btn-spinner { display: block; }
+    .btn-spinner { display: none; width: 20px; height: 20px; border-radius: 50%; border: 2px solid rgba(10,8,4,.25); border-top-color: rgba(10,8,4,.8); animation: spin .7s linear infinite; position: absolute; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .form-footer { margin-top: 20px; text-align: center; font-size: 13px; color: var(--muted); }
+    .form-footer a { color: var(--gold-2); text-decoration: none; font-weight: 600; }
+    .form-footer a:hover { color: var(--gold-1); }
+
+    /* Back link */
+    .back-link {
+      position: fixed; top: 24px; left: 28px; z-index: 100;
+      display: flex; align-items: center; gap: 8px;
+      font-size: 13px; color: rgba(214,179,106,.55); text-decoration: none;
+      font-family: var(--font-display); letter-spacing: .5px; transition: .15s;
+    }
+    .back-link:hover { color: var(--gold-2); }
+    .back-link svg { width: 14px; height: 14px; }
+
+    /* Section divider inside form */
+    .section-label {
+      font-size: 11px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase;
+      color: rgba(214,179,106,.50); margin: 20px 0 14px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .section-label::after { content: ''; flex: 1; height: 1px; background: rgba(255,255,255,.06); }
+
+    /* Toast */
+    .toast {
+      position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%);
+      padding: 12px 22px; border-radius: 999px;
+      background: rgba(8,12,18,.96); border: 1px solid rgba(214,179,106,.28);
+      color: var(--gold-2); font-size: 13px; font-weight: 700;
+      box-shadow: 0 12px 36px rgba(0,0,0,.55);
+      opacity: 0; pointer-events: none; transition: opacity .3s ease;
+      z-index: 9999; white-space: nowrap;
+    }
+    .toast.show { opacity: 1; }
+
+    /* Select arrow */
+    .select-wrap { position: relative; }
+    .select-wrap::after {
+      content: '';
+      position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+      width: 0; height: 0;
+      border-left: 4px solid transparent; border-right: 4px solid transparent;
+      border-top: 5px solid rgba(214,179,106,.50); pointer-events: none;
+    }
+    .select-wrap select { padding-left: 38px; }
+  </style>
+</head>
+<body>
+
+<div class="topline"></div>
+<div class="bg">
+  <div class="bg-grid"></div>
+  <div class="bg-glow1"></div>
+  <div class="bg-glow2"></div>
+</div>
+
+<a class="back-link" href="crude_compass_v2.html">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+  返回主平台
+</a>
+
+<div class="page">
+
+  <!-- ── LEFT VISUAL SIDE ── -->
+  <div class="visual-side">
+    <div class="plan-intro">
+      <div class="plan-kicker">开启您的旅程</div>
+      <h2 class="plan-heading">选择适合您的<br><span>订阅方案</span></h2>
+      <p class="plan-desc">注册后即可免费体验核心功能，专业版解锁全部数据与 API 权限。</p>
+    </div>
+
+    <div class="plans">
+      <div class="plan-card">
+        <div class="plan-icon">🌐</div>
+        <div class="plan-info">
+          <div class="plan-name">免费版</div>
+          <div class="plan-perks">市场快照 · 新闻资讯 · 基础图表</div>
+        </div>
+        <div class="plan-price"><span class="free">免费</span></div>
+      </div>
+
+      <div class="plan-card featured">
+        <div class="plan-icon">⚡</div>
+        <div class="plan-info">
+          <div class="plan-name">
+            专业版
+            <span class="plan-badge">最受欢迎</span>
+          </div>
+          <div class="plan-perks">全量预测 · 因子分析 · 套保助手 · 预警推送 · API 接入</div>
+        </div>
+        <div class="plan-price">¥ 599 <small style="font-size:10px;opacity:.6">/月</small></div>
+      </div>
+
+      <div class="plan-card">
+        <div class="plan-icon">🏛️</div>
+        <div class="plan-info">
+          <div class="plan-name">机构定制版</div>
+          <div class="plan-perks">私有部署 · 专属数据源 · 一对一顾问服务</div>
+        </div>
+        <div class="plan-price" style="font-size:12px;color:var(--muted)">洽谈报价</div>
+      </div>
+    </div>
+
+    <div class="testimonial">
+      <p class="testimonial-text">使用原油罗盘后，我们的套保效率提升了 30%，预警系统帮我们规避了两次重大价格波动风险。</p>
+      <div class="testimonial-author">
+        <div class="author-avatar">王</div>
+        <div>
+          <div class="author-name">王 XX &nbsp;·&nbsp; 某能源贸易公司</div>
+          <div class="author-title">风险管理总监</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── RIGHT FORM SIDE ── -->
+  <div class="form-side">
+    <div class="form-card">
+
+      <div class="form-logo" style="margin-bottom:28px;">
+        <img src="logo.png" alt="原油罗盘 Crude Compass"
+          style="height:42px;width:auto;display:block;filter:drop-shadow(0 0 14px rgba(214,179,106,.25));">
+      </div>
+
+      <h1 class="form-title">创建<span>账户</span></h1>
+      <p class="form-sub">填写下方信息，即可开始免费使用</p>
+
+      <!-- Step indicator -->
+      <div class="steps">
+        <div class="step active" id="step1">
+          <div class="step-circle">1</div>
+          <span>基本信息</span>
+        </div>
+        <div class="step-line" id="line1"></div>
+        <div class="step" id="step2">
+          <div class="step-circle">2</div>
+          <span>账号设置</span>
+        </div>
+        <div class="step-line" id="line2"></div>
+        <div class="step" id="step3">
+          <div class="step-circle">3</div>
+          <span>完成</span>
+        </div>
+      </div>
+
+      <form id="regForm" novalidate>
+
+        <!-- Section 1: Personal Info -->
+        <div class="section-label">个人 / 企业信息</div>
+
+        <div class="field-row">
+          <div class="field" id="field-name">
+            <div class="field-label"><span>姓名</span></div>
+            <div class="input-wrap">
+              <span class="input-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              </span>
+              <input type="text" id="name" placeholder="您的真实姓名" autocomplete="name"/>
+            </div>
+            <div class="field-error" id="name-err">请输入姓名</div>
+          </div>
+
+          <div class="field" id="field-company">
+            <div class="field-label"><span>公司/机构 <span style="opacity:.5">（选填）</span></span></div>
+            <div class="input-wrap">
+              <span class="input-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+              </span>
+              <input type="text" id="company" placeholder="公司或机构名称"/>
+            </div>
+          </div>
+        </div>
+
+        <div class="field" id="field-role">
+          <div class="field-label"><span>身份角色</span></div>
+          <div class="input-wrap select-wrap">
+            <span class="input-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </span>
+            <select id="role">
+              <option value="">请选择您的角色</option>
+              <option value="trader">原油交易员</option>
+              <option value="risk">风险管理 / 套保</option>
+              <option value="analyst">行业分析师</option>
+              <option value="pm">基金 / 资产管理</option>
+              <option value="corporate">企业采购 / 销售</option>
+              <option value="research">学术研究</option>
+              <option value="other">其他</option>
+            </select>
+          </div>
+          <div class="field-error" id="role-err">请选择您的角色</div>
+        </div>
+
+        <!-- Section 2: Account -->
+        <div class="section-label">账号信息</div>
+
+        <div class="field" id="field-email">
+          <div class="field-label"><span>邮箱地址</span></div>
+          <div class="input-wrap">
+            <span class="input-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,12 2,6"/></svg>
+            </span>
+            <input type="email" id="email" placeholder="your@email.com" autocomplete="email"/>
+            <span class="input-suffix" id="emailCheck" style="display:none; color:rgba(54,199,107,.8); font-size:14px;">✓</span>
+          </div>
+          <div class="field-error" id="email-err">请输入有效的邮箱地址</div>
+        </div>
+
+        <div class="field" id="field-phone">
+          <div class="field-label"><span>手机号 <span style="opacity:.5">（选填）</span></span></div>
+          <div class="input-wrap">
+            <span class="input-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.27h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.77a16 16 0 0 0 6 6l1.27-.89a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            </span>
+            <input type="tel" id="phone" placeholder="+86 138 0000 0000"/>
+          </div>
+        </div>
+
+        <div class="field" id="field-password">
+          <div class="field-label"><span>设置密码</span><span class="field-hint">至少 8 位，含字母和数字</span></div>
+          <div class="input-wrap">
+            <span class="input-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            </span>
+            <input type="password" id="password" placeholder="至少 8 位密码" autocomplete="new-password"/>
+            <button type="button" class="toggle-pw" id="togglePw1">
+              <svg id="eye1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+          <div class="pw-strength">
+            <div class="pw-bar-track"><div class="pw-bar-fill" id="pwBar"></div></div>
+            <div class="pw-label" id="pwLabel">请输入密码</div>
+          </div>
+          <div class="field-error" id="pw-err">密码至少需要 8 位，并包含字母和数字</div>
+        </div>
+
+        <div class="field" id="field-confirm">
+          <div class="field-label"><span>确认密码</span></div>
+          <div class="input-wrap">
+            <span class="input-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </span>
+            <input type="password" id="confirm" placeholder="再次输入密码" autocomplete="new-password"/>
+            <button type="button" class="toggle-pw" id="togglePw2">
+              <svg id="eye2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+          <div class="field-error" id="confirm-err">两次输入的密码不一致</div>
+        </div>
+
+        <!-- Checkboxes -->
+        <div class="check-field" id="terms-wrap">
+          <div class="custom-check" id="termsCheck" onclick="this.classList.toggle('checked')"></div>
+          <div class="check-text">我已阅读并同意 <a href="#">《用户服务协议》</a> 和 <a href="#">《隐私政策》</a></div>
+        </div>
+        <div class="check-field">
+          <div class="custom-check checked" id="newsCheck" onclick="this.classList.toggle('checked')"></div>
+          <div class="check-text">订阅市场早报与研报更新推送（可随时取消）</div>
+        </div>
+
+        <button type="submit" class="submit-btn" id="submitBtn">
+          <span class="btn-text">免费创建账户 →</span>
+          <div class="btn-spinner"></div>
+        </button>
+
+      </form>
+
+      <div class="form-footer">
+        已有账户？<a href="login.html">立即登录</a>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  // Shared eye icon SVGs
+  const eyeOff = `<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>`;
+  const eyeOn  = `<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>`;
+
+  function mkToggle(btnId, inputId, eyeId) {
+    let vis = false;
+    document.getElementById(btnId).addEventListener('click', () => {
+      vis = !vis;
+      document.getElementById(inputId).type = vis ? 'text' : 'password';
+      document.getElementById(eyeId).innerHTML = vis ? eyeOff : eyeOn;
+    });
+  }
+  mkToggle('togglePw1', 'password', 'eye1');
+  mkToggle('togglePw2', 'confirm', 'eye2');
+
+  // Password strength
+  const pwInput = document.getElementById('password');
+  const pwBar = document.getElementById('pwBar');
+  const pwLabel = document.getElementById('pwLabel');
+  const strengths = [
+    { label: '非常弱', color: '#ff5c7c', width: '15%' },
+    { label: '较弱',   color: '#ff8c4b', width: '35%' },
+    { label: '一般',   color: '#f5c842', width: '55%' },
+    { label: '较强',   color: '#5bc87a', width: '78%' },
+    { label: '强',     color: '#39d98a', width: '100%' },
+  ];
+
+  function scorePw(v) {
+    let s = 0;
+    if (v.length >= 8) s++;
+    if (v.length >= 12) s++;
+    if (/[A-Z]/.test(v)) s++;
+    if (/[0-9]/.test(v)) s++;
+    if (/[^a-zA-Z0-9]/.test(v)) s++;
+    return Math.min(s, 4);
+  }
+
+  pwInput.addEventListener('input', () => {
+    const v = pwInput.value;
+    if (!v) { pwBar.style.width = '0'; pwLabel.textContent = '请输入密码'; pwLabel.style.color = 'var(--muted)'; return; }
+    const s = scorePw(v);
+    const st = strengths[s];
+    pwBar.style.width = st.width; pwBar.style.background = st.color;
+    pwLabel.textContent = `密码强度：${st.label}`; pwLabel.style.color = st.color;
+  });
+
+  // Email live check
+  const emailInput = document.getElementById('email');
+  emailInput.addEventListener('input', () => {
+    const ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailInput.value.trim());
+    document.getElementById('emailCheck').style.display = ok ? 'flex' : 'none';
+    emailInput.classList.toggle('ok', ok && emailInput.value !== '');
+  });
+
+  // Field validators
+  function validate() {
+    let ok = true;
+    const name = document.getElementById('name').value.trim();
+    const role = document.getElementById('role').value;
+    const email = emailInput.value.trim();
+    const pw = pwInput.value;
+    const conf = document.getElementById('confirm').value;
+    const terms = document.getElementById('termsCheck').classList.contains('checked');
+
+    showErr('name', !name, '请输入姓名');
+    if (!name) ok = false;
+
+    showErr('role', !role, '请选择您的角色');
+    if (!role) ok = false;
+
+    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    showErr('email', !emailOk, '请输入有效的邮箱地址');
+    if (!emailOk) ok = false;
+
+    const pwOk = pw.length >= 8 && /[a-zA-Z]/.test(pw) && /[0-9]/.test(pw);
+    showErr('password', !pwOk, '密码至少需要 8 位，并包含字母和数字');
+    if (!pwOk) ok = false;
+
+    const confOk = pw === conf && conf !== '';
+    showErr('confirm', !confOk, '两次输入的密码不一致');
+    if (!confOk) ok = false;
+
+    if (!terms) { showToast('请先同意用户服务协议'); ok = false; }
+
+    return ok;
+  }
+
+  function showErr(field, hasErr, msg) {
+    const input = document.getElementById(field);
+    const err = document.getElementById(field + '-err');
+    if (!input || !err) return;
+    input.classList.toggle('err', hasErr);
+    err.textContent = msg;
+    err.classList.toggle('show', hasErr);
+  }
+
+  // Step progress update
+  function updateSteps(filled) {
+    const s2 = document.getElementById('step2');
+    const s3 = document.getElementById('step3');
+    const l1 = document.getElementById('line1');
+    const l2 = document.getElementById('line2');
+    if (filled >= 3) {
+      s2.classList.add('active'); l1.classList.add('done');
+    }
+    if (filled >= 6) {
+      s3.classList.add('active'); l2.classList.add('done');
+    }
+  }
+
+  ['name','company','role','email','phone','password','confirm'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('input', () => {
+      const filled = ['name','role','email','password','confirm']
+        .filter(f => document.getElementById(f)?.value?.trim()).length;
+      updateSteps(filled);
+    });
+  });
+
+  // Submit
+  document.getElementById('regForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!validate()) return;
+
+    const btn = document.getElementById('submitBtn');
+    btn.classList.add('loading');
+
+    await new Promise(r => setTimeout(r, 2000));
+    btn.classList.remove('loading');
+
+    // Mark steps done
+    ['step1','step2','step3'].forEach(id => {
+      const el = document.getElementById(id);
+      el.classList.remove('active'); el.classList.add('done');
+      el.querySelector('.step-circle').textContent = '✓';
+    });
+    ['line1','line2'].forEach(id => document.getElementById(id).classList.add('done'));
+
+    showToast('🎉 注册成功！正在跳转至登录…');
+    setTimeout(() => { window.location.href = 'login.html'; }, 1800);
+  });
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
+  }
+</script>
+</body>
+</html>

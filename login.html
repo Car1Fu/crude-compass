@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>登录 · 原油罗盘</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Noto+Sans+SC:wght@300;400;500;700;900&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --gold-1: #f6e3b2;
+      --gold-2: #d8b36a;
+      --gold-3: #9a7638;
+      --ink:    #0c0c0e;
+      --ink2:   #121214;
+      --text:   #f0f0f2;
+      --muted:  rgba(240,240,242,.55);
+      --border: rgba(214,179,106,.18);
+      --border-focus: rgba(214,179,106,.60);
+      --font-body:    "Noto Sans SC", "PingFang SC", "Microsoft YaHei UI", sans-serif;
+      --font-display: "Syne", "PingFang SC", sans-serif;
+      --font-mono:    "DM Mono", "SF Mono", "Consolas", monospace;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      font-family: var(--font-body);
+      background: var(--ink);
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Background ── */
+    .bg {
+      position: fixed; inset: 0; z-index: 0;
+      overflow: hidden;
+    }
+    .bg-grid {
+      position: absolute; inset: 0;
+      background-image:
+        linear-gradient(rgba(214,179,106,.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(214,179,106,.04) 1px, transparent 1px);
+      background-size: 64px 64px;
+      animation: gridBreath 10s ease-in-out infinite;
+    }
+    @keyframes gridBreath {
+      0%, 100% { opacity: .5; }
+      50% { opacity: 1; }
+    }
+    .bg-glow1 {
+      position: absolute; width: 700px; height: 700px;
+      top: -200px; left: -200px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(214,179,106,.07) 0%, transparent 65%);
+      animation: glowDrift1 14s ease-in-out infinite alternate;
+    }
+    .bg-glow2 {
+      position: absolute; width: 500px; height: 500px;
+      bottom: -100px; right: -100px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(91,156,255,.06) 0%, transparent 65%);
+      animation: glowDrift2 18s ease-in-out infinite alternate;
+    }
+    @keyframes glowDrift1 { from { transform: translate(0,0); } to { transform: translate(60px, 40px); } }
+    @keyframes glowDrift2 { from { transform: translate(0,0); } to { transform: translate(-40px, -60px); } }
+
+    /* Animated ticker line at top */
+    .topline {
+      position: fixed; top: 0; left: 0; right: 0; height: 1px; z-index: 1000;
+      background: linear-gradient(90deg, transparent 0%, var(--gold-2) 50%, transparent 100%);
+      animation: toplineSweep 4s ease-in-out infinite;
+    }
+    @keyframes toplineSweep {
+      0%, 100% { opacity: .5; background-position: -100% 0; }
+      50% { opacity: 1; }
+    }
+
+    /* ── Layout ── */
+    .page {
+      position: relative; z-index: 1;
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
+    @media (max-width: 900px) {
+      .page { grid-template-columns: 1fr; }
+      .brand-side { display: none; }
+    }
+
+    /* ── Left brand panel ── */
+    .brand-side {
+      display: flex; flex-direction: column;
+      justify-content: center; padding: 64px 72px;
+      border-right: 1px solid rgba(214,179,106,.10);
+      position: relative; overflow: hidden;
+    }
+    .brand-side::before {
+      content: '';
+      position: absolute; inset: 0;
+      background:
+        radial-gradient(800px 600px at 30% 40%, rgba(214,179,106,.07), transparent 65%),
+        radial-gradient(600px 400px at 70% 70%, rgba(91,156,255,.05), transparent 65%);
+      pointer-events: none;
+    }
+
+    /* Floating price tickers decoration */
+    .ticker-decoration {
+      position: absolute; top: 40px; right: 40px;
+      display: flex; flex-direction: column; gap: 8px;
+      opacity: .35;
+    }
+    .ticker-item {
+      display: flex; align-items: center; gap: 8px;
+      font-family: var(--font-mono); font-size: 11px;
+      color: var(--gold-2); letter-spacing: .5px;
+      animation: tickerFade 3s ease-in-out infinite;
+    }
+    .ticker-item:nth-child(2) { animation-delay: .8s; }
+    .ticker-item:nth-child(3) { animation-delay: 1.6s; }
+    @keyframes tickerFade { 0%, 100% { opacity: .4; } 50% { opacity: 1; } }
+    .ticker-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--gold-2); box-shadow: 0 0 8px var(--gold-2); }
+
+    /* Big brand mark */
+    .brand-mark {
+      width: 64px; height: 64px; border-radius: 20px;
+      background: radial-gradient(32px 32px at 30% 25%, rgba(214,179,106,.95), rgba(214,179,106,.20)),
+                  linear-gradient(135deg, rgba(255,255,255,.08), transparent);
+      border: 1px solid rgba(214,179,106,.45);
+      box-shadow: 0 12px 36px rgba(214,179,106,.15), 0 0 0 8px rgba(214,179,106,.04);
+      margin-bottom: 32px;
+      position: relative;
+    }
+    .brand-mark::after {
+      content: '';
+      position: absolute; top: -1px; left: -1px; right: -1px; bottom: -1px;
+      border-radius: 21px;
+      border: 1px solid rgba(214,179,106,.25);
+      animation: markPulse 3s ease-in-out infinite;
+    }
+    @keyframes markPulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.06); opacity: .5; }
+    }
+
+    .brand-name {
+      font-family: var(--font-display);
+      font-size: 42px; font-weight: 800;
+      letter-spacing: 5px; line-height: 1.1;
+      background: linear-gradient(180deg, #f6e3b2 0%, #d8b36a 45%, #9a7638 100%);
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+      filter: drop-shadow(0 0 20px rgba(216,179,106,.18));
+      margin-bottom: 8px;
+    }
+    .brand-name-en {
+      font-family: var(--font-display);
+      font-size: 13px; font-weight: 500; letter-spacing: 5px;
+      text-transform: uppercase; color: rgba(214,179,106,.55);
+      margin-bottom: 32px;
+    }
+    .brand-desc {
+      font-size: 15px; line-height: 1.75; color: var(--muted);
+      max-width: 380px;
+    }
+    .brand-desc strong {
+      color: rgba(214,179,106,.85); font-weight: 500;
+    }
+
+    /* Feature pills */
+    .feature-list {
+      margin-top: 40px;
+      display: flex; flex-direction: column; gap: 12px;
+    }
+    .feature-item {
+      display: flex; align-items: center; gap: 12px;
+      font-size: 13px; color: rgba(240,240,242,.70);
+      animation: featureIn .6s ease both;
+    }
+    .feature-item:nth-child(1) { animation-delay: .1s; }
+    .feature-item:nth-child(2) { animation-delay: .2s; }
+    .feature-item:nth-child(3) { animation-delay: .3s; }
+    .feature-item:nth-child(4) { animation-delay: .4s; }
+    @keyframes featureIn {
+      from { opacity: 0; transform: translateX(-12px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    .feature-icon {
+      width: 28px; height: 28px; border-radius: 8px; flex-shrink: 0;
+      border: 1px solid rgba(214,179,106,.25);
+      background: rgba(214,179,106,.08);
+      display: grid; place-items: center;
+      font-size: 13px;
+    }
+
+    /* Bottom stat row */
+    .brand-stats {
+      margin-top: 48px;
+      display: flex; gap: 32px;
+      padding-top: 28px;
+      border-top: 1px solid rgba(214,179,106,.12);
+    }
+    .stat { display: flex; flex-direction: column; gap: 4px; }
+    .stat-n {
+      font-family: var(--font-mono); font-size: 22px; font-weight: 500;
+      background: linear-gradient(180deg, #f6e3b2, #d8b36a);
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+    .stat-l { font-size: 11px; color: var(--muted); letter-spacing: .8px; text-transform: uppercase; }
+
+    /* ── Right form panel ── */
+    .form-side {
+      display: flex; flex-direction: column;
+      justify-content: center; align-items: center;
+      padding: 48px 40px;
+      background: rgba(10,10,12,.55);
+    }
+
+    .form-card {
+      width: 100%; max-width: 420px;
+      animation: cardIn .5s cubic-bezier(.22,.61,.36,1) both;
+    }
+    @keyframes cardIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .form-header { margin-bottom: 36px; }
+    .form-badge {
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 4px 12px; border-radius: 999px;
+      border: 1px solid rgba(214,179,106,.28);
+      background: rgba(214,179,106,.07);
+      color: rgba(214,179,106,.82); font-size: 11px; font-weight: 600;
+      letter-spacing: .8px; text-transform: uppercase; margin-bottom: 16px;
+    }
+    .form-badge-dot {
+      width: 5px; height: 5px; border-radius: 50%;
+      background: rgba(214,179,106,.9); box-shadow: 0 0 6px rgba(214,179,106,.6);
+      animation: dotBlink 2s ease-in-out infinite;
+    }
+    @keyframes dotBlink { 0%, 100% { opacity: 1; } 50% { opacity: .4; } }
+    .form-title {
+      font-family: var(--font-display);
+      font-size: 30px; font-weight: 800; letter-spacing: 1px;
+      color: var(--text); margin-bottom: 8px;
+    }
+    .form-title span {
+      background: linear-gradient(135deg, #f6e3b2, #d8b36a);
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+    .form-sub { font-size: 14px; color: var(--muted); line-height: 1.6; }
+
+    /* Form fields */
+    .field { margin-bottom: 20px; }
+    .field-label {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 8px; font-size: 13px; color: rgba(240,240,242,.70);
+      letter-spacing: .3px;
+    }
+    .field-label a {
+      font-size: 12px; color: rgba(214,179,106,.70);
+      text-decoration: none; transition: .15s;
+    }
+    .field-label a:hover { color: var(--gold-2); }
+
+    .input-wrap { position: relative; }
+    .input-icon {
+      position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+      color: rgba(214,179,106,.45); pointer-events: none;
+      display: flex; align-items: center;
+    }
+    .input-icon svg { width: 16px; height: 16px; }
+    input[type="text"],
+    input[type="email"],
+    input[type="password"] {
+      width: 100%;
+      height: 50px;
+      padding: 0 44px 0 42px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(14,14,18,.70);
+      color: var(--text);
+      font-family: var(--font-body); font-size: 15px;
+      outline: none;
+      transition: border-color .22s ease, box-shadow .22s ease, background .22s ease;
+    }
+    input::placeholder { color: rgba(240,240,242,.28); }
+    input:focus {
+      border-color: rgba(214,179,106,.55);
+      background: rgba(18,18,22,.85);
+      box-shadow: 0 0 0 4px rgba(214,179,106,.08), 0 0 16px rgba(214,179,106,.08);
+    }
+    input.error { border-color: rgba(255,80,80,.50); box-shadow: 0 0 0 4px rgba(255,80,80,.06); }
+    input.success { border-color: rgba(54,199,107,.45); }
+
+    .toggle-pw {
+      position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+      cursor: pointer; color: rgba(240,240,242,.35); border: none;
+      background: transparent; padding: 4px; line-height: 0;
+      transition: color .15s;
+    }
+    .toggle-pw:hover { color: rgba(214,179,106,.75); }
+    .toggle-pw svg { width: 16px; height: 16px; }
+
+    .field-error {
+      margin-top: 6px; font-size: 12px; color: rgba(255,110,110,.85);
+      display: none; align-items: center; gap: 5px;
+    }
+    .field-error.show { display: flex; }
+
+    /* Submit button */
+    .submit-btn {
+      width: 100%; height: 52px;
+      border-radius: 14px; border: none; cursor: pointer;
+      font-family: var(--font-display);
+      font-size: 15px; font-weight: 700; letter-spacing: .8px;
+      color: rgba(10,8,4,.95);
+      background: linear-gradient(135deg, #d8b36a 0%, #b8924c 100%);
+      box-shadow: 0 8px 28px rgba(214,179,106,.28);
+      transition: transform .18s ease, box-shadow .18s ease;
+      position: relative; overflow: hidden;
+      margin-top: 8px;
+    }
+    .submit-btn::after {
+      content: '';
+      position: absolute; top: 0; left: -100%; width: 60%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,.18), transparent);
+      animation: btnSheen 2.8s ease-in-out infinite;
+    }
+    @keyframes btnSheen { 0% { left: -100%; } 100% { left: 200%; } }
+    .submit-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 36px rgba(214,179,106,.38);
+    }
+    .submit-btn:active { transform: translateY(0); }
+
+    /* Loading state */
+    .submit-btn.loading { pointer-events: none; }
+    .submit-btn.loading::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: inherit; border-radius: inherit;
+    }
+    .btn-spinner {
+      display: none; width: 20px; height: 20px; border-radius: 50%;
+      border: 2px solid rgba(10,8,4,.3); border-top-color: rgba(10,8,4,.8);
+      animation: spin .7s linear infinite; position: absolute;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .submit-btn.loading .btn-text { opacity: 0; }
+    .submit-btn.loading .btn-spinner { display: block; }
+
+    /* Divider */
+    .divider {
+      display: flex; align-items: center; gap: 14px;
+      margin: 24px 0; color: rgba(240,240,242,.28); font-size: 12px;
+    }
+    .divider::before, .divider::after {
+      content: ''; flex: 1; height: 1px;
+      background: rgba(255,255,255,.08);
+    }
+
+    /* Social login */
+    .social-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .social-btn {
+      height: 46px; border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.03);
+      color: rgba(240,240,242,.75); font-size: 13px; font-weight: 600;
+      cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+      font-family: var(--font-body);
+      transition: .18s ease;
+    }
+    .social-btn:hover {
+      background: rgba(255,255,255,.07);
+      border-color: rgba(214,179,106,.25);
+      color: var(--text);
+    }
+    .social-btn svg { width: 18px; height: 18px; flex-shrink: 0; }
+
+    /* Footer link */
+    .form-footer {
+      margin-top: 28px; text-align: center;
+      font-size: 13px; color: var(--muted);
+    }
+    .form-footer a {
+      color: var(--gold-2); text-decoration: none; font-weight: 600;
+      transition: .15s;
+    }
+    .form-footer a:hover { color: var(--gold-1); text-decoration: underline; }
+
+    /* Back to app */
+    .back-link {
+      position: fixed; top: 24px; left: 28px; z-index: 100;
+      display: flex; align-items: center; gap: 8px;
+      font-size: 13px; color: rgba(214,179,106,.60);
+      text-decoration: none; font-family: var(--font-display); letter-spacing: .5px;
+      transition: .15s;
+    }
+    .back-link:hover { color: var(--gold-2); }
+    .back-link svg { width: 14px; height: 14px; }
+
+    /* Toast */
+    .toast {
+      position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%);
+      padding: 12px 22px; border-radius: 999px;
+      background: rgba(8,12,18,.96); border: 1px solid rgba(214,179,106,.28);
+      color: var(--gold-2); font-size: 13px; font-weight: 700;
+      box-shadow: 0 12px 36px rgba(0,0,0,.55);
+      opacity: 0; pointer-events: none; transition: opacity .3s ease;
+      z-index: 9999; white-space: nowrap;
+    }
+    .toast.show { opacity: 1; }
+  </style>
+</head>
+<body>
+
+<div class="topline"></div>
+
+<!-- Animated background -->
+<div class="bg">
+  <div class="bg-grid"></div>
+  <div class="bg-glow1"></div>
+  <div class="bg-glow2"></div>
+</div>
+
+<!-- Back link -->
+<a class="back-link" href="crude_compass_v2.html">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+  返回主平台
+</a>
+
+<div class="page">
+
+  <!-- ── LEFT BRAND PANEL ── -->
+  <div class="brand-side">
+    <!-- Ticker decoration -->
+    <div class="ticker-decoration">
+      <div class="ticker-item"><div class="ticker-dot"></div>Brent · 69.24</div>
+      <div class="ticker-item"><div class="ticker-dot"></div>WTI &nbsp;&nbsp;· 65.81</div>
+      <div class="ticker-item"><div class="ticker-dot"></div>SC &nbsp;&nbsp;&nbsp;· 512.4</div>
+    </div>
+
+    <div class="brand-mark" style="background:none;border:none;box-shadow:none;width:auto;height:auto;border-radius:0;margin-bottom:28px;">
+      <img src="logo.png" alt="原油罗盘 Crude Compass"
+        style="height:64px;width:auto;display:block;filter:drop-shadow(0 0 20px rgba(214,179,106,.30));">
+    </div>
+    <p class="brand-desc">
+      <strong>专业级原油市场分析平台</strong>，为企业和机构投资者提供
+      多源因子驱动的价格预测、风险预警与套保解决方案。
+    </p>
+
+    <div class="feature-list">
+      <div class="feature-item"><div class="feature-icon">📡</div>实时市场快照与新闻追踪</div>
+      <div class="feature-item"><div class="feature-icon">🔮</div>AI 驱动的区间预测模型</div>
+      <div class="feature-item"><div class="feature-icon">🛡️</div>智能套保方案计算</div>
+      <div class="feature-item"><div class="feature-icon">⚠️</div>个性化预警机制与推送</div>
+    </div>
+
+    <div class="brand-stats">
+      <div class="stat"><div class="stat-n">300+</div><div class="stat-l">数据指标</div></div>
+      <div class="stat"><div class="stat-n">15+</div><div class="stat-l">因子维度</div></div>
+      <div class="stat"><div class="stat-n">T+3</div><div class="stat-l">预测周期</div></div>
+    </div>
+  </div>
+
+  <!-- ── RIGHT FORM PANEL ── -->
+  <div class="form-side">
+    <div class="form-card">
+
+      <div class="form-header">
+        <div class="form-badge">
+          <span class="form-badge-dot"></span>
+          安全登录
+        </div>
+        <h1 class="form-title">欢迎回来，<span>罗盘</span></h1>
+        <p class="form-sub">登录您的账户，获取最新原油市场洞察</p>
+      </div>
+
+      <form id="loginForm" novalidate>
+
+        <!-- Email -->
+        <div class="field" id="field-email">
+          <div class="field-label"><span>邮箱地址</span></div>
+          <div class="input-wrap">
+            <span class="input-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,12 2,6"/></svg>
+            </span>
+            <input type="email" id="email" placeholder="your@email.com" autocomplete="email"/>
+          </div>
+          <div class="field-error" id="email-err">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            请输入有效的邮箱地址
+          </div>
+        </div>
+
+        <!-- Password -->
+        <div class="field" id="field-password">
+          <div class="field-label">
+            <span>密码</span>
+            <a href="#">忘记密码？</a>
+          </div>
+          <div class="input-wrap">
+            <span class="input-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            </span>
+            <input type="password" id="password" placeholder="输入您的密码" autocomplete="current-password"/>
+            <button type="button" class="toggle-pw" id="togglePw" aria-label="显示/隐藏密码">
+              <svg id="eyeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+          <div class="field-error" id="pw-err">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            密码不能为空
+          </div>
+        </div>
+
+        <button type="submit" class="submit-btn" id="submitBtn">
+          <span class="btn-text">登录账户</span>
+          <div class="btn-spinner"></div>
+        </button>
+
+      </form>
+
+      <div class="divider">或通过以下方式登录</div>
+
+      <div class="social-row">
+        <button class="social-btn" onclick="showToast('微信登录即将开放')">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8.691 2.188C3.891 2.188 0 5.476 0 9.53c0 2.212 1.17 4.203 3.002 5.55a.59.59 0 0 1 .213.665l-.39 1.48c-.019.07-.048.141-.048.213 0 .163.13.295.29.295a.326.326 0 0 0 .167-.054l1.903-1.114a.864.864 0 0 1 .717-.098 10.16 10.16 0 0 0 2.837.403c.276 0 .543-.027.811-.05-.857-2.578.157-4.972 1.932-6.446 1.703-1.415 3.882-1.98 5.853-1.838-.576-3.583-4.196-6.348-8.596-6.348zM5.785 5.991c.642 0 1.162.529 1.162 1.18a1.17 1.17 0 0 1-1.162 1.178A1.17 1.17 0 0 1 4.623 7.17c0-.651.52-1.18 1.162-1.18zm4.843 0c.641 0 1.162.529 1.162 1.18a1.17 1.17 0 0 1-1.162 1.178 1.17 1.17 0 0 1-1.162-1.178c0-.651.52-1.18 1.162-1.18zm5.258 2.799c-4.217 0-7.637 2.956-7.637 6.607 0 3.652 3.42 6.607 7.637 6.607a9.22 9.22 0 0 0 2.976-.496.717.717 0 0 1 .595.082l1.584.926a.272.272 0 0 0 .139.045c.133 0 .242-.112.242-.25 0-.06-.023-.118-.04-.177l-.325-1.233a.491.491 0 0 1 .177-.554c1.52-1.124 2.503-2.826 2.503-4.95 0-3.651-3.42-6.607-7.851-6.607zm-3.007 3.323c.534 0 .967.441.967.983a.975.975 0 0 1-.967.984.975.975 0 0 1-.967-.984c0-.542.433-.983.967-.983zm6.014 0c.534 0 .967.441.967.983a.975.975 0 0 1-.967.984.975.975 0 0 1-.967-.984c0-.542.433-.983.967-.983z"/></svg>
+          微信
+        </button>
+        <button class="social-btn" onclick="showToast('飞书登录即将开放')">
+          <svg viewBox="0 0 24 24" fill="none"><rect width="24" height="24" rx="6" fill="rgba(214,179,106,.15)"/><text x="12" y="16" text-anchor="middle" font-size="11" fill="rgba(214,179,106,.85)" font-family="sans-serif" font-weight="700">飞书</text></svg>
+          飞书
+        </button>
+      </div>
+
+      <div class="form-footer">
+        还没有账户？<a href="register.html">立即注册</a>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  // Toggle password visibility
+  const togglePw = document.getElementById('togglePw');
+  const pwInput = document.getElementById('password');
+  const eyeIcon = document.getElementById('eyeIcon');
+  const eyeOff = `<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>`;
+  const eyeOn = `<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>`;
+  let pwVisible = false;
+  togglePw.addEventListener('click', () => {
+    pwVisible = !pwVisible;
+    pwInput.type = pwVisible ? 'text' : 'password';
+    eyeIcon.innerHTML = pwVisible ? eyeOff : eyeOn;
+  });
+
+  // Real-time validation
+  const emailInput = document.getElementById('email');
+  emailInput.addEventListener('blur', () => validateEmail());
+  pwInput.addEventListener('blur', () => validatePw());
+
+  function validateEmail() {
+    const v = emailInput.value.trim();
+    const ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+    setFieldState('email', ok || v === '', v !== '' && !ok ? '请输入有效的邮箱地址' : '');
+    return ok && v !== '';
+  }
+
+  function validatePw() {
+    const v = pwInput.value;
+    const ok = v.length > 0;
+    setFieldState('password', ok, ok ? '' : '密码不能为空');
+    return ok;
+  }
+
+  function setFieldState(field, valid, msg) {
+    const input = document.getElementById(field);
+    const err = document.getElementById(field === 'email' ? 'email-err' : 'pw-err');
+    input.classList.toggle('error', !valid && msg !== '');
+    input.classList.toggle('success', valid && input.value !== '');
+    err.querySelector ? (err.lastChild.textContent = msg) : null;
+    err.classList.toggle('show', !!msg);
+  }
+
+  // Form submit
+  document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const emailOk = validateEmail();
+    const pwOk = validatePw();
+    if (!emailOk || !pwOk) return;
+
+    const btn = document.getElementById('submitBtn');
+    btn.classList.add('loading');
+
+    // Simulate API call
+    await new Promise(r => setTimeout(r, 1800));
+    btn.classList.remove('loading');
+    showToast('✓ 登录成功，正在跳转…');
+    setTimeout(() => { window.location.href = 'crude_compass_v2.html'; }, 1400);
+  });
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2800);
+  }
+</script>
+</body>
+</html>
