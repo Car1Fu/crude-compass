@@ -74,9 +74,29 @@
     w.querySelector("#mC").addEventListener("click",()=>w.remove());
     if(mode==="list"){w.querySelectorAll(".modal-item").forEach(el=>{el.addEventListener("click",()=>{const item=S.items.find(x=>x.id===el.dataset.id);if(!item)return;w.remove();modal({title:item.title,subtitle:`${item.source} · ${fD(item.ts)} ${fT(item.ts)}`,mode:"detail",det:item});});});}
   }
+  function featureImageStyle(item){
+    const img=(item&&typeof item.image==="string"?item.image.trim():"");
+    return img?` style="background-image:url('${esc(img).replace(/'/g,"%27")}')"`:"";
+  }
+  function featureCard(item){
+    const html=fc(item);
+    return item&&item.image?html.replace('<div class="f-img">',`<div class="f-img"${featureImageStyle(item)}>`):html;
+  }
   function fc(item){
     if(!item)return`<div class="mn-feature" data-theme="Geopolitics"><div class="f-img"><div class="f-badge"><span class="f-dot"></span>暂无结果</div><div class="f-overlay"><div class="f-title">当前搜索下无匹配</div></div></div></div>`;
     return`<div class="mn-feature" data-id="${item.id}" data-theme="${item.theme}"><div class="f-img"><div class="f-badge"><span class="f-dot"></span>今日重点 · ${impactSpan(item.impact)}</div><div class="f-overlay"><div class="f-kicker">${esc(item.source)}</div><div class="f-title">${esc(item.title)}</div><p class="f-sub">${esc(item.summary)}</p><div class="f-meta"><span>${fD(item.ts)} ${fT(item.ts)}</span><span>点击阅读</span></div></div></div></div>`;
+  }
+  function renderFeatureSection(sectionKey, sectionName, items, moreLabel){
+    const top=items[0]||null;
+    const side=items.slice(1,5);
+    const sideRows=side.map(x=>`<div class="hl-item" data-id="${x.id}"><div class="hl-src">${esc(x.source)}</div><p class="hl-title">${esc(x.title)}</p><div class="hl-meta"><span>${fD(x.ts)} ${fT(x.ts)}</span>${impactSpan(x.impact)}</div></div>`).join("")||`<div class="hl-item"><p class="hl-title" style="color:var(--mn-empty-text)">（暂无）</p></div>`;
+    return`<div class="mn-section" id="sec-${sectionKey}"><div class="mn-section-head"><h3>${esc(sectionName)}</h3><div class="mn-section-meta"><span>${items.length} 条</span><span class="mn-sep"></span><button class="mn-btn primary" data-vm data-key="${sectionKey}" style="padding:4px 10px;font-size:11px;border-radius:8px;">${moreLabel}</button></div></div><div class="mn-body mn-body-hl">${fc(top)}<div class="mn-panel">${sideRows}</div></div></div>`;
+  }
+  renderFeatureSection=function(sectionKey, sectionName, items, moreLabel){
+    const top=items[0]||null;
+    const side=items.slice(1,5);
+    const sideRows=side.map(x=>`<div class="hl-item" data-id="${x.id}"><div class="hl-src">${esc(x.source)}</div><p class="hl-title">${esc(x.title)}</p><div class="hl-meta"><span>${fD(x.ts)} ${fT(x.ts)}</span>${impactSpan(x.impact)}</div></div>`).join("")||`<div class="hl-item"><p class="hl-title" style="color:var(--mn-empty-text)">锛堟殏鏃狅級</p></div>`;
+    return`<div class="mn-section" id="sec-${sectionKey}"><div class="mn-section-head"><h3>${esc(sectionName)}</h3><div class="mn-section-meta"><span>${items.length} 鏉?/span><span class="mn-sep"></span><button class="mn-btn primary" data-vm data-key="${sectionKey}" style="padding:4px 10px;font-size:11px;border-radius:8px;">${moreLabel}</button></div></div><div class="mn-body mn-body-hl">${featureCard(top)}<div class="mn-panel">${sideRows}</div></div></div>`;
   }
   function renderQuickNav(){
     const nav=document.getElementById("mnQuickNav");if(!nav)return;
@@ -90,6 +110,13 @@
     const cEl=document.getElementById("resultCount");if(cEl)cEl.textContent=`${filtered.length} 条`;
     const H=hl(filtered),hlTop=H[0]||null,hlSide=H.slice(1,14);
     const sec=document.getElementById("mnSections");if(!sec)return;
+    sec.innerHTML=MODS.map(m=>{
+      const list=m.key==="HIGHLIGHT" ? H : filtered.filter(x=>x.theme===m.key).sort((a,b)=>b.score-a.score);
+      return renderFeatureSection(m.key,m.name,list,m.key==="HIGHLIGHT"?"查看更多":"更多");
+    }).join("");
+    sec.querySelectorAll("[data-id]").forEach(el=>el.addEventListener("click",()=>{const item=S.items.find(x=>x.id===el.dataset.id);if(!item)return;modal({title:item.title,subtitle:`${item.source} · ${fD(item.ts)} ${fT(item.ts)}`,mode:"detail",det:item});}));
+    sec.querySelectorAll("[data-vm]").forEach(btn=>btn.addEventListener("click",e=>{e.stopPropagation();const key=btn.dataset.key;let list=[],title="";if(key==="HIGHLIGHT"){list=H;title="今日重点 · 更多新闻";}else{const mod=MODS.find(x=>x.key===key);list=filtered.filter(x=>x.theme===key).sort((a,b)=>b.score-a.score);title=`${mod?.name||key} · 更多新闻`;}modal({title,subtitle:`共 ${list.length} 条`,mode:"list",list});}));
+    return;
     sec.innerHTML=MODS.map(m=>{
       if(m.key==="HIGHLIGHT"){
         const sideRows=hlSide.map(x=>`<div class="hl-item" data-id="${x.id}"><div class="hl-src">${esc(x.source)}</div><p class="hl-title">${esc(x.title)}</p><div class="hl-meta"><span>${fD(x.ts)} ${fT(x.ts)}</span>${impactSpan(x.impact)}</div></div>`).join("")||`<div class="hl-item"><p class="hl-title" style="color:var(--mn-empty-text)">（暂无）</p></div>`;

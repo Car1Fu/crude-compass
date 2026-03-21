@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800" fill="none">
+  <rect width="1200" height="800" fill="#7F1D1D"/>
+  <rect width="1200" height="800" fill="url(#bg)"/>
+  <g opacity="0.22">
+    <path d="M0 92H1200" stroke="#FCA5A5" stroke-width="2"/>
+    <path d="M0 240H1200" stroke="#FCA5A5" stroke-width="2"/>
+    <path d="M0 388H1200" stroke="#FCA5A5" stroke-width="2"/>
+    <path d="M0 536H1200" stroke="#FCA5A5" stroke-width="2"/>
+    <path d="M0 684H1200" stroke="#FCA5A5" stroke-width="2"/>
+    <path d="M120 0V800" stroke="#FCA5A5" stroke-width="2"/>
+    <path d="M360 0V800" stroke="#FCA5A5" stroke-width="2"/>
+    <path d="M600 0V800" stroke="#FCA5A5" stroke-width="2"/>
+    <path d="M840 0V800" stroke="#FCA5A5" stroke-width="2"/>
+    <path d="M1080 0V800" stroke="#FCA5A5" stroke-width="2"/>
+  </g>
+  <circle cx="920" cy="170" r="220" fill="url(#glow)" opacity="0.58"/>
+  <circle cx="230" cy="610" r="280" fill="url(#glow2)" opacity="0.5"/>
+  <rect x="118" y="112" width="318" height="22" rx="11" fill="#FECACA" opacity="0.86"/>
+  <rect x="118" y="154" width="482" height="26" rx="13" fill="#FEE2E2" opacity="0.9"/>
+  <rect x="118" y="196" width="390" height="26" rx="13" fill="#FEE2E2" opacity="0.82"/>
+  <rect x="118" y="248" width="178" height="12" rx="6" fill="#FCA5A5" opacity="0.88"/>
+  <rect x="118" y="274" width="146" height="12" rx="6" fill="#FCA5A5" opacity="0.72"/>
+  <rect x="118" y="474" width="250" height="18" rx="9" fill="#FEE2E2" opacity="0.75"/>
+  <rect x="118" y="510" width="328" height="18" rx="9" fill="#FECACA" opacity="0.68"/>
+  <text x="118" y="402" fill="#FFF1F2" font-family="Arial, Helvetica, sans-serif" font-size="68" font-weight="700" letter-spacing="4">NEWS</text>
+  <defs>
+    <linearGradient id="bg" x1="147" y1="33" x2="1098" y2="758" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#991B1B"/>
+      <stop offset="0.5" stop-color="#B91C1C"/>
+      <stop offset="1" stop-color="#7F1D1D"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(920 170) rotate(90) scale(220)">
+      <stop stop-color="#FCA5A5"/>
+      <stop offset="1" stop-color="#FCA5A5" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glow2" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(230 610) rotate(90) scale(280)">
+      <stop stop-color="#F87171"/>
+      <stop offset="1" stop-color="#F87171" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+</svg>
