@@ -490,8 +490,8 @@
       background:none; border:none; border-bottom:2px solid transparent;
       color:var(--mn-nav-text); font-size:11px; font-weight:700;
       padding:11px 13px; margin-bottom:-1px;
-      cursor:pointer; white-space:nowrap; letter-spacing:.7px; text-transform:uppercase;
-      transition:color .18s ease, border-color .18s ease; font-family:inherit;
+      cursor:pointer; white-space:nowrap; letter-spacing:.1px; text-transform:none;
+      transition:color .18s ease, border-color .18s ease; font-family:var(--font-body);
     }
     .mn-qnav-btn:hover{ color:var(--mn-nav-hover); }
     .mn-qnav-btn.active{ color:var(--mn-nav-active); border-bottom-color:var(--mn-nav-active-border); }
@@ -521,17 +521,12 @@
     /* ── Dashboard grid: 2:1 ratio, tighter gap ── */
     #mnSections{
       display:grid;
-      grid-template-columns: 2fr 1fr;
-      gap:30px;
+      grid-template-columns:1fr;
+      gap:24px;
       padding:24px 10px 48px;
       align-items:start;
     }
-    @media (max-width:1200px){ #mnSections{ grid-template-columns:repeat(2,1fr); gap:24px; } }
-    @media (max-width:700px){ #mnSections{ grid-template-columns:1fr; gap:20px; } }
-
-    /* HIGHLIGHT spans 2 cols */
-    .mn-section:first-child{ grid-column:span 2; }
-    @media (max-width:700px){ .mn-section:first-child{ grid-column:span 1; } }
+    @media (max-width:700px){ #mnSections{ gap:20px; } }
 
     /* Section cards: pressed-dark backdrop, strong top line */
     .mn-section{
@@ -562,10 +557,11 @@
       background:var(--mn-section-head-bg);
     }
     .mn-section-head h3{
-      margin:0; font-size:16px; font-weight:800; letter-spacing:2.5px;
-      text-transform:uppercase; color:var(--mn-section-title);
-      font-family:var(--font-display);
+      margin:0; font-size:16px; font-weight:700; letter-spacing:.1px;
+      text-transform:none; color:var(--mn-section-title);
+      font-family:var(--font-body);
       text-shadow:var(--mn-section-title-shadow);
+      font-variant-ligatures:none;
     }
     .mn-section-meta{ color:var(--mn-section-meta); font-size:11px; display:flex; align-items:center; gap:8px; }
     .mn-sep{ width:1px; height:10px; background:var(--mn-sep); }
