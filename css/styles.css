@@ -516,6 +516,29 @@
     .mn-btn:hover{ color:var(--mn-btn-hover-text); border-color:var(--mn-btn-hover-border); }
     .mn-btn.primary{ background:var(--mn-btn-primary-bg); color:var(--mn-btn-primary-text); border-color:var(--mn-btn-primary-border); }
     .mn-btn.primary:hover{ background:var(--mn-btn-primary-hover-bg); color:var(--mn-btn-primary-hover-text); }
+    #view-module-news #mnThemeToggle{
+      border-radius:10px;
+      border:1px solid rgba(255,255,255,.08);
+      background:transparent;
+      color:rgba(255,255,255,.55);
+    }
+    #view-module-news #mnThemeToggle:hover{
+      border-color:rgba(214,179,106,.28);
+      background:transparent;
+      color:var(--gold-2);
+    }
+    #view-module-news.mn-light #mnThemeToggle{
+      border-color:rgba(214,179,106,.26);
+      background:#fffdf8;
+      color:#6b7280;
+      box-shadow:0 4px 14px rgba(214,179,106,.10);
+    }
+    #view-module-news.mn-light #mnThemeToggle:hover{
+      border-color:rgba(214,179,106,.40);
+      background:#ffffff;
+      color:#8a6728;
+      box-shadow:0 8px 18px rgba(214,179,106,.14);
+    }
 
     /* ── 超宽版面 ── */
 
