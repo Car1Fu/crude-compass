@@ -560,6 +560,38 @@
             padding-bottom: 4px;
         }
 
+        .combined-chart-shell {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .combined-chart-summary {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .combined-chart-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            font-size: 12px;
+        }
+
+        .combined-chart-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 999px;
+            flex: 0 0 8px;
+        }
+
         .data-panel {
             width: 460px;
             flex: 0 0 460px;
@@ -1693,6 +1725,90 @@
             };
         }
 
+        function toChartDate(value) {
+            if (typeof value === 'number') {
+                return `${value}-01-01`;
+            }
+
+            if (/^\d{4}$/.test(String(value))) {
+                return `${value}-01-01`;
+            }
+
+            return value;
+        }
+
+        function buildCombinedChartOption(items) {
+            const palette = ['#D4AF37', '#4ADE80', '#60A5FA', '#F59E0B', '#F87171', '#A78BFA', '#34D399', '#F472B6'];
+
+            return {
+                backgroundColor: 'transparent',
+                color: palette,
+                tooltip: {
+                    trigger: 'axis',
+                    backgroundColor: '#1a1a1a',
+                    borderColor: '#D4AF37',
+                    textStyle: { color: '#f5f5f5' },
+                    formatter: function(params) {
+                        if (!params || !params.length) {
+                            return '';
+                        }
+
+                        const title = params[0].axisValueLabel || params[0].axisValue || '';
+                        const lines = params.map(function(item) {
+                            const meta = items[item.seriesIndex];
+                            const value = Array.isArray(item.data) ? item.data[1] : item.data;
+                            return `${item.marker}${meta.name}: ${value} ${meta.unit}`;
+                        });
+
+                        return [title].concat(lines).join('<br/>');
+                    }
+                },
+                legend: {
+                    top: 0,
+                    textStyle: { color: '#a0a0a0' },
+                    itemWidth: 12,
+                    itemHeight: 8
+                },
+                grid: {
+                    left: '4%',
+                    right: '4%',
+                    bottom: '8%',
+                    top: 60,
+                    containLabel: true
+                },
+                xAxis: {
+                    type: 'time',
+                    axisLine: { lineStyle: { color: '#3d3d3d' } },
+                    axisLabel: { color: '#a0a0a0' },
+                    splitLine: { show: false }
+                },
+                yAxis: {
+                    type: 'value',
+                    name: items.length === 1 ? items[0].unit : '多指标',
+                    nameTextStyle: { color: '#a0a0a0' },
+                    axisLine: { lineStyle: { color: '#3d3d3d' } },
+                    axisLabel: { color: '#a0a0a0' },
+                    splitLine: { lineStyle: { color: '#3d3d3d', type: 'dashed' } }
+                },
+                series: items.map(function(item, index) {
+                    return {
+                        name: item.name,
+                        type: 'line',
+                        smooth: true,
+                        showSymbol: false,
+                        symbol: 'circle',
+                        symbolSize: 6,
+                        emphasis: { focus: 'series' },
+                        lineStyle: { width: 2 },
+                        itemStyle: { color: palette[index % palette.length] },
+                        data: item.renderedData.map(function(row) {
+                            return [toChartDate(row.date), Number(row.value)];
+                        })
+                    };
+                })
+            };
+        }
+
         function disposeCharts() {
             chartInstances.forEach(chart => chart.dispose());
             chartInstances.clear();
@@ -1742,6 +1858,7 @@
 
         function renderSelectedData() {
             const contentBody = document.getElementById('contentBody');
+            const palette = ['#D4AF37', '#4ADE80', '#60A5FA', '#F59E0B', '#F87171', '#A78BFA', '#34D399', '#F472B6'];
 
             disposeCharts();
 
@@ -1761,24 +1878,39 @@
                 }
             });
 
+            if (currentView === 'chart') {
+                contentBody.innerHTML = `
+                    <div class="combined-chart-shell">
+                        <div class="combined-chart-summary">
+                            ${selectedDataList.map((item, index) => `
+                                <div class="combined-chart-chip">
+                                    <span class="combined-chart-dot" style="background:${palette[index % palette.length]}"></span>
+                                    <span>${escapeHtml(item.name)} (${escapeHtml(item.unit)})</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div class="chart-container">
+                            <div id="multiSeriesChart" class="panel-chart-canvas"></div>
+                        </div>
+                    </div>
+                `;
+
+                const chartDom = document.getElementById('multiSeriesChart');
+                if (!chartDom) {
+                    return;
+                }
+
+                const chart = echarts.init(chartDom);
+                chart.setOption(buildCombinedChartOption(selectedDataList));
+                chartInstances.set('multiSeriesChart', chart);
+                return;
+            }
+
             contentBody.innerHTML = `
                 <div class="multi-content">
                     ${selectedDataList.map((item, index) => buildPanelMarkup(item, index)).join('')}
                 </div>
             `;
-
-            if (currentView === 'chart') {
-                selectedDataList.forEach(item => {
-                    const chartDom = document.getElementById(item.panelId);
-                    if (!chartDom) {
-                        return;
-                    }
-
-                    const chart = echarts.init(chartDom);
-                    chart.setOption(buildChartOption(item.renderedData, item.name, item.unit));
-                    chartInstances.set(item.panelId, chart);
-                });
-            }
         }
 
         function renderData() {
