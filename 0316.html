@@ -356,25 +356,33 @@
             width: 22px;
             height: 22px;
             flex: 0 0 22px;
-            border: 1px solid var(--border-light);
+            border: 1px solid rgba(255, 255, 255, 0.22);
             border-radius: 999px;
-            background: transparent;
-            color: var(--primary-light);
+            background: rgba(255, 255, 255, 0.03);
+            color: rgba(245, 245, 245, 0.82);
             font-size: 15px;
             line-height: 1;
             cursor: pointer;
             display: inline-flex;
             align-items: center;
             justify-content: center;
+            opacity: 0.48;
             transition: all 0.15s;
         }
 
         .data-item:hover .data-item-add,
         .data-item.active .data-item-add,
         .data-item.selected .data-item-add {
-            border-color: var(--primary-light);
-            background: rgba(212, 175, 55, 0.14);
-            color: #fff;
+            opacity: 0.62;
+        }
+
+        .data-item-add:hover,
+        .data-item-add:focus-visible {
+            opacity: 1;
+            border-color: rgba(255, 255, 255, 0.46);
+            background: rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+            outline: none;
         }
 
         .data-item-name {
@@ -1343,7 +1351,7 @@
                 }
 
                 item.addEventListener('click', function() {
-                    addDataFromItem(item);
+                    showDataFromItem(item);
                 });
             });
         }
@@ -1363,6 +1371,41 @@
                 return;
             }
             upsertSelectedData(getDataMetaFromItem(item), true);
+        }
+
+        function showDataFromItem(item) {
+            if (!item) {
+                return;
+            }
+
+            const meta = getDataMetaFromItem(item);
+            const existing = selectedDataList.find(data => data.key === meta.key);
+
+            if (existing) {
+                currentData = existing;
+                updateHeader(currentData);
+                updateSidebarSelectionState();
+                renderSelectedData();
+
+                requestAnimationFrame(function() {
+                    const panel = document.querySelector(`.data-panel[data-panel-id="${existing.panelId}"]`);
+                    if (panel) {
+                        panel.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+                    }
+                });
+                return;
+            }
+
+            selectedDataList = [{
+                ...meta,
+                panelId: `panel-${++panelSeed}`,
+                renderedData: [],
+                renderedFreq: null
+            }];
+            currentData = selectedDataList[0];
+            updateHeader(currentData);
+            updateSidebarSelectionState();
+            renderSelectedData();
         }
 
         function updateHeader(data) {
@@ -1432,10 +1475,25 @@
                 item.dataset.key = getDataKey(name, category, unit);
             }
 
-            upsertSelectedData(
-                item ? getDataMetaFromItem(item) : { key: getDataKey(name, category, unit), name, category, freq, unit },
-                true
-            );
+            if (item) {
+                showDataFromItem(item);
+                return;
+            }
+
+            selectedDataList = [{
+                key: getDataKey(name, category, unit),
+                name,
+                category,
+                freq,
+                unit,
+                panelId: `panel-${++panelSeed}`,
+                renderedData: [],
+                renderedFreq: null
+            }];
+            currentData = selectedDataList[0];
+            updateHeader(currentData);
+            updateSidebarSelectionState();
+            renderSelectedData();
         }
 
         function setActivePanel(index) {
