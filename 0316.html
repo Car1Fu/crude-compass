@@ -715,6 +715,38 @@
             overflow: auto;
         }
 
+        .panel-table-container,
+        .table-container {
+            scrollbar-width: none;
+        }
+
+        .panel-table-container::-webkit-scrollbar,
+        .table-container::-webkit-scrollbar {
+            display: none;
+        }
+
+        .combined-table-shell {
+            min-width: 100%;
+            width: max-content;
+            height: 100%;
+        }
+
+        .combined-table-container {
+            width: max-content;
+            min-width: 100%;
+            max-height: 100%;
+            overflow-y: auto;
+            overflow-x: visible;
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border);
+            scrollbar-width: none;
+        }
+
+        .combined-table-container::-webkit-scrollbar {
+            display: none;
+        }
+
         .data-table {
             width: auto;
             min-width: 420px;
@@ -755,8 +787,95 @@
             font-family: "SF Mono", Monaco, Consolas, monospace;
         }
 
+        .combined-data-table {
+            width: max-content;
+            min-width: 100%;
+        }
+
+        .combined-data-table th {
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        .combined-data-table .seq-col-header,
+        .combined-data-table .seq-col-cell {
+            position: sticky;
+            left: 0;
+        }
+
+        .combined-data-table .seq-col-header {
+            z-index: 14;
+            background: var(--bg-panel);
+            min-width: 72px;
+            width: 72px;
+            text-align: center;
+        }
+
+        .combined-data-table .seq-col-cell {
+            z-index: 4;
+            background: var(--bg-card);
+            text-align: center;
+            font-family: inherit;
+            color: var(--text);
+            border-right: 1px solid var(--border);
+            min-width: 72px;
+            width: 72px;
+        }
+
+        .combined-data-table .time-col-header,
+        .combined-data-table .time-col-cell {
+            position: sticky;
+            left: 72px;
+        }
+
+        .combined-data-table .time-col-header {
+            z-index: 13;
+            background: var(--bg-panel);
+            min-width: 150px;
+            width: 150px;
+            border-right: 1px solid var(--border);
+        }
+
+        .combined-data-table .time-col-cell {
+            z-index: 3;
+            background: var(--bg-card);
+            text-align: left;
+            font-family: inherit;
+            color: var(--text);
+            border-right: 1px solid var(--border);
+            min-width: 150px;
+            width: 150px;
+        }
+
+        .combined-data-table .metric-col-header,
+        .combined-data-table .metric-col-cell {
+            min-width: 160px;
+        }
+
+        .combined-data-table .metric-col-header {
+            text-align: center;
+        }
+
+        .combined-header-lines {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            line-height: 1.35;
+        }
+
+        .combined-header-line {
+            display: block;
+            white-space: nowrap;
+        }
+
         .data-table tr:hover td {
             background: rgba(212, 175, 55, 0.05);
+        }
+
+        .combined-data-table tr:hover .seq-col-cell,
+        .combined-data-table tr:hover .time-col-cell {
+            background: rgba(212, 175, 55, 0.08);
         }
 
         .data-table .positive {
@@ -808,29 +927,6 @@
             justify-content: center;
             padding: 40px;
             color: var(--text-secondary);
-        }
-
-        .footer-bar {
-            background: var(--bg-panel);
-            border-top: 1px solid var(--border);
-            padding: 12px 24px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            font-size: 12px;
-            color: var(--text-secondary);
-            flex-shrink: 0;
-        }
-
-        .footer-info {
-            display: flex;
-            gap: 24px;
-        }
-
-        .footer-info span {
-            display: flex;
-            align-items: center;
-            gap: 6px;
         }
 
         @media (max-width: 1200px) {
@@ -1302,17 +1398,6 @@
                     <div class="empty-state-text">请在左侧选择数据指标开始查询</div>
                 </div>
             </div>
-
-            <div class="footer-bar">
-                <div class="footer-info">
-                    <span>更新时间: <span id="updateTime">-</span></span>
-                    <span>单位: <span id="dataUnit">-</span></span>
-                </div>
-                <div class="footer-actions">
-                    <button class="action-btn" onclick="exportData('excel')">导出Excel</button>
-                    <button class="action-btn" onclick="exportData('csv')">导出CSV</button>
-                </div>
-            </div>
         </main>
     </div>
 
@@ -1460,19 +1545,15 @@
         function updateHeader(data) {
             if (!data) {
                 document.getElementById('dataTitle').textContent = '请选择数据指标';
-                document.getElementById('dataUnit').textContent = '-';
                 document.getElementById('dataFreq').textContent = '频率: -';
                 document.getElementById('dataSource').textContent = '来源: -';
-                document.getElementById('updateTime').textContent = '-';
                 document.getElementById('freqSelect').value = '日';
                 return;
             }
 
             document.getElementById('dataTitle').textContent = data.name;
-            document.getElementById('dataUnit').textContent = data.unit;
             document.getElementById('dataFreq').textContent = '频率: ' + getFreqLabel(data.freq);
             document.getElementById('dataSource').textContent = '来源: ' + getSource(data.name);
-            document.getElementById('updateTime').textContent = getUpdateTime();
             document.getElementById('freqSelect').value = data.freq;
         }
 
@@ -1508,6 +1589,14 @@
                     const panel = document.querySelector(`.data-panel[data-panel-id="${data.panelId}"]`);
                     if (panel) {
                         panel.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'end' });
+                        return;
+                    }
+
+                    if (currentView === 'table') {
+                        const contentBody = document.getElementById('contentBody');
+                        if (contentBody) {
+                            contentBody.scrollTo({ left: contentBody.scrollWidth, behavior: 'smooth' });
+                        }
                     }
                 });
             }
@@ -1685,6 +1774,70 @@
             });
 
             html += '</tbody></table></div>';
+            return html;
+        }
+
+        function buildCombinedTableMarkup(items) {
+            const rowsByDate = new Map();
+
+            items.forEach(function(item) {
+                item.renderedData.forEach(function(row) {
+                    if (!rowsByDate.has(row.date)) {
+                        rowsByDate.set(row.date, { date: row.date });
+                    }
+                    rowsByDate.get(row.date)[item.key] = row.value;
+                });
+            });
+
+            const rows = Array.from(rowsByDate.values()).sort(function(a, b) {
+                return new Date(toChartDate(a.date)) - new Date(toChartDate(b.date));
+            });
+
+            function buildHeaderLines(line1, line2, line3) {
+                return `
+                    <div class="combined-header-lines">
+                        <span class="combined-header-line">${escapeHtml(line1)}</span>
+                        <span class="combined-header-line">${escapeHtml(line2)}</span>
+                        <span class="combined-header-line">${escapeHtml(line3)}</span>
+                    </div>
+                `;
+            }
+
+            let html = `
+                <div class="combined-table-shell">
+                    <div class="combined-table-container">
+                        <table class="data-table combined-data-table">
+                            <thead>
+                                <tr>
+                                    <th class="seq-col-header">序号</th>
+                                    <th class="time-col-header">${buildHeaderLines('指标名称', '频率', '单位')}</th>
+                                    ${items.map(function(item) {
+                                        return `<th class="metric-col-header">${buildHeaderLines(item.name, getFreqLabel(item.freq), item.unit)}</th>`;
+                                    }).join('')}
+                                </tr>
+                            </thead>
+                            <tbody>
+            `;
+
+            rows.forEach(function(row, index) {
+                html += `
+                    <tr>
+                        <td class="seq-col-cell">${index + 1}</td>
+                        <td class="time-col-cell">${escapeHtml(row.date)}</td>
+                        ${items.map(function(item) {
+                            return `<td class="metric-col-cell">${row[item.key] ?? '-'}</td>`;
+                        }).join('')}
+                    </tr>
+                `;
+            });
+
+            html += `
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+
             return html;
         }
 
@@ -1923,11 +2076,7 @@
                 return;
             }
 
-            contentBody.innerHTML = `
-                <div class="multi-content">
-                    ${selectedDataList.map((item, index) => buildPanelMarkup(item, index)).join('')}
-                </div>
-            `;
+            contentBody.innerHTML = buildCombinedTableMarkup(selectedDataList);
         }
 
         function renderData() {
