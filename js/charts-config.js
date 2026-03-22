@@ -978,6 +978,35 @@ function initForecast(){
   $("fc-chart-wrap").addEventListener("pointerup",endDrag);
   $("fc-chart-wrap").addEventListener("pointercancel",endDrag);
   $("fc-chart-wrap").addEventListener("dblclick",()=>{resetView(buildSeries().combined.length);drawForecast();});
+
+  function syncForecastPanelLayout(){
+    const mainGrid=document.querySelector("#fc-panel-forecast .fc-main-grid");
+    const cols=mainGrid?Array.from(mainGrid.children).filter(el=>el&&el.tagName==="DIV"):[];
+    const leftCol=cols[0];
+    const rightCol=cols[1];
+    if(leftCol) leftCol.classList.add("fc-forecast-side-stack");
+    if(rightCol) rightCol.classList.add("fc-forecast-side-stack");
+
+    const consensusCard=rightCol?rightCol.querySelector(".fc-card"):null;
+    const consensusNote=consensusCard?consensusCard.querySelector(".fc-note"):null;
+    if(consensusNote) consensusNote.remove();
+
+    const impactGrid=$("fc-impact-grid");
+    const impactCard=impactGrid&&impactGrid.closest?impactGrid.closest(".fc-card"):null;
+    if(rightCol&&impactCard&&impactCard.parentElement!==rightCol){
+      rightCol.appendChild(impactCard);
+    }
+
+    const scenarioGrid=document.querySelector("#fc-panel-forecast .fc-scenario-grid");
+    if(scenarioGrid){
+      const scenarioCard=scenarioGrid.querySelector(":scope > .fc-card");
+      if(leftCol&&scenarioCard&&scenarioCard.parentElement!==leftCol){
+        leftCol.appendChild(scenarioCard);
+      }
+      if(!scenarioGrid.querySelector(":scope > .fc-card")) scenarioGrid.remove();
+      else scenarioGrid.classList.add("fc-solo");
+    }
+  }
   function syncForecastShellLayout(){
     const riskBadge=$("fc-risk-badge-hero");
     const chartMeta=document.querySelector("#fc-panel-forecast .fc-card-head .fc-card-meta");
@@ -1038,6 +1067,7 @@ function initForecast(){
   document.addEventListener("mousedown",e=>{if(alertPanel.classList.contains("show")&&!alertPanel.contains(e.target)&&e.target!==$("fc-btn-alert"))alertPanel.classList.remove("show");});
 
   /* ── Init render ── */
+  syncForecastPanelLayout();
   renderConsensus();
   renderSliders();
   renderImpactGrid();
