@@ -1540,7 +1540,10 @@
     .fc-hero {
       padding: 0;
       border-bottom: 1px solid var(--fc-stroke);
-      background: linear-gradient(180deg, rgba(214,179,106,.06) 0%, transparent 100%);
+      background:
+        linear-gradient(90deg, rgba(14,17,23,.96) 0%, rgba(14,17,23,.84) 42%, rgba(14,17,23,.44) 100%),
+        linear-gradient(180deg, rgba(214,179,106,.06) 0%, transparent 100%),
+        url("../assets/forecast_bg.png") center right / cover no-repeat;
     }
     .fc-hero-inner {
       display: flex;
