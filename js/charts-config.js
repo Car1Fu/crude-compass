@@ -978,12 +978,45 @@ function initForecast(){
   $("fc-chart-wrap").addEventListener("pointerup",endDrag);
   $("fc-chart-wrap").addEventListener("pointercancel",endDrag);
   $("fc-chart-wrap").addEventListener("dblclick",()=>{resetView(buildSeries().combined.length);drawForecast();});
+  function syncForecastShellLayout(){
+    const riskBadge=$("fc-risk-badge-hero");
+    const chartMeta=document.querySelector("#fc-panel-forecast .fc-card-head .fc-card-meta");
+    if(riskBadge&&chartMeta&&riskBadge.parentElement!==chartMeta){
+      const oldWrap=riskBadge.parentElement;
+      chartMeta.prepend(riskBadge);
+      if(oldWrap&&!oldWrap.children.length)oldWrap.remove();
+    }
+
+    const toolbar=document.querySelector("#fc-panel-forecast .fc-toolbar");
+    const modelControl=$("fc-model")?.closest(".fc-control");
+    const alertBtn=$("fc-btn-alert");
+    const alertWrap=alertBtn?alertBtn.parentElement:null;
+    const exportBtn=$("fc-btn-export");
+    if(toolbar&&modelControl){
+      let actions=toolbar.querySelector(".fc-toolbar-actions");
+      if(!actions){
+        actions=document.createElement("div");
+        actions.className="fc-toolbar-actions";
+        modelControl.insertAdjacentElement("afterend",actions);
+      }
+      if(alertWrap&&alertWrap.parentElement!==actions)actions.appendChild(alertWrap);
+      if(exportBtn&&exportBtn.parentElement!==actions)actions.appendChild(exportBtn);
+    }
+
+    const resetBtn=$("fc-btn-reset");
+    if(resetBtn)resetBtn.remove();
+
+    const scenarioPill=document.querySelector("#fc-panel-forecast .fc-scenario-grid .fc-card .fc-card-head .fc-pill");
+    if(scenarioPill)scenarioPill.remove();
+  }
+  syncForecastShellLayout();
 
   /* ── Control bindings ── */
   $("fc-asset").addEventListener("change",e=>{state.asset=e.target.value;resetView(buildSeries().combined.length);drawForecast();});
   $("fc-horizon").addEventListener("change",e=>{state.horizon=Number(e.target.value);resetView(buildSeries().combined.length);drawForecast();});
   $("fc-model").addEventListener("change",e=>{state.model=e.target.value;drawForecast();});
-  $("fc-btn-reset").addEventListener("click",()=>{
+  const resetBtn=$("fc-btn-reset");
+  if(resetBtn)resetBtn.addEventListener("click",()=>{
     state.asset="brent";state.horizon=1;state.model="stacking";
     Object.keys(state.factors).forEach(k=>state.factors[k]=0);
     $("fc-asset").value="brent";$("fc-horizon").value="1";$("fc-model").value="stacking";

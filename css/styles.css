@@ -1696,6 +1696,13 @@
       border-bottom: 1px solid var(--fc-stroke2);
       margin-bottom: 16px;
     }
+    .fc-toolbar-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      margin-left: auto;
+    }
     .fc-control { display: flex; flex-direction: column; gap: 4px; }
     .fc-control label {
       font-size: 10px; font-weight: 700; color: var(--fc-muted);
