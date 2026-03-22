@@ -68,15 +68,16 @@
     .view.active{ display:block; }
     #view-api {
       width:100%; padding:0; overflow:hidden;
-      height: calc(100vh - var(--header-h));
+      min-height: 100vh;
+      height: 100vh;
       box-sizing: border-box;
     }
     #view-api.active { display:flex; flex-direction:column; }
     #db-download-frame {
       flex:1; width:100%; border:none;
       background:#0b0f14;
-      height: calc(100vh - var(--header-h));
-      min-height: 0;
+      min-height: 100vh;
+      height: 100vh;
     }
     #view-research{ height:auto; flex-direction:column; overflow-y:visible; }
     #view-research.active{ display:block; }
