@@ -117,6 +117,7 @@
             --chart-tooltip-text: #1f2937;
             --chart-axis: #6b7280;
             --chart-grid: #dfe4ea;
+            color-scheme: light;
         }
 
         * {
@@ -136,6 +137,7 @@
             color: var(--text);
             min-height: 100vh;
             overflow: hidden;
+            color-scheme: dark;
         }
 
         .header {
@@ -665,6 +667,17 @@
             border-color: var(--theme-toggle-hover-border);
         }
 
+        .freq-selector select option {
+            background: var(--bg-panel);
+            color: var(--text);
+        }
+
+        .freq-selector select option:checked,
+        .freq-selector select option:hover {
+            background: var(--interactive-hover);
+            color: var(--text);
+        }
+
         .action-btn {
             padding: 8px 16px;
             background: var(--bg-card);
@@ -1014,6 +1027,41 @@
         .combined-header-line {
             display: block;
             white-space: nowrap;
+        }
+
+        .sortable-header {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .sort-toggle-btn {
+            width: 24px;
+            height: 24px;
+            flex: 0 0 24px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 999px;
+            border: 1px solid var(--control-frame-border);
+            background: var(--control-frame-bg);
+            color: var(--control-text);
+            box-shadow: var(--control-frame-shadow);
+            cursor: pointer;
+            transition: border-color 0.18s ease, background 0.18s ease, color 0.18s ease, transform 0.18s ease;
+        }
+
+        .sort-toggle-btn:hover {
+            border-color: var(--control-hover-border);
+            background: var(--control-hover-bg);
+            color: var(--control-hover-text);
+            transform: translateY(-1px);
+        }
+
+        .sort-arrow {
+            font-size: 13px;
+            line-height: 1;
         }
 
         .data-table tr:hover td {
@@ -1553,6 +1601,7 @@
         let currentData = null;
         let currentView = 'table';
         let selectedDataList = [];
+        let tableSortOrder = 'desc';
         let chartInstances = new Map();
         let panelSeed = 0;
         const THEME_STORAGE_KEY = 'crude-data-center-theme';
@@ -1933,12 +1982,15 @@
                    String(now.getDate()).padStart(2, '0');
         }
 
-        function generateMockData(name, freq, count = 20) {
+        function generateMockData(name, freq, count) {
             const data = [];
             const now = new Date();
             const basePrice = Math.random() * 50 + 50;
+            const resolvedCount = typeof count === 'number'
+                ? count
+                : (freq === '日' ? 84 : freq === '周' ? 36 : freq === '月' ? 24 : 12);
             
-            for (let i = count - 1; i >= 0; i--) {
+            for (let i = resolvedCount - 1; i >= 0; i--) {
                 const date = new Date(now);
                 if (freq === '日') date.setDate(date.getDate() - i);
                 else if (freq === '周') date.setDate(date.getDate() - i * 7);
@@ -1955,7 +2007,51 @@
             return data;
         }
 
+        function getTableSortTimestamp(value) {
+            const timestamp = new Date(toChartDate(value)).getTime();
+            return Number.isNaN(timestamp) ? 0 : timestamp;
+        }
+
+        function sortRowsByDate(rows) {
+            return rows.slice().sort(function(a, b) {
+                const delta = getTableSortTimestamp(a.date) - getTableSortTimestamp(b.date);
+                return tableSortOrder === 'desc' ? -delta : delta;
+            });
+        }
+
+        function getSortToggleMarkup() {
+            const isDesc = tableSortOrder === 'desc';
+            const title = isDesc
+                ? '\u5f53\u524d\uff1a\u5012\u5e8f\uff0c\u70b9\u51fb\u5207\u6362\u4e3a\u6b63\u5e8f'
+                : '\u5f53\u524d\uff1a\u6b63\u5e8f\uff0c\u70b9\u51fb\u5207\u6362\u4e3a\u5012\u5e8f';
+
+            return `
+                <button
+                    class="sort-toggle-btn"
+                    type="button"
+                    data-order="${tableSortOrder}"
+                    title="${title}"
+                    aria-label="${title}"
+                    onclick="toggleTableSortOrder(event)">
+                    <span class="sort-arrow">${isDesc ? '&#8595;' : '&#8593;'}</span>
+                </button>
+            `;
+        }
+
+        function toggleTableSortOrder(event) {
+            if (event) {
+                event.stopPropagation();
+            }
+
+            tableSortOrder = tableSortOrder === 'desc' ? 'asc' : 'desc';
+
+            if (selectedDataList.length && currentView === 'table') {
+                renderSelectedData();
+            }
+        }
+
         function buildTableMarkup(data, unit, extraClass) {
+            const sortedRows = sortRowsByDate(data);
             let html = `
                 <div class="table-container ${extraClass || ''}">
                     <table class="data-table">
@@ -1968,7 +2064,7 @@
                         <tbody>
             `;
 
-            data.forEach(row => {
+            sortedRows.forEach(row => {
                 html += `
                     <tr>
                         <td>${row.date}</td>
@@ -1993,16 +2089,29 @@
                 });
             });
 
-            const rows = Array.from(rowsByDate.values()).sort(function(a, b) {
-                return new Date(toChartDate(a.date)) - new Date(toChartDate(b.date));
-            });
+            const rows = sortRowsByDate(Array.from(rowsByDate.values()));
 
             function buildHeaderLines(line1, line2, line3) {
-                return `
+                const headerContent = `
                     <div class="combined-header-lines">
                         <span class="combined-header-line">${escapeHtml(line1)}</span>
                         <span class="combined-header-line">${escapeHtml(line2)}</span>
                         <span class="combined-header-line">${escapeHtml(line3)}</span>
+                    </div>
+                `;
+
+                const isTimeHeader = line1 === '\u6307\u6807\u540d\u79f0'
+                    && line2 === '\u9891\u7387'
+                    && line3 === '\u5355\u4f4d';
+
+                if (!isTimeHeader) {
+                    return headerContent;
+                }
+
+                return `
+                    <div class="sortable-header">
+                        ${headerContent}
+                        ${getSortToggleMarkup()}
                     </div>
                 `;
             }
