@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>原油数据中心 - Crude Oil Data Center</title>
-    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
     <style>
         :root {
             --primary: #D4AF37;
@@ -94,6 +93,11 @@
             flex: 1;
             max-width: 500px;
             margin: 0 40px;
+        }
+
+        .header-center:empty,
+        .header-right:empty {
+            display: none;
         }
 
         .global-search {
@@ -233,6 +237,21 @@
         .sidebar::-webkit-scrollbar-thumb {
             background: var(--border);
             border-radius: 3px;
+        }
+
+        .sidebar > .header-center {
+            flex: none;
+            max-width: none;
+            margin: 0;
+            padding: 16px 16px 14px;
+            border-bottom: 1px solid var(--border);
+            background: linear-gradient(180deg, rgba(212, 175, 55, 0.06), transparent);
+        }
+
+        .sidebar-search-wrap {
+            padding: 16px 16px 14px;
+            border-bottom: 1px solid var(--border);
+            background: linear-gradient(180deg, rgba(212, 175, 55, 0.06), transparent);
         }
 
         .category-nav {
@@ -607,19 +626,6 @@
 
         .data-table .negative {
             color: var(--negative);
-        }
-
-        .chart-container {
-            background: var(--bg-card);
-            border-radius: var(--radius-lg);
-            border: 1px solid var(--border);
-            padding: 20px;
-            height: 500px;
-        }
-
-        #mainChart {
-            width: 100%;
-            height: 100%;
         }
 
         .empty-state {
@@ -1122,10 +1128,9 @@
                 </div>
                 <div class="content-actions">
                     <div class="view-toggle">
-                        <button class="view-btn active" data-view="table" onclick="switchViewMode('table')">
+                        <button class="view-btn active" type="button">
                             <span>📊</span> 表格
                         </button>
-                        <button class="view-btn" data-view="chart" onclick="switchViewMode('chart')">
                             <span>📈</span> 图表
                         </button>
                     </div>
@@ -1163,8 +1168,6 @@
 
     <script>
         let currentData = null;
-        let currentView = 'table';
-        let chartInstance = null;
 
         function toggleCategory(header) {
             const item = header.parentElement;
@@ -1272,12 +1275,7 @@
 
         function renderData(name, freq, unit) {
             const data = generateMockData(name, freq);
-            
-            if (currentView === 'table') {
-                renderTable(data, unit);
-            } else {
-                renderChart(data, name, unit);
-            }
+            renderTable(data, unit);
         }
 
         function renderTable(data, unit) {
@@ -1308,83 +1306,6 @@
             
             html += '</tbody></table>';
             document.getElementById('contentBody').innerHTML = html;
-        }
-
-        function renderChart(data, name, unit) {
-            const dates = data.map(d => d.date);
-            const values = data.map(d => parseFloat(d.value));
-            
-            let chartHtml = `<div class="chart-container"><div id="mainChart"></div></div>`;
-            document.getElementById('contentBody').innerHTML = chartHtml;
-            
-            const chartDom = document.getElementById('mainChart');
-            if (chartInstance) {
-                chartInstance.dispose();
-            }
-            
-            chartInstance = echarts.init(chartDom);
-            
-            const option = {
-                backgroundColor: 'transparent',
-                tooltip: {
-                    trigger: 'axis',
-                    backgroundColor: '#1a1a1a',
-                    borderColor: '#D4AF37',
-                    textStyle: { color: '#f5f5f5' }
-                },
-                grid: {
-                    left: '3%',
-                    right: '4%',
-                    bottom: '3%',
-                    top: '10%',
-                    containLabel: true
-                },
-                xAxis: {
-                    type: 'category',
-                    data: dates,
-                    axisLine: { lineStyle: { color: '#3d3d3d' } },
-                    axisLabel: { color: '#a0a0a0' }
-                },
-                yAxis: {
-                    type: 'value',
-                    name: unit,
-                    nameTextStyle: { color: '#a0a0a0' },
-                    axisLine: { lineStyle: { color: '#3d3d3d' } },
-                    axisLabel: { color: '#a0a0a0' },
-                    splitLine: { lineStyle: { color: '#3d3d3d', type: 'dashed' } }
-                },
-                series: [{
-                    name: name,
-                    type: 'line',
-                    data: values,
-                    smooth: true,
-                    lineStyle: { color: '#D4AF37', width: 2 },
-                    areaStyle: {
-                        color: {
-                            type: 'linear',
-                            x: 0, y: 0, x2: 0, y2: 1,
-                            colorStops: [
-                                { offset: 0, color: 'rgba(212, 175, 55, 0.3)' },
-                                { offset: 1, color: 'rgba(212, 175, 55, 0.05)' }
-                            ]
-                        }
-                    },
-                    itemStyle: { color: '#D4AF37' }
-                }]
-            };
-            
-            chartInstance.setOption(option);
-        }
-
-        function switchViewMode(view) {
-            currentView = view;
-            document.querySelectorAll('.view-btn').forEach(btn => {
-                btn.classList.toggle('active', btn.dataset.view === view);
-            });
-            
-            if (currentData) {
-                renderData(currentData.name, currentData.freq, currentData.unit);
-            }
         }
 
         function changeFrequency(freq) {
@@ -1447,6 +1368,23 @@
             document.getElementById('searchDropdown').classList.remove('show');
         }
 
+        const headerSearch = document.querySelector('.header-center');
+        const sidebar = document.getElementById('sidebar');
+        const categoryNav = sidebar ? sidebar.querySelector('.category-nav') : null;
+        if (headerSearch && sidebar && categoryNav) {
+            sidebar.insertBefore(headerSearch, categoryNav);
+        }
+
+        const headerExportBtn = document.querySelector('.header-right .download-btn');
+        const contentActions = document.querySelector('.content-actions');
+        const viewToggle = contentActions ? contentActions.querySelector('.view-toggle') : null;
+        if (viewToggle) {
+            viewToggle.innerHTML = '<button class="view-btn active" type="button"><span>📊</span> 表格</button>';
+        }
+        if (headerExportBtn && contentActions && viewToggle) {
+            contentActions.insertBefore(headerExportBtn, viewToggle);
+        }
+
         function exportData(format) {
             if (!currentData) {
                 alert('请先选择数据指标');
@@ -1483,12 +1421,6 @@
             a.click();
             URL.revokeObjectURL(url);
         }
-
-        window.addEventListener('resize', function() {
-            if (chartInstance) {
-                chartInstance.resize();
-            }
-        });
     </script>
 </body>
 </html>
