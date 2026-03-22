@@ -424,7 +424,7 @@ function initForecast(){
   }
 
   /* ── Industry impact ── */
-  const industries=[
+  const legacyImpactIndustries=[
     {name:"航空",key:"air",note:"燃油成本敏感"},
     {name:"航运",key:"ship",note:"燃油/运价联动"},
     {name:"化工",key:"chem",note:"原料端压力"},
@@ -432,7 +432,7 @@ function initForecast(){
     {name:"物流",key:"log",note:"运力+油价叠加"},
     {name:"钢铁",key:"steel",note:"能源成本上升"},
   ];
-  function renderImpactGrid(){
+  function legacyRenderImpactGrid(){
     const grid=$("fc-impact-grid");grid.innerHTML="";
     industries.forEach(ind=>{
       const div=document.createElement("div");div.className="fc-impact";
@@ -446,7 +446,7 @@ function initForecast(){
       grid.appendChild(div);
     });
   }
-  function updateIndustry(series){
+  function legacyUpdateIndustry(series){
     const ret=(series.bands[series.bands.length-1].y-series.spot)/series.spot;
     const vol=series.volBoost;
     const dirUp=clamp((ret+.03)/.10,0,1),uncert=clamp((vol-1.0)/1.2,0,1);
@@ -472,6 +472,186 @@ function initForecast(){
   }
 
   /* ── Consensus ── */
+  const industries=[
+    {
+      name:"航空",
+      key:"air",
+      notes:{
+        up:"燃油成本敏感；对冲覆盖不足时利润波动更明显",
+        down:"油价回落缓解航油成本，但票价与客座率仍决定利润修复",
+        stress:"汇率与油价共振时，现金流敏感度会进一步放大"
+      }
+    },
+    {
+      name:"航运",
+      key:"ship",
+      notes:{
+        up:"燃油/运价联动；成本传导能力分化更明显",
+        down:"油价回落缓解成本，但运价与航线供给仍决定盈利弹性",
+        stress:"运费波动上行时，融资与保险支出会同步抬升"
+      }
+    },
+    {
+      name:"化工",
+      key:"chem",
+      notes:{
+        up:"原料端抬升；价差与库存周期决定利润弹性",
+        down:"成本边际缓和后，利润修复仍取决于终端需求与价差",
+        stress:"原料采购与库存再定价会放大利润波动"
+      }
+    },
+    {
+      name:"炼化",
+      key:"ref",
+      notes:{
+        up:"裂解价差决定盈利；原油上涨不等于利润同步走强",
+        down:"原油回落有利原料端，但成品油裂解仍是核心变量",
+        stress:"库存重估与价差波动会压缩阶段性利润空间"
+      }
+    },
+    {
+      name:"物流",
+      key:"log",
+      notes:{
+        up:"运力与油价叠加；费用率上行会压缩毛利",
+        down:"成本边际缓和，但价格竞争与需求节奏仍会压制利润",
+        stress:"油价和融资成本同步走高时，现金流压力会更明显"
+      }
+    },
+    {
+      name:"钢铁",
+      key:"steel",
+      notes:{
+        up:"能源成本占比上升；需求放缓会放大压力",
+        down:"成本缓和有利制造端，但需求恢复才决定利润修复斜率",
+        stress:"能源与地产链扰动共振时，利润波动更易放大"
+      }
+    },
+  ];
+  function ensureImpactShell(){
+    const grid=$("fc-impact-grid");
+    const card=grid&&grid.closest?grid.closest(".fc-card"):null;
+    if(card){
+      const title=card.querySelector(".fc-card-head h3");
+      const pill=card.querySelector(".fc-card-head .fc-pill");
+      if(title) title.textContent="行业冲击（当前预测下）";
+      if(pill){
+        pill.textContent="成本 / 利润 / 融资压力";
+        pill.classList.add("fc-impact-legend");
+      }
+    }
+    const summary=$("fc-impact-summary");
+    if(summary&&summary.parentElement){
+      summary.parentElement.classList.add("fc-impact-summary-box");
+      const strong=summary.parentElement.querySelector("strong");
+      if(strong){
+        strong.textContent="一句话总结";
+        strong.className="fc-impact-summary-title";
+      }
+    }
+  }
+  function impactMetricRow(label,id){
+    return `<div class="fc-impact-row"><span class="fc-impact-label">${label}</span><span class="fc-impact-track"><i id="${id}" class="fc-impact-fill"></i></span></div>`;
+  }
+  function renderImpactGrid(){
+    ensureImpactShell();
+    const grid=$("fc-impact-grid");
+    if(!grid) return;
+    grid.innerHTML=industries.map(ind=>`
+      <div class="fc-impact-card" id="fc-impact-card-${ind.key}" data-level="low">
+        <div class="fc-impact-top">
+          <div class="fc-impact-title">${ind.name}</div>
+          <span class="fc-impact-status low" id="imp-tag-${ind.key}">压力可控</span>
+        </div>
+        <div class="fc-impact-metrics">
+          ${impactMetricRow("成本压力",`imp-c-${ind.key}`)}
+          ${impactMetricRow("利润风险",`imp-m-${ind.key}`)}
+          ${impactMetricRow("融资压力",`imp-f-${ind.key}`)}
+        </div>
+        <div class="fc-impact-note" id="imp-note-${ind.key}">${ind.notes.up}</div>
+      </div>
+    `).join("");
+  }
+  function impactState(score){
+    if(score>=.72) return {label:"压力偏高",cls:"high"};
+    if(score>=.48) return {label:"压力适中",cls:"mid"};
+    return {label:"压力可控",cls:"low"};
+  }
+  function setImpactBar(id,value){
+    const el=$(id);
+    if(!el) return;
+    el.style.width=Math.round(clamp(value,0,1)*100)+"%";
+  }
+  function composeImpactNote(ind,metrics,ctx){
+    const dominant=metrics.cost>=metrics.margin&&metrics.cost>=metrics.finance
+      ? "cost"
+      : (metrics.margin>=metrics.finance ? "margin" : "finance");
+    if(ctx.uncert>.62||dominant==="finance") return ind.notes.stress;
+    if(ctx.ret>=0) return dominant==="margin" ? ind.notes.stress : ind.notes.up;
+    return ind.notes.down;
+  }
+  function updateIndustry(series){
+    ensureImpactShell();
+    const band=series.bands[series.bands.length-1]||{y:series.spot,sigma:1};
+    const ret=(band.y-series.spot)/series.spot;
+    const vol=series.volBoost;
+    const upBias=clamp(ret/.06,0,1);
+    const downBias=clamp(-ret/.06,0,1);
+    const uncert=clamp((vol-1.0)/1.15,0,1);
+    const usdStress=clamp(Math.max(0,state.factors.usd)/10,0,1);
+    const shipStress=clamp(Math.max(0,state.factors.shipping)/10,0,1);
+    const demandWeak=clamp(Math.max(0,-state.factors.demand)/10,0,1);
+    const inventoryBuild=clamp(Math.max(0,state.factors.inventory)/10,0,1);
+    const scores=[];
+    industries.forEach(ind=>{
+      let cost=0,margin=0,finance=0;
+      if(ind.key==="air"){
+        cost=clamp(.16+upBias*.66+uncert*.12+usdStress*.10,0,1);
+        margin=clamp(.14+upBias*.52+demandWeak*.14+uncert*.12,0,1);
+        finance=clamp(.10+usdStress*.24+uncert*.18+upBias*.08,0,1);
+      }else if(ind.key==="ship"){
+        cost=clamp(.15+upBias*.38+shipStress*.28+uncert*.11,0,1);
+        margin=clamp(.13+upBias*.26+shipStress*.18+demandWeak*.10+uncert*.12,0,1);
+        finance=clamp(.10+uncert*.22+shipStress*.14+usdStress*.10,0,1);
+      }else if(ind.key==="chem"){
+        cost=clamp(.16+upBias*.48+inventoryBuild*.08+uncert*.12,0,1);
+        margin=clamp(.15+upBias*.32+demandWeak*.14+uncert*.14,0,1);
+        finance=clamp(.11+usdStress*.16+uncert*.20+inventoryBuild*.08,0,1);
+      }else if(ind.key==="ref"){
+        cost=clamp(.14+upBias*.30+uncert*.10+inventoryBuild*.10,0,1);
+        margin=clamp(.16+upBias*.24+demandWeak*.12+uncert*.18+shipStress*.06,0,1);
+        finance=clamp(.10+usdStress*.12+uncert*.18+inventoryBuild*.08,0,1);
+      }else if(ind.key==="log"){
+        cost=clamp(.17+upBias*.54+shipStress*.16+uncert*.11,0,1);
+        margin=clamp(.15+upBias*.36+demandWeak*.12+uncert*.14,0,1);
+        finance=clamp(.10+usdStress*.16+uncert*.20+upBias*.06,0,1);
+      }else{
+        cost=clamp(.14+upBias*.34+usdStress*.08+uncert*.12,0,1);
+        margin=clamp(.15+upBias*.22+demandWeak*.18+uncert*.14+downBias*.08,0,1);
+        finance=clamp(.11+usdStress*.16+uncert*.18,0,1);
+      }
+      const overall=cost*.44+margin*.36+finance*.20;
+      const stateTag=impactState(overall);
+      setImpactBar(`imp-c-${ind.key}`,cost);
+      setImpactBar(`imp-m-${ind.key}`,margin);
+      setImpactBar(`imp-f-${ind.key}`,finance);
+      const card=$(`fc-impact-card-${ind.key}`);
+      if(card) card.setAttribute("data-level",stateTag.cls);
+      const tag=$(`imp-tag-${ind.key}`);
+      if(tag){
+        tag.textContent=stateTag.label;
+        tag.className=`fc-impact-status ${stateTag.cls}`;
+      }
+      const note=$(`imp-note-${ind.key}`);
+      if(note) note.textContent=composeImpactNote(ind,{cost,margin,finance},{ret,uncert});
+      scores.push({name:ind.name,score:overall});
+    });
+    scores.sort((a,b)=>b.score-a.score);
+    const top3=scores.slice(0,3).map(x=>x.name).join("、");
+    const biasText=ret>=.015?"价格上行":ret<=-.015?"价格偏弱":"价格震荡";
+    const uncertText=uncert>=.7?"不确定性偏高":uncert>=.35?"不确定性中等":"不确定性偏低";
+    $("fc-impact-summary").textContent=`T+${state.horizon} 预测给出${biasText}倾向，且${uncertText}。压力更突出的行业：${top3}。`;
+  }
   const consensusData=[
     {name:"EIA",annual:86.2,bias:"mid",logic:"供需再平衡；库存回落但产量弹性仍在"},
     {name:"Wind一致",annual:84.7,bias:"mid",logic:"宏观偏中性；供给扰动与需求修复抵消"},
