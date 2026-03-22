@@ -111,16 +111,15 @@
 
         .search-dropdown {
             position: absolute;
-            top: 100%;
+            top: calc(100% + 8px);
             left: 0;
             right: 0;
             background: var(--bg-card);
             border: 1px solid var(--border);
             border-radius: var(--radius);
-            margin-top: 8px;
-            max-height: 400px;
-            overflow-y: auto;
             display: none;
+            max-height: 360px;
+            overflow-y: auto;
             z-index: 1000;
             box-shadow: var(--shadow);
         }
@@ -129,18 +128,24 @@
             display: block;
         }
 
-        .search-result-item {
-            padding: 12px 16px;
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        .search-result-item,
+        .search-result-empty {
+            padding: 12px 14px;
             border-bottom: 1px solid var(--border);
-            transition: background 0.15s;
         }
 
-        .search-result-item:last-child {
+        .search-result-item:last-child,
+        .search-result-empty:last-child {
             border-bottom: none;
+        }
+
+        .search-result-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            cursor: pointer;
+            transition: background 0.15s;
         }
 
         .search-result-item:hover {
@@ -155,9 +160,11 @@
         .search-result-category {
             font-size: 12px;
             color: var(--text-secondary);
-            background: var(--bg-panel);
-            padding: 2px 8px;
-            border-radius: 4px;
+        }
+
+        .search-result-empty {
+            font-size: 13px;
+            color: var(--text-secondary);
         }
 
         .header-right {
@@ -673,8 +680,10 @@
             <div class="sidebar-search-wrap">
                 <div class="global-search">
                     <input type="text" id="globalSearch" placeholder="搜索指标名称、数据类别或关键字..." 
-                           autocomplete="off" oninput="handleSearch(this.value)" 
-                           onfocus="showSearchResults(this.value)" onblur="hideSearchResults()">
+                           autocomplete="off"
+                           oninput="handleSearch(this.value)"
+                           onfocus="showSearchResults(this.value)"
+                           onblur="hideSearchResults()">
                     <div class="search-dropdown" id="searchDropdown"></div>
                 </div>
             </div>
@@ -1340,28 +1349,43 @@
         }
 
         function handleSearch(keyword) {
-            if (keyword.length < 2) {
-                document.getElementById('searchDropdown').classList.remove('show');
+            const value = (keyword || '').trim();
+            const dropdown = document.getElementById('searchDropdown');
+            if (!dropdown) return;
+
+            if (!value) {
+                dropdown.classList.remove('show');
+                dropdown.innerHTML = '';
                 return;
             }
-            showSearchResults(keyword);
+
+            showSearchResults(value);
         }
 
         function showSearchResults(keyword) {
             const dropdown = document.getElementById('searchDropdown');
+            const value = (keyword || '').trim();
+            if (!dropdown) return;
+
+            if (!value) {
+                dropdown.classList.remove('show');
+                dropdown.innerHTML = '';
+                return;
+            }
+
             const items = document.querySelectorAll('.data-item');
             const results = [];
             
             items.forEach(item => {
                 const name = item.querySelector('.data-item-name').textContent;
-                if (name.toLowerCase().includes(keyword.toLowerCase())) {
+                if (name.toLowerCase().includes(value.toLowerCase())) {
                     const freq = item.querySelector('.data-item-freq').textContent;
                     results.push({ name, freq, element: item });
                 }
             });
             
             if (results.length === 0) {
-                dropdown.innerHTML = '<div style="padding:16px;color:var(--text-secondary)">未找到相关指标</div>';
+                dropdown.innerHTML = '<div class="search-result-empty">(无)</div>';
             } else {
                 dropdown.innerHTML = results.slice(0, 10).map(r => `
                     <div class="search-result-item" onclick="selectFromSearch(this)" data-name="${r.name}">
@@ -1376,7 +1400,10 @@
 
         function hideSearchResults() {
             setTimeout(() => {
-                document.getElementById('searchDropdown').classList.remove('show');
+                const dropdown = document.getElementById('searchDropdown');
+                if (dropdown) {
+                    dropdown.classList.remove('show');
+                }
             }, 200);
         }
 
@@ -1389,7 +1416,10 @@
                 item.click();
             }
             document.getElementById('globalSearch').value = name;
-            document.getElementById('searchDropdown').classList.remove('show');
+            const dropdown = document.getElementById('searchDropdown');
+            if (dropdown) {
+                dropdown.classList.remove('show');
+            }
         }
 
         function exportData(format) {
