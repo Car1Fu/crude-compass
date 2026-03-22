@@ -1859,6 +1859,7 @@
     }
     .fc-impact-card[data-level="high"] {
       border-color: rgba(255, 108, 122, .22);
+    }
     .fc-impact-top {
       display: flex;
       align-items: center;
