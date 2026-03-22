@@ -1983,8 +1983,6 @@
         }
 
         function buildChartOption(data, name, unit) {
-            const dates = data.map(d => d.date);
-            const values = data.map(d => parseFloat(d.value));
             const theme = getThemeChartColors();
 
             return {
@@ -1993,7 +1991,16 @@
                     trigger: 'axis',
                     backgroundColor: theme.tooltipBg,
                     borderColor: '#D4AF37',
-                    textStyle: { color: theme.tooltipText }
+                    textStyle: { color: theme.tooltipText },
+                    formatter: function(params) {
+                        if (!params || !params.length) {
+                            return '';
+                        }
+
+                        const point = params[0];
+                        const value = Array.isArray(point.data) ? point.data[1] : point.data;
+                        return `${formatChartAxisDate(point.axisValue)}<br/>${point.marker}${name}: ${value} ${unit}`;
+                    }
                 },
                 grid: {
                     left: '3%',
@@ -2003,10 +2010,14 @@
                     containLabel: true
                 },
                 xAxis: {
-                    type: 'category',
-                    data: dates,
+                    type: 'time',
                     axisLine: { lineStyle: { color: theme.grid } },
-                    axisLabel: { color: theme.axis }
+                    axisLabel: {
+                        color: theme.axis,
+                        formatter: function(value) {
+                            return formatChartAxisDate(value);
+                        }
+                    }
                 },
                 yAxis: {
                     type: 'value',
@@ -2019,7 +2030,9 @@
                 series: [{
                     name: name,
                     type: 'line',
-                    data: values,
+                    data: data.map(function(row) {
+                        return [toChartDate(row.date), Number(row.value)];
+                    }),
                     smooth: true,
                     lineStyle: { color: '#D4AF37', width: 2 },
                     areaStyle: {
@@ -2049,6 +2062,18 @@
             return value;
         }
 
+        function formatChartAxisDate(value) {
+            const date = new Date(value);
+            if (Number.isNaN(date.getTime())) {
+                return String(value);
+            }
+
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
         function buildCombinedChartOption(items) {
             const palette = ['#D4AF37', '#4ADE80', '#60A5FA', '#F59E0B', '#F87171', '#A78BFA', '#34D399', '#F472B6'];
             const theme = getThemeChartColors();
@@ -2066,7 +2091,7 @@
                             return '';
                         }
 
-                        const title = params[0].axisValueLabel || params[0].axisValue || '';
+                        const title = formatChartAxisDate(params[0].axisValue);
                         const lines = params.map(function(item) {
                             const meta = items[item.seriesIndex];
                             const value = Array.isArray(item.data) ? item.data[1] : item.data;
@@ -2092,12 +2117,17 @@
                 xAxis: {
                     type: 'time',
                     axisLine: { lineStyle: { color: theme.grid } },
-                    axisLabel: { color: theme.axis },
+                    axisLabel: {
+                        color: theme.axis,
+                        formatter: function(value) {
+                            return formatChartAxisDate(value);
+                        }
+                    },
                     splitLine: { show: false }
                 },
                 yAxis: {
                     type: 'value',
-                    name: items.length === 1 ? items[0].unit : '多指标',
+                    name: items.length ? items[0].unit : '',
                     nameTextStyle: { color: theme.axis },
                     axisLine: { lineStyle: { color: theme.grid } },
                     axisLabel: { color: theme.axis },
