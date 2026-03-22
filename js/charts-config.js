@@ -468,7 +468,8 @@ function initForecast(){
     });
     scores.sort((a,b)=>b.ov-a.ov);
     const top3=scores.slice(0,3).map(x=>x.name).join("、");
-    $("fc-impact-summary").textContent=`T+${state.horizon} 预测${ret>=0?"上行":"下行"}倾向，${vol>=1.9?"不确定性偏高":vol>=1.35?"不确定性中等":"不确定性偏低"}。压力突出行业：${top3}。`;
+    const summary=$("fc-impact-summary");
+    if(summary) summary.textContent=`T+${state.horizon} 预测${ret>=0?"上行":"下行"}倾向，${vol>=1.9?"不确定性偏高":vol>=1.35?"不确定性中等":"不确定性偏低"}。压力突出行业：${top3}。`;
   }
 
   /* ── Consensus ── */
@@ -534,20 +535,8 @@ function initForecast(){
     if(card){
       const title=card.querySelector(".fc-card-head h3");
       const pill=card.querySelector(".fc-card-head .fc-pill");
-      if(title) title.textContent="行业冲击（当前预测下）";
-      if(pill){
-        pill.textContent="成本 / 利润 / 融资压力";
-        pill.classList.add("fc-impact-legend");
-      }
-    }
-    const summary=$("fc-impact-summary");
-    if(summary&&summary.parentElement){
-      summary.parentElement.classList.add("fc-impact-summary-box");
-      const strong=summary.parentElement.querySelector("strong");
-      if(strong){
-        strong.textContent="一句话总结";
-        strong.className="fc-impact-summary-title";
-      }
+      if(title) title.textContent="行业冲击";
+      if(pill) pill.remove();
     }
   }
   function impactMetricRow(label,id){
@@ -582,54 +571,129 @@ function initForecast(){
     if(!el) return;
     el.style.width=Math.round(clamp(value,0,1)*100)+"%";
   }
-  function composeImpactNote(ind,metrics,ctx){
-    const dominant=metrics.cost>=metrics.margin&&metrics.cost>=metrics.finance
+  function normalizeScenarioFactor(key){
+    return clamp((state.factors[key]||0)/10,-1,1);
+  }
+  function getScenarioSignals(ret,uncert){
+    const raw={
+      opec:normalizeScenarioFactor("opec"),
+      inventory:normalizeScenarioFactor("inventory"),
+      usd:normalizeScenarioFactor("usd"),
+      geo:normalizeScenarioFactor("geo"),
+      shipping:normalizeScenarioFactor("shipping"),
+      demand:normalizeScenarioFactor("demand")
+    };
+    const driver=(-raw.opec*.18)+(-raw.inventory*.12)+(-raw.usd*.10)+(raw.shipping*.12)+(raw.demand*.15);
+    return {
+      raw,
+      priceUp:clamp(Math.max(ret/.06,driver/.28,0),0,1),
+      priceDown:clamp(Math.max(-ret/.06,-driver/.28,0),0,1),
+      demandUp:clamp(raw.demand,0,1),
+      demandDown:clamp(-raw.demand,0,1),
+      usdUp:clamp(raw.usd,0,1),
+      shippingUp:clamp(raw.shipping,0,1),
+      inventoryBuild:clamp(raw.inventory,0,1),
+      geoRisk:Math.abs(raw.geo),
+      uncertainty:clamp(Math.max(uncert,Math.abs(raw.geo)*.78+Math.abs(raw.shipping)*.22),0,1)
+    };
+  }
+  function computeMetricPressure(profile,signals){
+    return clamp(Object.entries(profile).reduce((sum,[key,weight])=>sum+(signals[key]||0)*weight,0),0,1);
+  }
+  function pickImpactDriver(indKey,signals){
+    const drivers={
+      air:[
+        {value:signals.priceUp,text:"油价上行"},
+        {value:signals.usdUp,text:"美元走强"},
+        {value:signals.demandDown,text:"需求走弱"},
+        {value:signals.geoRisk,text:"地缘风险升温"}
+      ],
+      ship:[
+        {value:signals.shippingUp,text:"航运扰动"},
+        {value:signals.priceUp,text:"燃油上行"},
+        {value:signals.geoRisk,text:"风险溢价抬升"},
+        {value:signals.demandDown,text:"运需走弱"}
+      ],
+      chem:[
+        {value:signals.priceUp,text:"原料抬升"},
+        {value:signals.demandDown,text:"终端需求走弱"},
+        {value:signals.inventoryBuild,text:"库存累积"},
+        {value:signals.usdUp,text:"美元偏强"}
+      ],
+      ref:[
+        {value:signals.demandDown,text:"成品油需求走弱"},
+        {value:signals.priceUp,text:"原油价格走高"},
+        {value:signals.inventoryBuild,text:"库存重估"},
+        {value:signals.shippingUp,text:"物流摩擦加大"}
+      ],
+      log:[
+        {value:signals.priceUp,text:"油价抬升"},
+        {value:signals.shippingUp,text:"运力紧张"},
+        {value:signals.demandDown,text:"货运需求偏弱"},
+        {value:signals.usdUp,text:"资金成本上升"}
+      ],
+      steel:[
+        {value:signals.demandDown,text:"需求放缓"},
+        {value:signals.priceUp,text:"能源成本上行"},
+        {value:signals.usdUp,text:"美元走强"},
+        {value:signals.geoRisk,text:"宏观风险升温"}
+      ]
+    };
+    const ranked=(drivers[indKey]||[]).sort((a,b)=>b.value-a.value);
+    return ranked[0]&&ranked[0].value>.16?ranked[0].text:"当前情景";
+  }
+  function composeImpactNote(ind,metrics,signals){
+    const dominantMetric=metrics.cost>=metrics.margin&&metrics.cost>=metrics.finance
       ? "cost"
       : (metrics.margin>=metrics.finance ? "margin" : "finance");
-    if(ctx.uncert>.62||dominant==="finance") return ind.notes.stress;
-    if(ctx.ret>=0) return dominant==="margin" ? ind.notes.stress : ind.notes.up;
-    return ind.notes.down;
+    const driverText=pickImpactDriver(ind.key,signals);
+    const baseNote=signals.priceUp>=signals.priceDown ? ind.notes.up : ind.notes.down;
+    if(signals.uncertainty>.62||dominantMetric==="finance") return `${driverText}正在主导本轮冲击；${ind.notes.stress}`;
+    if(dominantMetric==="margin") return `${driverText}对盈利端影响更直接；${baseNote}`;
+    return `${driverText}对成本端传导更快；${baseNote}`;
   }
   function updateIndustry(series){
     ensureImpactShell();
     const band=series.bands[series.bands.length-1]||{y:series.spot,sigma:1};
     const ret=(band.y-series.spot)/series.spot;
-    const vol=series.volBoost;
-    const upBias=clamp(ret/.06,0,1);
-    const downBias=clamp(-ret/.06,0,1);
-    const uncert=clamp((vol-1.0)/1.15,0,1);
-    const usdStress=clamp(Math.max(0,state.factors.usd)/10,0,1);
-    const shipStress=clamp(Math.max(0,state.factors.shipping)/10,0,1);
-    const demandWeak=clamp(Math.max(0,-state.factors.demand)/10,0,1);
-    const inventoryBuild=clamp(Math.max(0,state.factors.inventory)/10,0,1);
-    const scores=[];
-    industries.forEach(ind=>{
-      let cost=0,margin=0,finance=0;
-      if(ind.key==="air"){
-        cost=clamp(.16+upBias*.66+uncert*.12+usdStress*.10,0,1);
-        margin=clamp(.14+upBias*.52+demandWeak*.14+uncert*.12,0,1);
-        finance=clamp(.10+usdStress*.24+uncert*.18+upBias*.08,0,1);
-      }else if(ind.key==="ship"){
-        cost=clamp(.15+upBias*.38+shipStress*.28+uncert*.11,0,1);
-        margin=clamp(.13+upBias*.26+shipStress*.18+demandWeak*.10+uncert*.12,0,1);
-        finance=clamp(.10+uncert*.22+shipStress*.14+usdStress*.10,0,1);
-      }else if(ind.key==="chem"){
-        cost=clamp(.16+upBias*.48+inventoryBuild*.08+uncert*.12,0,1);
-        margin=clamp(.15+upBias*.32+demandWeak*.14+uncert*.14,0,1);
-        finance=clamp(.11+usdStress*.16+uncert*.20+inventoryBuild*.08,0,1);
-      }else if(ind.key==="ref"){
-        cost=clamp(.14+upBias*.30+uncert*.10+inventoryBuild*.10,0,1);
-        margin=clamp(.16+upBias*.24+demandWeak*.12+uncert*.18+shipStress*.06,0,1);
-        finance=clamp(.10+usdStress*.12+uncert*.18+inventoryBuild*.08,0,1);
-      }else if(ind.key==="log"){
-        cost=clamp(.17+upBias*.54+shipStress*.16+uncert*.11,0,1);
-        margin=clamp(.15+upBias*.36+demandWeak*.12+uncert*.14,0,1);
-        finance=clamp(.10+usdStress*.16+uncert*.20+upBias*.06,0,1);
-      }else{
-        cost=clamp(.14+upBias*.34+usdStress*.08+uncert*.12,0,1);
-        margin=clamp(.15+upBias*.22+demandWeak*.18+uncert*.14+downBias*.08,0,1);
-        finance=clamp(.11+usdStress*.16+uncert*.18,0,1);
+    const signals=getScenarioSignals(ret,clamp((series.volBoost-1.0)/1.15,0,1));
+    const profiles={
+      air:{
+        cost:{priceUp:.40,usdUp:.18,shippingUp:.06,uncertainty:.10,geoRisk:.06},
+        margin:{priceUp:.22,demandDown:.24,usdUp:.08,uncertainty:.10},
+        finance:{usdUp:.20,uncertainty:.18,geoRisk:.10}
+      },
+      ship:{
+        cost:{shippingUp:.34,priceUp:.18,usdUp:.06,uncertainty:.08},
+        margin:{shippingUp:.12,demandDown:.18,priceDown:.08,uncertainty:.10},
+        finance:{uncertainty:.18,geoRisk:.12,usdUp:.10}
+      },
+      chem:{
+        cost:{priceUp:.34,usdUp:.10,inventoryBuild:.08,uncertainty:.10},
+        margin:{priceUp:.18,demandDown:.22,inventoryBuild:.12,uncertainty:.12},
+        finance:{usdUp:.12,uncertainty:.18,inventoryBuild:.08}
+      },
+      ref:{
+        cost:{priceUp:.20,shippingUp:.08,inventoryBuild:.08,uncertainty:.08},
+        margin:{demandDown:.26,priceUp:.10,inventoryBuild:.10,uncertainty:.14},
+        finance:{usdUp:.10,uncertainty:.18,geoRisk:.08}
+      },
+      log:{
+        cost:{priceUp:.36,shippingUp:.16,usdUp:.08,uncertainty:.08},
+        margin:{priceUp:.18,demandDown:.22,shippingUp:.08,uncertainty:.12},
+        finance:{usdUp:.12,uncertainty:.20,geoRisk:.06}
+      },
+      steel:{
+        cost:{priceUp:.20,usdUp:.12,uncertainty:.10,inventoryBuild:.06},
+        margin:{demandDown:.28,priceUp:.10,usdUp:.06,uncertainty:.14},
+        finance:{usdUp:.14,uncertainty:.18,geoRisk:.08}
       }
+    };
+    industries.forEach(ind=>{
+      const profile=profiles[ind.key];
+      const cost=clamp(.10+computeMetricPressure(profile.cost,signals),0,1);
+      const margin=clamp(.10+computeMetricPressure(profile.margin,signals),0,1);
+      const finance=clamp(.08+computeMetricPressure(profile.finance,signals),0,1);
       const overall=cost*.44+margin*.36+finance*.20;
       const stateTag=impactState(overall);
       setImpactBar(`imp-c-${ind.key}`,cost);
@@ -643,14 +707,10 @@ function initForecast(){
         tag.className=`fc-impact-status ${stateTag.cls}`;
       }
       const note=$(`imp-note-${ind.key}`);
-      if(note) note.textContent=composeImpactNote(ind,{cost,margin,finance},{ret,uncert});
-      scores.push({name:ind.name,score:overall});
+      if(note) note.textContent=composeImpactNote(ind,{cost,margin,finance},signals);
     });
-    scores.sort((a,b)=>b.score-a.score);
-    const top3=scores.slice(0,3).map(x=>x.name).join("、");
-    const biasText=ret>=.015?"价格上行":ret<=-.015?"价格偏弱":"价格震荡";
-    const uncertText=uncert>=.7?"不确定性偏高":uncert>=.35?"不确定性中等":"不确定性偏低";
-    $("fc-impact-summary").textContent=`T+${state.horizon} 预测给出${biasText}倾向，且${uncertText}。压力更突出的行业：${top3}。`;
+    const summary=$("fc-impact-summary");
+    if(summary) summary.textContent="";
   }
   const consensusData=[
     {name:"EIA",annual:86.2,bias:"mid",logic:"供需再平衡；库存回落但产量弹性仍在"},

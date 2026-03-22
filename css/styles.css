@@ -1761,6 +1761,17 @@
       font-family: var(--font-mono);
     }
     .fc-stat .v.gold { color: var(--fc-gold); }
+    #fc-stat-80 {
+      font-size: 14px;
+      white-space: nowrap;
+      line-height: 1.2;
+      letter-spacing: 0;
+    }
+    @media (max-width: 640px) {
+      #fc-stat-80 {
+        font-size: 12px;
+      }
+    }
 
     /* ── Hints ── */
     .fc-hints {
