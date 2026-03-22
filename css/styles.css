@@ -1543,7 +1543,7 @@
       background:
         linear-gradient(90deg, rgba(14,17,23,.96) 0%, rgba(14,17,23,.84) 42%, rgba(14,17,23,.44) 100%),
         linear-gradient(180deg, rgba(214,179,106,.06) 0%, transparent 100%),
-        url("../assets/forecast_bg.png") center right / cover no-repeat;
+        url("../assets/forecast_bg1.png") center right / cover no-repeat;
     }
     .fc-hero-inner {
       display: flex;
@@ -1882,7 +1882,7 @@
       box-shadow: inset 0 1px 0 rgba(255,255,255,.03);
     }
     .fc-impact-card[data-level="low"] {
-      border-color: rgba(120, 210, 255, .16);
+      border-color: rgba(57, 217, 138, .22);
     }
     .fc-impact-card[data-level="mid"] {
       border-color: rgba(214, 179, 106, .20);
@@ -1919,9 +1919,9 @@
       white-space: nowrap;
     }
     .fc-impact-status.low {
-      border-color: rgba(120,210,255,.24);
-      background: rgba(120,210,255,.05);
-      color: #9fd8ff;
+      border-color: rgba(57,217,138,.28);
+      background: rgba(57,217,138,.08);
+      color: #6ee7a8;
     }
     .fc-impact-status.mid {
       border-color: rgba(214,179,106,.28);
@@ -1929,9 +1929,9 @@
       color: #e2c27c;
     }
     .fc-impact-status.high {
-      border-color: rgba(255,108,122,.30);
-      background: rgba(255,108,122,.08);
-      color: #ff8e99;
+      border-color: rgba(255,92,124,.34);
+      background: rgba(255,92,124,.10);
+      color: #ff7f94;
     }
     .fc-impact-metrics {
       display: grid;
