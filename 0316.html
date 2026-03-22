@@ -316,8 +316,9 @@
         .data-item {
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            padding: 10px 20px 10px 80px;
+            justify-content: flex-start;
+            gap: 12px;
+            padding: 10px 20px 10px 60px;
             cursor: pointer;
             font-size: 13px;
             color: var(--text-muted);
@@ -335,6 +336,45 @@
             color: var(--primary-light);
             background: rgba(212, 175, 55, 0.12);
             border-left-color: var(--primary-light);
+        }
+
+        .data-item.selected:not(.active) {
+            color: var(--text);
+            background: rgba(212, 175, 55, 0.06);
+        }
+
+        .data-item-main {
+            min-width: 0;
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .data-item-add {
+            width: 22px;
+            height: 22px;
+            flex: 0 0 22px;
+            border: 1px solid var(--border-light);
+            border-radius: 999px;
+            background: transparent;
+            color: var(--primary-light);
+            font-size: 15px;
+            line-height: 1;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s;
+        }
+
+        .data-item:hover .data-item-add,
+        .data-item.active .data-item-add,
+        .data-item.selected .data-item-add {
+            border-color: var(--primary-light);
+            background: rgba(212, 175, 55, 0.14);
+            color: #fff;
         }
 
         .data-item-name {
@@ -498,9 +538,84 @@
         }
 
         .content-body {
-            flex: 1;
+            flex: 0 1 auto;
             overflow: auto;
             padding: 24px;
+        }
+
+        .multi-content {
+            min-width: 100%;
+            width: max-content;
+            display: flex;
+            align-items: stretch;
+            gap: 20px;
+            padding-bottom: 4px;
+        }
+
+        .data-panel {
+            width: 460px;
+            flex: 0 0 460px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            padding: 18px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            box-shadow: 0 10px 28px rgba(0, 0, 0, 0.18);
+            transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
+        }
+
+        .data-panel.active {
+            border-color: rgba(212, 175, 55, 0.65);
+            box-shadow: 0 14px 32px rgba(212, 175, 55, 0.16);
+        }
+
+        .data-panel-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .data-panel-title-wrap {
+            min-width: 0;
+            flex: 1;
+        }
+
+        .data-panel-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text);
+            line-height: 1.4;
+        }
+
+        .data-panel-badges {
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .panel-remove-btn {
+            width: 28px;
+            height: 28px;
+            flex: 0 0 28px;
+            border: 1px solid var(--border-light);
+            border-radius: 999px;
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 18px;
+            line-height: 1;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .panel-remove-btn:hover {
+            border-color: rgba(248, 113, 113, 0.6);
+            background: rgba(248, 113, 113, 0.12);
+            color: var(--negative);
         }
 
         .data-meta {
@@ -531,15 +646,28 @@
         }
 
         .table-container {
+            display: inline-block;
+            max-width: 100%;
             background: var(--bg-card);
             border-radius: var(--radius-lg);
             border: 1px solid var(--border);
-            overflow: hidden;
+            overflow: auto;
+        }
+
+        .panel-table-container {
+            display: block;
+            width: 100%;
         }
 
         .data-table {
-            width: 100%;
+            width: auto;
+            min-width: 420px;
             border-collapse: collapse;
+        }
+
+        .data-panel .data-table {
+            width: 100%;
+            min-width: 100%;
         }
 
         .data-table th {
@@ -591,6 +719,15 @@
             height: 500px;
         }
 
+        .data-panel-chart {
+            height: 360px;
+        }
+
+        .panel-chart-canvas {
+            width: 100%;
+            height: 100%;
+        }
+
         #mainChart {
             width: 100%;
             height: 100%;
@@ -601,7 +738,7 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            height: 400px;
+            height: 260px;
             color: var(--text-secondary);
         }
 
@@ -662,6 +799,13 @@
             }
             .menu-toggle {
                 display: flex;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .data-panel {
+                width: min(420px, calc(100vw - 96px));
+                flex-basis: min(420px, calc(100vw - 96px));
             }
         }
     </style>
@@ -1118,7 +1262,9 @@
     <script>
         let currentData = null;
         let currentView = 'table';
-        let chartInstance = null;
+        let selectedDataList = [];
+        let chartInstances = new Map();
+        let panelSeed = 0;
 
         function toggleCategory(header) {
             const item = header.parentElement;
@@ -1129,18 +1275,206 @@
             header.classList.toggle('expanded');
         }
 
-        function selectData(element, name, category, freq, unit) {
-            document.querySelectorAll('.data-item').forEach(item => item.classList.remove('active'));
-            element.classList.add('active');
+        function getDataKey(name, category, unit) {
+            return [name, category, unit].join('||');
+        }
 
-            currentData = { name, category, freq, unit };
-            document.getElementById('dataTitle').textContent = name;
-            document.getElementById('dataUnit').textContent = unit;
-            document.getElementById('dataFreq').textContent = '频率: ' + (freq === '日' ? '日度' : freq === '周' ? '周度' : freq === '月' ? '月度' : '年度');
-            document.getElementById('dataSource').textContent = '来源: ' + getSource(name);
+        function getFreqLabel(freq) {
+            return freq === '日' ? '日度' : freq === '周' ? '周度' : freq === '月' ? '月度' : '年度';
+        }
+
+        function escapeHtml(value) {
+            return String(value).replace(/[&<>"']/g, function(char) {
+                const map = {
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#39;'
+                };
+                return map[char];
+            });
+        }
+
+        function initializeDataItems() {
+            const pattern = /selectData\(this,\s*'([^']*)',\s*'([^']*)',\s*'([^']*)',\s*'([^']*)'\)/;
+
+            document.querySelectorAll('.data-item').forEach(item => {
+                const onclickValue = item.getAttribute('onclick') || '';
+                const match = onclickValue.match(pattern);
+                if (!match) {
+                    return;
+                }
+
+                const [, name, category, freq, unit] = match;
+                item.dataset.name = name;
+                item.dataset.category = category;
+                item.dataset.freq = freq;
+                item.dataset.unit = unit;
+                item.dataset.key = getDataKey(name, category, unit);
+                item.removeAttribute('onclick');
+
+                if (!item.querySelector('.data-item-add')) {
+                    const nameEl = item.querySelector('.data-item-name');
+                    const freqEl = item.querySelector('.data-item-freq');
+                    const content = document.createElement('div');
+                    const addBtn = document.createElement('button');
+
+                    content.className = 'data-item-main';
+                    if (nameEl) {
+                        content.appendChild(nameEl);
+                    }
+                    if (freqEl) {
+                        content.appendChild(freqEl);
+                    }
+
+                    addBtn.type = 'button';
+                    addBtn.className = 'data-item-add';
+                    addBtn.textContent = '+';
+                    addBtn.setAttribute('aria-label', `添加 ${name}`);
+                    addBtn.addEventListener('click', function(event) {
+                        event.stopPropagation();
+                        addDataFromItem(item);
+                    });
+
+                    item.innerHTML = '';
+                    item.appendChild(addBtn);
+                    item.appendChild(content);
+                }
+
+                item.addEventListener('click', function() {
+                    addDataFromItem(item);
+                });
+            });
+        }
+
+        function getDataMetaFromItem(item) {
+            return {
+                key: item.dataset.key,
+                name: item.dataset.name,
+                category: item.dataset.category,
+                freq: item.dataset.freq,
+                unit: item.dataset.unit
+            };
+        }
+
+        function addDataFromItem(item) {
+            if (!item) {
+                return;
+            }
+            upsertSelectedData(getDataMetaFromItem(item), true);
+        }
+
+        function updateHeader(data) {
+            if (!data) {
+                document.getElementById('dataTitle').textContent = '请选择数据指标';
+                document.getElementById('dataUnit').textContent = '-';
+                document.getElementById('dataFreq').textContent = '频率: -';
+                document.getElementById('dataSource').textContent = '来源: -';
+                document.getElementById('updateTime').textContent = '-';
+                document.getElementById('freqSelect').value = '日';
+                return;
+            }
+
+            document.getElementById('dataTitle').textContent = data.name;
+            document.getElementById('dataUnit').textContent = data.unit;
+            document.getElementById('dataFreq').textContent = '频率: ' + getFreqLabel(data.freq);
+            document.getElementById('dataSource').textContent = '来源: ' + getSource(data.name);
             document.getElementById('updateTime').textContent = getUpdateTime();
+            document.getElementById('freqSelect').value = data.freq;
+        }
 
-            renderData(name, freq, unit);
+        function updateSidebarSelectionState() {
+            const selectedKeys = new Set(selectedDataList.map(item => item.key));
+
+            document.querySelectorAll('.data-item').forEach(item => {
+                item.classList.toggle('selected', selectedKeys.has(item.dataset.key));
+                item.classList.toggle('active', !!currentData && currentData.key === item.dataset.key);
+            });
+        }
+
+        function upsertSelectedData(meta, scrollToPanel) {
+            let data = selectedDataList.find(item => item.key === meta.key);
+
+            if (!data) {
+                data = {
+                    ...meta,
+                    panelId: `panel-${++panelSeed}`,
+                    renderedData: [],
+                    renderedFreq: null
+                };
+                selectedDataList.push(data);
+            }
+
+            currentData = data;
+            updateHeader(currentData);
+            updateSidebarSelectionState();
+            renderSelectedData();
+
+            if (scrollToPanel) {
+                requestAnimationFrame(function() {
+                    const panel = document.querySelector(`.data-panel[data-panel-id="${data.panelId}"]`);
+                    if (panel) {
+                        panel.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'end' });
+                    }
+                });
+            }
+        }
+
+        function selectData(element, name, category, freq, unit) {
+            const item = element && element.classList && element.classList.contains('data-item') ? element : null;
+
+            if (item && !item.dataset.key) {
+                item.dataset.name = name;
+                item.dataset.category = category;
+                item.dataset.freq = freq;
+                item.dataset.unit = unit;
+                item.dataset.key = getDataKey(name, category, unit);
+            }
+
+            upsertSelectedData(
+                item ? getDataMetaFromItem(item) : { key: getDataKey(name, category, unit), name, category, freq, unit },
+                true
+            );
+        }
+
+        function setActivePanel(index) {
+            const data = selectedDataList[index];
+            if (!data) {
+                return;
+            }
+
+            currentData = data;
+            updateHeader(currentData);
+            updateSidebarSelectionState();
+            renderSelectedData();
+        }
+
+        function removeSelectedData(index, event) {
+            if (event) {
+                event.stopPropagation();
+            }
+
+            const removed = selectedDataList[index];
+            if (!removed) {
+                return;
+            }
+
+            const chart = chartInstances.get(removed.panelId);
+            if (chart) {
+                chart.dispose();
+                chartInstances.delete(removed.panelId);
+            }
+
+            selectedDataList.splice(index, 1);
+
+            if (currentData && currentData.key === removed.key) {
+                currentData = selectedDataList[index] || selectedDataList[index - 1] || null;
+            }
+
+            updateHeader(currentData);
+            updateSidebarSelectionState();
+            renderSelectedData();
         }
 
         function getSource(name) {
@@ -1212,73 +1546,46 @@
                 else date.setFullYear(date.getFullYear() - i);
                 
                 const value = basePrice + (Math.random() - 0.5) * 20;
-                const change = (Math.random() - 0.5) * 5;
                 
                 data.push({
                     date: freq === '年' ? date.getFullYear() : date.toISOString().split('T')[0],
-                    value: value.toFixed(2),
-                    change: change.toFixed(2),
-                    changeRate: ((change / value) * 100).toFixed(2)
+                    value: value.toFixed(2)
                 });
             }
             return data;
         }
 
-        function renderData(name, freq, unit) {
-            const data = generateMockData(name, freq);
-            
-            if (currentView === 'table') {
-                renderTable(data, unit);
-            } else {
-                renderChart(data, name, unit);
-            }
-        }
-
-        function renderTable(data, unit) {
+        function buildTableMarkup(data, unit, extraClass) {
             let html = `
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>时间</th>
-                            <th>数值 (${unit})</th>
-                            <th>变化</th>
-                            <th>变化率</th>
-                        </tr>
-                    </thead>
-                    <tbody>
+                <div class="table-container ${extraClass || ''}">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>时间</th>
+                                <th>数值 (${unit})</th>
+                            </tr>
+                        </thead>
+                        <tbody>
             `;
-            
+
             data.forEach(row => {
-                const changeClass = parseFloat(row.change) >= 0 ? 'positive' : 'negative';
                 html += `
                     <tr>
                         <td>${row.date}</td>
                         <td>${row.value}</td>
-                        <td class="${changeClass}">${parseFloat(row.change) >= 0 ? '+' : ''}${row.change}</td>
-                        <td class="${changeClass}">${parseFloat(row.changeRate) >= 0 ? '+' : ''}${row.changeRate}%</td>
                     </tr>
                 `;
             });
-            
-            html += '</tbody></table>';
-            document.getElementById('contentBody').innerHTML = html;
+
+            html += '</tbody></table></div>';
+            return html;
         }
 
-        function renderChart(data, name, unit) {
+        function buildChartOption(data, name, unit) {
             const dates = data.map(d => d.date);
             const values = data.map(d => parseFloat(d.value));
-            
-            let chartHtml = `<div class="chart-container"><div id="mainChart"></div></div>`;
-            document.getElementById('contentBody').innerHTML = chartHtml;
-            
-            const chartDom = document.getElementById('mainChart');
-            if (chartInstance) {
-                chartInstance.dispose();
-            }
-            
-            chartInstance = echarts.init(chartDom);
-            
-            const option = {
+
+            return {
                 backgroundColor: 'transparent',
                 tooltip: {
                     trigger: 'axis',
@@ -1326,8 +1633,98 @@
                     itemStyle: { color: '#D4AF37' }
                 }]
             };
-            
-            chartInstance.setOption(option);
+        }
+
+        function disposeCharts() {
+            chartInstances.forEach(chart => chart.dispose());
+            chartInstances.clear();
+        }
+
+        function renderTable(data, unit) {
+            document.getElementById('contentBody').innerHTML = buildTableMarkup(data, unit);
+        }
+
+        function renderChart(data, name, unit) {
+            const chartHtml = `<div class="chart-container"><div id="mainChart" class="panel-chart-canvas"></div></div>`;
+            document.getElementById('contentBody').innerHTML = chartHtml;
+
+            disposeCharts();
+
+            const chartDom = document.getElementById('mainChart');
+            if (!chartDom) {
+                return;
+            }
+
+            const chart = echarts.init(chartDom);
+            chart.setOption(buildChartOption(data, name, unit));
+            chartInstances.set('mainChart', chart);
+        }
+
+        function buildPanelMarkup(item, index) {
+            const tableMarkup = buildTableMarkup(item.renderedData, item.unit, 'panel-table-container');
+
+            return `
+                <section class="data-panel ${currentData && currentData.key === item.key ? 'active' : ''}" data-panel-id="${item.panelId}" onclick="setActivePanel(${index})">
+                    <div class="data-panel-header">
+                        <div class="data-panel-title-wrap">
+                            <div class="data-panel-title">${escapeHtml(item.name)}</div>
+                            <div class="data-panel-badges">
+                                <span class="badge source">来源: ${escapeHtml(getSource(item.name))}</span>
+                                <span class="badge freq">频率: ${escapeHtml(getFreqLabel(item.freq))}</span>
+                            </div>
+                        </div>
+                        <button class="panel-remove-btn" type="button" onclick="removeSelectedData(${index}, event)">×</button>
+                    </div>
+                    ${currentView === 'table'
+                        ? tableMarkup
+                        : `<div class="chart-container data-panel-chart"><div id="${item.panelId}" class="panel-chart-canvas"></div></div>`}
+                </section>
+            `;
+        }
+
+        function renderSelectedData() {
+            const contentBody = document.getElementById('contentBody');
+
+            disposeCharts();
+
+            if (!selectedDataList.length) {
+                contentBody.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-text">请在左侧选择数据指标开始查询</div>
+                    </div>
+                `;
+                return;
+            }
+
+            selectedDataList.forEach(item => {
+                if (!item.renderedData.length || item.renderedFreq !== item.freq) {
+                    item.renderedData = generateMockData(item.name, item.freq);
+                    item.renderedFreq = item.freq;
+                }
+            });
+
+            contentBody.innerHTML = `
+                <div class="multi-content">
+                    ${selectedDataList.map((item, index) => buildPanelMarkup(item, index)).join('')}
+                </div>
+            `;
+
+            if (currentView === 'chart') {
+                selectedDataList.forEach(item => {
+                    const chartDom = document.getElementById(item.panelId);
+                    if (!chartDom) {
+                        return;
+                    }
+
+                    const chart = echarts.init(chartDom);
+                    chart.setOption(buildChartOption(item.renderedData, item.name, item.unit));
+                    chartInstances.set(item.panelId, chart);
+                });
+            }
+        }
+
+        function renderData() {
+            renderSelectedData();
         }
 
         function switchViewMode(view) {
@@ -1335,17 +1732,20 @@
             document.querySelectorAll('.view-btn').forEach(btn => {
                 btn.classList.toggle('active', btn.dataset.view === view);
             });
-            
-            if (currentData) {
-                renderData(currentData.name, currentData.freq, currentData.unit);
+
+            if (selectedDataList.length) {
+                renderSelectedData();
             }
         }
 
         function changeFrequency(freq) {
-            if (currentData) {
-                currentData.freq = freq;
-                renderData(currentData.name, freq, currentData.unit);
+            if (!currentData) {
+                return;
             }
+
+            currentData.freq = freq;
+            updateHeader(currentData);
+            renderSelectedData();
         }
 
         function handleSearch(keyword) {
@@ -1427,23 +1827,25 @@
                 alert('请先选择数据指标');
                 return;
             }
-            
-            const data = generateMockData(currentData.name, currentData.freq);
+
+            const data = currentData.renderedData && currentData.renderedData.length
+                ? currentData.renderedData
+                : generateMockData(currentData.name, currentData.freq);
             let content = '';
             let filename = currentData.name;
             let mimeType = 'text/plain';
             
             if (format === 'csv' || !format) {
-                content = '时间,数值,变化,变化率\n';
+                content = '时间,数值\n';
                 data.forEach(row => {
-                    content += `${row.date},${row.value},${row.change},${row.changeRate}%\n`;
+                    content += `${row.date},${row.value}\n`;
                 });
                 filename += '.csv';
                 mimeType = 'text/csv';
             } else {
-                content = `<html><body><table border="1"><tr><th>时间</th><th>数值</th><th>变化</th><th>变化率</th></tr>`;
+                content = `<html><body><table border="1"><tr><th>时间</th><th>数值</th></tr>`;
                 data.forEach(row => {
-                    content += `<tr><td>${row.date}</td><td>${row.value}</td><td>${row.change}</td><td>${row.changeRate}%</td></tr>`;
+                    content += `<tr><td>${row.date}</td><td>${row.value}</td></tr>`;
                 });
                 content += '<\/table><\/body><\/html>';
                 filename += '.xls';
@@ -1459,10 +1861,13 @@
             URL.revokeObjectURL(url);
         }
 
+        initializeDataItems();
+        updateHeader(null);
+
         window.addEventListener('resize', function() {
-            if (chartInstance) {
-                chartInstance.resize();
-            }
+            chartInstances.forEach(chart => {
+                chart.resize();
+            });
         });
     </script>
 </body>
