@@ -31,14 +31,32 @@
             --interactive-active: rgba(212, 175, 55, 0.12);
             --interactive-soft: rgba(212, 175, 55, 0.06);
             --table-hover: rgba(212, 175, 55, 0.05);
-            --button-surface: rgba(168, 133, 73, 0.18);
-            --button-surface-hover: rgba(168, 133, 73, 0.26);
-            --button-border: rgba(214, 178, 106, 0.36);
-            --button-text: #e6d2ab;
-            --button-shadow: 0 8px 18px rgba(0, 0, 0, 0.22);
-            --button-active-top: rgba(196, 158, 92, 0.9);
-            --button-active-bottom: rgba(143, 108, 51, 0.92);
-            --button-active-text: #181818;
+            --tree-level2-bg: rgba(255, 255, 255, 0.02);
+            --tree-level3-bg: rgba(255, 255, 255, 0.03);
+            --control-frame-bg: transparent;
+            --control-frame-border: rgba(255, 255, 255, 0.07);
+            --control-frame-shadow: none;
+            --control-text: rgba(255, 255, 255, 0.45);
+            --control-hover-text: var(--text);
+            --control-hover-border: rgba(214, 179, 106, 0.20);
+            --control-hover-bg: transparent;
+            --control-primary-bg: transparent;
+            --control-primary-text: var(--primary-light);
+            --control-primary-border: rgba(214, 179, 106, 0.22);
+            --control-primary-hover-bg: rgba(214, 179, 106, 0.07);
+            --control-primary-hover-text: var(--primary-light);
+            --control-primary-shadow: none;
+            --control-primary-hover-border: rgba(214, 179, 106, 0.28);
+            --theme-toggle-bg: transparent;
+            --theme-toggle-border: rgba(255, 255, 255, 0.08);
+            --theme-toggle-text: rgba(255, 255, 255, 0.55);
+            --theme-toggle-hover-bg: transparent;
+            --theme-toggle-hover-border: rgba(214, 179, 106, 0.28);
+            --theme-toggle-hover-text: var(--primary-light);
+            --theme-toggle-shadow: none;
+            --theme-toggle-hover-shadow: none;
+            --control-input-bg: rgba(255, 255, 255, 0.025);
+            --control-input-border: rgba(255, 255, 255, 0.07);
             --chart-tooltip-bg: #161616;
             --chart-tooltip-text: #f5f5f5;
             --chart-axis: #a0a0a0;
@@ -69,14 +87,32 @@
             --interactive-active: rgba(168, 133, 73, 0.1);
             --interactive-soft: rgba(15, 23, 42, 0.03);
             --table-hover: rgba(15, 23, 42, 0.025);
-            --button-surface: rgba(255, 255, 255, 0.96);
-            --button-surface-hover: rgba(247, 244, 238, 0.98);
-            --button-border: rgba(168, 133, 73, 0.24);
-            --button-text: #6f5224;
-            --button-shadow: 0 8px 18px rgba(15, 23, 42, 0.06);
-            --button-active-top: rgba(191, 154, 92, 0.9);
-            --button-active-bottom: rgba(162, 124, 64, 0.9);
-            --button-active-text: #1a1a1a;
+            --tree-level2-bg: #ffffff;
+            --tree-level3-bg: #fcfdff;
+            --control-frame-bg: #fffdf8;
+            --control-frame-border: rgba(17, 24, 39, 0.10);
+            --control-frame-shadow: 0 4px 14px rgba(214, 179, 106, 0.08);
+            --control-text: #4b5563;
+            --control-hover-text: #111827;
+            --control-hover-border: rgba(17, 24, 39, 0.18);
+            --control-hover-bg: #ffffff;
+            --control-primary-bg: rgba(255, 255, 255, 0.96);
+            --control-primary-text: #475569;
+            --control-primary-border: rgba(148, 163, 184, 0.20);
+            --control-primary-hover-bg: #ffffff;
+            --control-primary-hover-text: #111827;
+            --control-primary-shadow: 0 4px 14px rgba(214, 179, 106, 0.10);
+            --control-primary-hover-border: rgba(148, 163, 184, 0.32);
+            --theme-toggle-bg: #fffdf8;
+            --theme-toggle-border: rgba(214, 179, 106, 0.26);
+            --theme-toggle-text: #6b7280;
+            --theme-toggle-hover-bg: #ffffff;
+            --theme-toggle-hover-border: rgba(214, 179, 106, 0.40);
+            --theme-toggle-hover-text: #8a6728;
+            --theme-toggle-shadow: 0 4px 14px rgba(214, 179, 106, 0.10);
+            --theme-toggle-hover-shadow: 0 8px 18px rgba(214, 179, 106, 0.14);
+            --control-input-bg: rgba(255, 255, 255, 0.92);
+            --control-input-border: rgba(17, 24, 39, 0.10);
             --chart-tooltip-bg: #ffffff;
             --chart-tooltip-text: #1f2937;
             --chart-axis: #6b7280;
@@ -240,26 +276,42 @@
             align-items: center;
             gap: 8px;
             padding: 8px 16px;
-            background: var(--button-surface);
-            color: var(--button-text);
-            border: 1px solid var(--button-border);
-            border-radius: var(--radius);
-            font-size: 14px;
-            font-weight: 700;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s;
-            box-shadow: var(--button-shadow);
+            transition: border-color 0.18s ease, background 0.18s ease, color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
         }
 
-        .download-btn:hover,
-        .theme-toggle-btn:hover {
-            background: var(--button-surface-hover);
+        .download-btn {
+            background: var(--control-primary-bg);
+            color: var(--control-primary-text);
+            border: 1px solid var(--control-primary-border);
+            box-shadow: var(--control-primary-shadow);
+        }
+
+        .download-btn:hover {
+            background: var(--control-primary-hover-bg);
+            color: var(--control-primary-hover-text);
+            border-color: var(--control-primary-hover-border);
             transform: translateY(-1px);
         }
 
         .theme-toggle-btn {
             min-width: 96px;
             justify-content: center;
+            background: var(--theme-toggle-bg);
+            color: var(--theme-toggle-text);
+            border: 1px solid var(--theme-toggle-border);
+            box-shadow: var(--theme-toggle-shadow);
+        }
+
+        .theme-toggle-btn:hover {
+            background: var(--theme-toggle-hover-bg);
+            color: var(--theme-toggle-hover-text);
+            border-color: var(--theme-toggle-hover-border);
+            box-shadow: var(--theme-toggle-hover-shadow);
+            transform: translateY(-1px);
         }
 
         .main-container {
@@ -338,7 +390,7 @@
 
         .category-children {
             display: none;
-            background: rgba(0, 0, 0, 0.2);
+            background: var(--tree-level2-bg);
             padding: 8px 0;
         }
 
@@ -373,6 +425,7 @@
 
         .subcategory-children {
             display: none;
+            background: var(--tree-level3-bg);
             padding: 4px 0;
         }
 
@@ -541,17 +594,18 @@
 
         .view-toggle {
             display: flex;
-            background: var(--bg-card);
-            border-radius: var(--radius);
+            background: var(--control-frame-bg);
+            border-radius: 10px;
             padding: 4px;
-            border: 1px solid var(--border);
+            border: 1px solid var(--control-frame-border);
+            box-shadow: var(--control-frame-shadow);
         }
 
         .view-btn {
             padding: 6px 14px;
-            border: none;
+            border: 1px solid transparent;
             background: transparent;
-            color: var(--text-secondary);
+            color: var(--control-text);
             font-size: 13px;
             cursor: pointer;
             border-radius: 6px;
@@ -562,44 +616,53 @@
         }
 
         .view-btn.active {
-            background: linear-gradient(180deg, var(--button-active-top), var(--button-active-bottom));
-            color: var(--button-active-text);
-            font-weight: 700;
-            box-shadow: var(--button-shadow);
+            background: var(--control-primary-bg);
+            color: var(--control-primary-text);
+            border-color: var(--control-primary-border);
+            font-weight: 600;
+            box-shadow: var(--control-primary-shadow);
         }
 
         .view-btn:hover:not(.active) {
-            color: var(--text);
+            color: var(--control-hover-text);
+            background: var(--control-hover-bg);
+            border-color: var(--control-hover-border);
         }
 
         .freq-selector {
             display: flex;
             align-items: center;
             gap: 8px;
-            background: var(--bg-card);
+            background: var(--control-frame-bg);
             padding: 4px 8px;
-            border-radius: var(--radius);
-            border: 1px solid var(--border);
+            border-radius: 10px;
+            border: 1px solid var(--control-frame-border);
+            box-shadow: var(--control-frame-shadow);
         }
 
         .freq-selector label {
             font-size: 13px;
-            color: var(--text-secondary);
+            color: var(--control-text);
         }
 
         .freq-selector select {
-            background: var(--bg-panel);
-            border: 1px solid var(--border);
+            background: var(--control-input-bg);
+            border: 1px solid var(--control-input-border);
             color: var(--text);
             padding: 6px 10px;
             border-radius: 6px;
             font-size: 13px;
             cursor: pointer;
             outline: none;
+            transition: border-color 0.18s ease, background 0.18s ease, color 0.18s ease;
+        }
+
+        .freq-selector select:hover {
+            border-color: var(--control-hover-border);
         }
 
         .freq-selector select:focus {
-            border-color: var(--primary-light);
+            border-color: var(--theme-toggle-hover-border);
         }
 
         .action-btn {
