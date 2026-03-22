@@ -23,8 +23,64 @@
             --positive: #4ADE80;
             --negative: #F87171;
             --shadow: 0 8px 24px rgba(212, 175, 55, 0.1);
+            --header-start: #1a1a1a;
+            --header-end: #0a0a0a;
+            --header-border: rgba(212, 175, 55, 0.75);
+            --header-shadow: 0 2px 20px rgba(212, 175, 55, 0.15);
+            --interactive-hover: rgba(212, 175, 55, 0.08);
+            --interactive-active: rgba(212, 175, 55, 0.12);
+            --interactive-soft: rgba(212, 175, 55, 0.06);
+            --table-hover: rgba(212, 175, 55, 0.05);
+            --button-surface: rgba(168, 133, 73, 0.18);
+            --button-surface-hover: rgba(168, 133, 73, 0.26);
+            --button-border: rgba(214, 178, 106, 0.36);
+            --button-text: #e6d2ab;
+            --button-shadow: 0 8px 18px rgba(0, 0, 0, 0.22);
+            --button-active-top: rgba(196, 158, 92, 0.9);
+            --button-active-bottom: rgba(143, 108, 51, 0.92);
+            --button-active-text: #181818;
+            --chart-tooltip-bg: #161616;
+            --chart-tooltip-text: #f5f5f5;
+            --chart-axis: #a0a0a0;
+            --chart-grid: #3d3d3d;
             --radius: 8px;
             --radius-lg: 12px;
+        }
+
+        body.light-mode {
+            --primary: #b38a45;
+            --primary-light: #c89e57;
+            --primary-dark: #8e6932;
+            --accent: #b68c4d;
+            --bg-main: #f5f1e8;
+            --bg-panel: #fbf7ef;
+            --bg-card: #ffffff;
+            --border: #ddd1bf;
+            --border-light: #cbbca7;
+            --text: #1f2937;
+            --text-muted: #475569;
+            --text-secondary: #7c8798;
+            --shadow: 0 12px 28px rgba(126, 95, 45, 0.08);
+            --header-start: #fbf7ef;
+            --header-end: #f2eadc;
+            --header-border: rgba(179, 138, 69, 0.34);
+            --header-shadow: 0 10px 22px rgba(96, 72, 39, 0.06);
+            --interactive-hover: rgba(168, 133, 73, 0.1);
+            --interactive-active: rgba(168, 133, 73, 0.14);
+            --interactive-soft: rgba(168, 133, 73, 0.08);
+            --table-hover: rgba(168, 133, 73, 0.06);
+            --button-surface: rgba(168, 133, 73, 0.12);
+            --button-surface-hover: rgba(168, 133, 73, 0.18);
+            --button-border: rgba(168, 133, 73, 0.28);
+            --button-text: #6f5224;
+            --button-shadow: 0 8px 18px rgba(96, 72, 39, 0.08);
+            --button-active-top: rgba(199, 163, 98, 0.92);
+            --button-active-bottom: rgba(172, 131, 65, 0.92);
+            --button-active-text: #1a1a1a;
+            --chart-tooltip-bg: #fffaf2;
+            --chart-tooltip-text: #1f2937;
+            --chart-axis: #6b7280;
+            --chart-grid: #d8c9b4;
         }
 
         * {
@@ -47,8 +103,8 @@
         }
 
         .header {
-            background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
-            border-bottom: 1px solid var(--primary);
+            background: linear-gradient(135deg, var(--header-start) 0%, var(--header-end) 100%);
+            border-bottom: 1px solid var(--header-border);
             padding: 0 24px;
             height: 64px;
             display: flex;
@@ -57,7 +113,7 @@
             position: sticky;
             top: 0;
             z-index: 100;
-            box-shadow: 0 2px 20px rgba(212, 175, 55, 0.15);
+            box-shadow: var(--header-shadow);
         }
 
         .header-left {
@@ -154,7 +210,7 @@
         }
 
         .search-result-item:hover {
-            background: rgba(212, 175, 55, 0.1);
+            background: var(--interactive-hover);
         }
 
         .search-result-name {
@@ -178,25 +234,32 @@
             gap: 16px;
         }
 
-        .download-btn {
+        .download-btn,
+        .theme-toggle-btn {
             display: flex;
             align-items: center;
             gap: 8px;
             padding: 8px 16px;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            color: #fff;
-            border: 1px solid var(--primary-light);
+            background: var(--button-surface);
+            color: var(--button-text);
+            border: 1px solid var(--button-border);
             border-radius: var(--radius);
             font-size: 14px;
+            font-weight: 700;
             cursor: pointer;
             transition: all 0.2s;
-            box-shadow: 0 2px 8px rgba(212, 175, 55, 0.3);
+            box-shadow: var(--button-shadow);
         }
 
-        .download-btn:hover {
-            background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary) 100%);
+        .download-btn:hover,
+        .theme-toggle-btn:hover {
+            background: var(--button-surface-hover);
             transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(212, 175, 55, 0.5);
+        }
+
+        .theme-toggle-btn {
+            min-width: 96px;
+            justify-content: center;
         }
 
         .main-container {
@@ -248,7 +311,7 @@
         }
 
         .category-header:hover {
-            background: rgba(212, 175, 55, 0.1);
+            background: var(--interactive-hover);
         }
 
         .category-header-left {
@@ -295,7 +358,7 @@
 
         .subcategory-header:hover {
             color: var(--text);
-            background: rgba(212, 175, 55, 0.08);
+            background: var(--interactive-hover);
         }
 
         .subcategory-header .arrow {
@@ -332,19 +395,19 @@
 
         .data-item:hover {
             color: var(--text);
-            background: rgba(212, 175, 55, 0.08);
+            background: var(--interactive-hover);
             border-left-color: var(--primary-light);
         }
 
         .data-item.active {
             color: var(--primary-light);
-            background: rgba(212, 175, 55, 0.12);
+            background: var(--interactive-active);
             border-left-color: var(--primary-light);
         }
 
         .data-item.selected:not(.active) {
             color: var(--text);
-            background: rgba(212, 175, 55, 0.06);
+            background: var(--interactive-soft);
         }
 
         .data-item-main {
@@ -356,14 +419,29 @@
             gap: 8px;
         }
 
+        .data-item-meta {
+            flex: 0 0 auto;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 0;
+        }
+
+        .data-item-source {
+            font-size: 11px;
+            color: var(--text-secondary);
+            opacity: 0.82;
+            white-space: nowrap;
+        }
+
         .data-item-add {
             width: 22px;
             height: 22px;
             flex: 0 0 22px;
-            border: 1px solid rgba(255, 255, 255, 0.22);
+            border: 1px solid var(--border-light);
             border-radius: 999px;
-            background: rgba(255, 255, 255, 0.03);
-            color: rgba(245, 245, 245, 0.82);
+            background: color-mix(in srgb, var(--bg-card) 88%, transparent);
+            color: var(--text-secondary);
             font-size: 15px;
             line-height: 1;
             cursor: pointer;
@@ -383,9 +461,9 @@
         .data-item-add:hover,
         .data-item-add:focus-visible {
             opacity: 1;
-            border-color: rgba(255, 255, 255, 0.46);
-            background: rgba(255, 255, 255, 0.1);
-            color: #ffffff;
+            border-color: var(--primary-light);
+            background: var(--interactive-hover);
+            color: var(--text);
             outline: none;
         }
 
@@ -457,6 +535,8 @@
             display: flex;
             align-items: center;
             gap: 12px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
         }
 
         .view-toggle {
@@ -482,9 +562,10 @@
         }
 
         .view-btn.active {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            color: #fff;
-            box-shadow: 0 2px 8px rgba(212, 175, 55, 0.3);
+            background: linear-gradient(180deg, var(--button-active-top), var(--button-active-bottom));
+            color: var(--button-active-text);
+            font-weight: 700;
+            box-shadow: var(--button-shadow);
         }
 
         .view-btn:hover:not(.active) {
@@ -589,7 +670,7 @@
             gap: 8px;
             padding: 8px 12px;
             border-radius: 999px;
-            background: rgba(255, 255, 255, 0.04);
+            background: color-mix(in srgb, var(--bg-card) 92%, transparent);
             border: 1px solid var(--border);
             color: var(--text-muted);
             font-size: 12px;
@@ -873,12 +954,12 @@
         }
 
         .data-table tr:hover td {
-            background: rgba(212, 175, 55, 0.05);
+            background: var(--table-hover);
         }
 
         .combined-data-table tr:hover .seq-col-cell,
         .combined-data-table tr:hover .time-col-cell {
-            background: rgba(212, 175, 55, 0.08);
+            background: var(--interactive-hover);
         }
 
         .data-table .positive {
@@ -1393,6 +1474,7 @@
                             <option value="年">年度</option>
                         </select>
                     </div>
+                    <button class="theme-toggle-btn" id="themeToggleBtn" type="button" onclick="toggleTheme()">白昼模式</button>
                 </div>
             </div>
 
@@ -1410,6 +1492,52 @@
         let selectedDataList = [];
         let chartInstances = new Map();
         let panelSeed = 0;
+        const THEME_STORAGE_KEY = 'crude-data-center-theme';
+
+        function getPreferredTheme() {
+            try {
+                return localStorage.getItem(THEME_STORAGE_KEY) || 'dark';
+            } catch (error) {
+                return 'dark';
+            }
+        }
+
+        function updateThemeToggleLabel() {
+            const button = document.getElementById('themeToggleBtn');
+            if (!button) {
+                return;
+            }
+            button.textContent = document.body.classList.contains('light-mode') ? '黑夜模式' : '白昼模式';
+        }
+
+        function applyTheme(theme, rerenderCharts) {
+            document.body.classList.toggle('light-mode', theme === 'light');
+            updateThemeToggleLabel();
+
+            try {
+                localStorage.setItem(THEME_STORAGE_KEY, theme);
+            } catch (error) {
+            }
+
+            if (rerenderCharts && selectedDataList.length && currentView === 'chart') {
+                renderSelectedData();
+            }
+        }
+
+        function toggleTheme() {
+            applyTheme(document.body.classList.contains('light-mode') ? 'dark' : 'light', true);
+        }
+
+        function getThemeChartColors() {
+            const styles = getComputedStyle(document.body);
+            return {
+                tooltipBg: styles.getPropertyValue('--chart-tooltip-bg').trim(),
+                tooltipText: styles.getPropertyValue('--chart-tooltip-text').trim(),
+                axis: styles.getPropertyValue('--chart-axis').trim(),
+                grid: styles.getPropertyValue('--chart-grid').trim(),
+                text: styles.getPropertyValue('--text').trim()
+            };
+        }
 
         function toggleCategory(header) {
             const item = header.parentElement;
@@ -1463,15 +1591,25 @@
                     const nameEl = item.querySelector('.data-item-name');
                     const freqEl = item.querySelector('.data-item-freq');
                     const content = document.createElement('div');
+                    const meta = document.createElement('div');
+                    const sourceEl = document.createElement('span');
                     const addBtn = document.createElement('button');
 
                     content.className = 'data-item-main';
+                    meta.className = 'data-item-meta';
+                    sourceEl.className = 'data-item-source';
+                    sourceEl.textContent = getSource(name);
+
                     if (nameEl) {
                         content.appendChild(nameEl);
                     }
-                    if (freqEl) {
-                        content.appendChild(freqEl);
+                    if (sourceEl) {
+                        meta.appendChild(sourceEl);
                     }
+                    if (freqEl) {
+                        meta.appendChild(freqEl);
+                    }
+                    content.appendChild(meta);
 
                     addBtn.type = 'button';
                     addBtn.className = 'data-item-add';
@@ -1847,14 +1985,15 @@
         function buildChartOption(data, name, unit) {
             const dates = data.map(d => d.date);
             const values = data.map(d => parseFloat(d.value));
+            const theme = getThemeChartColors();
 
             return {
                 backgroundColor: 'transparent',
                 tooltip: {
                     trigger: 'axis',
-                    backgroundColor: '#1a1a1a',
+                    backgroundColor: theme.tooltipBg,
                     borderColor: '#D4AF37',
-                    textStyle: { color: '#f5f5f5' }
+                    textStyle: { color: theme.tooltipText }
                 },
                 grid: {
                     left: '3%',
@@ -1866,16 +2005,16 @@
                 xAxis: {
                     type: 'category',
                     data: dates,
-                    axisLine: { lineStyle: { color: '#3d3d3d' } },
-                    axisLabel: { color: '#a0a0a0' }
+                    axisLine: { lineStyle: { color: theme.grid } },
+                    axisLabel: { color: theme.axis }
                 },
                 yAxis: {
                     type: 'value',
                     name: unit,
-                    nameTextStyle: { color: '#a0a0a0' },
-                    axisLine: { lineStyle: { color: '#3d3d3d' } },
-                    axisLabel: { color: '#a0a0a0' },
-                    splitLine: { lineStyle: { color: '#3d3d3d', type: 'dashed' } }
+                    nameTextStyle: { color: theme.axis },
+                    axisLine: { lineStyle: { color: theme.grid } },
+                    axisLabel: { color: theme.axis },
+                    splitLine: { lineStyle: { color: theme.grid, type: 'dashed' } }
                 },
                 series: [{
                     name: name,
@@ -1912,15 +2051,16 @@
 
         function buildCombinedChartOption(items) {
             const palette = ['#D4AF37', '#4ADE80', '#60A5FA', '#F59E0B', '#F87171', '#A78BFA', '#34D399', '#F472B6'];
+            const theme = getThemeChartColors();
 
             return {
                 backgroundColor: 'transparent',
                 color: palette,
                 tooltip: {
                     trigger: 'axis',
-                    backgroundColor: '#1a1a1a',
+                    backgroundColor: theme.tooltipBg,
                     borderColor: '#D4AF37',
-                    textStyle: { color: '#f5f5f5' },
+                    textStyle: { color: theme.tooltipText },
                     formatter: function(params) {
                         if (!params || !params.length) {
                             return '';
@@ -1938,7 +2078,7 @@
                 },
                 legend: {
                     top: 0,
-                    textStyle: { color: '#a0a0a0' },
+                    textStyle: { color: theme.axis },
                     itemWidth: 12,
                     itemHeight: 8
                 },
@@ -1951,17 +2091,17 @@
                 },
                 xAxis: {
                     type: 'time',
-                    axisLine: { lineStyle: { color: '#3d3d3d' } },
-                    axisLabel: { color: '#a0a0a0' },
+                    axisLine: { lineStyle: { color: theme.grid } },
+                    axisLabel: { color: theme.axis },
                     splitLine: { show: false }
                 },
                 yAxis: {
                     type: 'value',
                     name: items.length === 1 ? items[0].unit : '多指标',
-                    nameTextStyle: { color: '#a0a0a0' },
-                    axisLine: { lineStyle: { color: '#3d3d3d' } },
-                    axisLabel: { color: '#a0a0a0' },
-                    splitLine: { lineStyle: { color: '#3d3d3d', type: 'dashed' } }
+                    nameTextStyle: { color: theme.axis },
+                    axisLine: { lineStyle: { color: theme.grid } },
+                    axisLabel: { color: theme.axis },
+                    splitLine: { lineStyle: { color: theme.grid, type: 'dashed' } }
                 },
                 series: items.map(function(item, index) {
                     return {
@@ -2220,6 +2360,7 @@
             URL.revokeObjectURL(url);
         }
 
+        applyTheme(getPreferredTheme(), false);
         initializeDataItems();
         updateHeader(null);
 
