@@ -245,10 +245,18 @@ function initForecast(){
   function pathD(xs,ys){return xs.map((x,i)=>(i===0?"M":"L")+x.toFixed(2)+" "+ys[i].toFixed(2)).join(" ");}
 
   const state = {
-    asset:"brent", horizon:1, model:"stacking",
+    asset:"wti", horizon:1, model:"ap",
     histLen:360, viewCount:120, viewStart:0,
     factors:{opec:0,inventory:0,usd:0,geo:0,shipping:0,demand:0}
   };
+  const getForecastAssetLabel = () => state.asset==="brent" ? "Brent" : "WTI";
+  const getForecastModelLabel = () => (
+    state.model==="ap" ? "A+P（Aurora 与 Protots）" :
+    state.model==="stacking" ? "Stacking" :
+    state.model==="lstm" ? "LSTM" :
+    state.model==="prophet" ? "Prophet" :
+    state.model==="arima" ? "ARIMA" : String(state.model).toUpperCase()
+  );
 
   /* ── Data ── */
   function buildSeries(){
@@ -263,7 +271,7 @@ function initForecast(){
     }
     const dir=(state.factors.opec*.18*-1)+(state.factors.shipping*.12)+(state.factors.demand*.15)+(state.factors.inventory*.12*-1)+(state.factors.usd*.10*-1);
     const volBoost=1.0+Math.abs(state.factors.geo)*.06+Math.abs(state.factors.shipping)*.03+Math.abs(state.factors.usd)*.02;
-    const mGain=state.model==="stacking"?1:state.model==="lstm"?1.12:state.model==="prophet"?.86:.78;
+    const mGain=state.model==="ap"?1.06:state.model==="stacking"?1:state.model==="lstm"?1.12:state.model==="prophet"?.86:.78;
     const spot=hist[hist.length-1];
     const fut=[];
     for(let t=1;t<=nF;t++){
@@ -789,7 +797,7 @@ function initForecast(){
   function openPop(key,anchor){
     clearTimeout(popTimer);
     $("fc-pop-title").textContent=fNames[key]||key;
-    $("fc-pop-sub").textContent=`${state.asset==="brent"?"Brent":"WTI"} · T+${state.horizon} · ${state.model.toUpperCase()}`;
+    $("fc-pop-sub").textContent=`${getForecastAssetLabel()} · T+${state.horizon} · ${getForecastModelLabel()}`;
     $("fc-pop-explain").textContent=fExplains[key]||"该因子通过供需/风险溢价通道影响价格。";
     $("fc-pop-detail").href=`#factor=${encodeURIComponent(key)}`;
     $("fc-pop-morenews").href=`#news=${encodeURIComponent(key)}`;
@@ -809,14 +817,13 @@ function initForecast(){
 
   /* ── Factors panel ── */
   function drawFactors(series){
-    const asset=state.asset==="brent"?"Brent":"WTI";
-    $("fc-factor-meta").textContent=`${asset} · T+${state.horizon} · ${state.model.toUpperCase()}`;
+    $("fc-factor-meta").textContent=`${getForecastAssetLabel()} · T+${state.horizon} · ${getForecastModelLabel()}`;
     const contrib=getContrib();
     $("fc-kpi-count").textContent=String(contrib.length);
     const dom=contrib[0];
     $("fc-kpi-top1").textContent=`${dom.name} · ${pct(Math.abs(dom.val))}`;
     $("fc-kpi-dir").textContent=dom.val>=0?"偏多（上行）":"偏空（下行）";
-    const mBase=state.model==="stacking"?.62:state.model==="lstm"?.58:state.model==="prophet"?.49:.45;
+    const mBase=state.model==="ap"?.66:state.model==="stacking"?.62:state.model==="lstm"?.58:state.model==="prophet"?.49:.45;
     $("fc-kpi-expl").textContent=pct(clamp(mBase-clamp(Math.abs(state.factors.geo)/10,0,1)*.10+.06,.30,.75));
 
     // Factor board
@@ -889,7 +896,7 @@ function initForecast(){
       const drift=i*(state.asset==="brent"?.01:.008);
       const noise=seededNoise(i,state.asset==="brent"?31:37)*.55;
       const a=base+drift+cyc+noise;actual.push(a);
-      const mN=state.model==="stacking"?.35:state.model==="lstm"?.45:state.model==="prophet"?.60:.70;
+      const mN=state.model==="ap"?.32:state.model==="stacking"?.35:state.model==="lstm"?.45:state.model==="prophet"?.60:.70;
       const bias=(state.horizon/30)*.25*seededNoise(i,41);
       const fac=state.factors.demand*.02+state.factors.shipping*.015-state.factors.usd*.012;
       pred.push(a+seededNoise(i,47)*mN+bias+fac);
@@ -1046,9 +1053,9 @@ function initForecast(){
   $("fc-model").addEventListener("change",e=>{state.model=e.target.value;drawForecast();});
   const resetBtn=$("fc-btn-reset");
   if(resetBtn)resetBtn.addEventListener("click",()=>{
-    state.asset="brent";state.horizon=1;state.model="stacking";
+    state.asset="wti";state.horizon=1;state.model="ap";
     Object.keys(state.factors).forEach(k=>state.factors[k]=0);
-    $("fc-asset").value="brent";$("fc-horizon").value="1";$("fc-model").value="stacking";
+    $("fc-asset").value="wti";$("fc-horizon").value="1";$("fc-model").value="ap";
     sliderDefs.forEach(d=>{const r=$(`fc-rng-${d.key}`),v=$(`fc-sv-${d.key}`);if(r)r.value=0;if(v)v.textContent="0";});
     resetView(buildSeries().combined.length);pop.style.display="none";
     drawForecast();toast("已重置");

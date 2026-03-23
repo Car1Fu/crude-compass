@@ -3033,14 +3033,27 @@
 
 /* 10. K线控制区 select */
 #view-database .db-kctrl select {
-  background: rgba(214,179,106,.08) !important;
-  color: var(--db-accent2) !important;
-  border: 1px solid var(--db-stroke2) !important;
+  background: rgba(18,20,26,.96) !important;
+  color: #f6e3b2 !important;
+  border: 1px solid rgba(214,179,106,.34) !important;
   border-radius: 6px !important;
-  transition: border-color .18s ease !important;
+  transition: border-color .18s ease, background-color .18s ease, color .18s ease !important;
 }
 #view-database .db-kctrl select:hover {
-  border-color: var(--db-accent) !important;
+  border-color: #f0c66c !important;
+  background: rgba(34,28,18,.98) !important;
+  color: #fff2c8 !important;
+}
+#view-database .db-kctrl select:focus {
+  outline: none !important;
+  border-color: #f0c66c !important;
+  box-shadow: 0 0 0 3px rgba(214,179,106,.18) !important;
+  background: rgba(34,28,18,.98) !important;
+  color: #fff2c8 !important;
+}
+#view-database .db-kctrl select option {
+  background: #17181d !important;
+  color: #f6e3b2 !important;
 }
 
 /* 11. 供需区块 */
