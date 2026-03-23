@@ -1656,12 +1656,12 @@
       --fc-text: #2e271e;
       --fc-muted: rgba(46,39,30,.56);
       --fc-card-bg: rgba(255,252,247,.82);
-      --fc-photo-position: calc(50% + 96px) -96px;
-      --fc-photo-size: 120% auto;
+      --fc-photo-position: center -180px;
+      --fc-photo-size: 112% auto;
       background-color: #f5f0e7 !important;
       background-image:
         linear-gradient(180deg, rgba(245,240,231,.40) 0%, rgba(245,240,231,.30) 40%, rgba(242,236,227,.44) 100%),
-        url("../assets/forecast_bgw.png");
+        url("../assets/forecast_bgw1.png");
       background-position: center top, var(--fc-photo-position);
       background-size: cover, var(--fc-photo-size);
       background-repeat: no-repeat, no-repeat;
