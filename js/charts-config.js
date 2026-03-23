@@ -1060,11 +1060,48 @@ function initForecast(){
 
   // Alert panel
   const alertPanel=$("fc-alert-panel");
-  $("fc-btn-alert").addEventListener("click",e=>{e.stopPropagation();alertPanel.classList.toggle("show");});
-  $("fc-alert-close").addEventListener("click",()=>alertPanel.classList.remove("show"));
-  $("fc-alert-save").addEventListener("click",()=>{alertPanel.classList.remove("show");toast("预警设置已保存");});
-  $("fc-alert-reset").addEventListener("click",()=>{["al_price_on","al_boll_on","al_sr_on","al_risk_jump","al_vol_spike"].forEach(id=>{const el=$(id);if(el)el.checked=false;});["al_price_level","al_support","al_resist","al_vol_level"].forEach(id=>{const el=$(id);if(el)el.value="";});toast("已清空");});
-  document.addEventListener("mousedown",e=>{if(alertPanel.classList.contains("show")&&!alertPanel.contains(e.target)&&e.target!==$("fc-btn-alert"))alertPanel.classList.remove("show");});
+  const alertBtn=$("fc-btn-alert");
+  const alertCheckIds=["al_price_on","al_boll_on","al_outside_on","al_risk_jump","al_vol_spike","al_factor_jump"];
+  const alertInputIds=["al_price_level","al_vol_level","al_factor_level"];
+  const captureAlertState=()=>({
+    checks:Object.fromEntries(alertCheckIds.map(id=>[id, !!($(id)&&$(id).checked)])),
+    inputs:Object.fromEntries(alertInputIds.map(id=>[id, $(id)?$(id).value:""]))
+  });
+  const applyAlertState=state=>{
+    if(!state)return;
+    alertCheckIds.forEach(id=>{const el=$(id);if(el)el.checked=!!(state.checks&&state.checks[id]);});
+    alertInputIds.forEach(id=>{const el=$(id);if(el)el.value=state.inputs&&typeof state.inputs[id]!=="undefined"?state.inputs[id]:"";});
+  };
+  const blankAlertState=()=>({
+    checks:Object.fromEntries(alertCheckIds.map(id=>[id,false])),
+    inputs:Object.fromEntries(alertInputIds.map(id=>[id,""]))
+  });
+  let savedAlertState=captureAlertState();
+  const closeAlertPanel=(revert=true)=>{
+    if(revert) applyAlertState(savedAlertState);
+    alertPanel.classList.remove("show");
+  };
+  alertBtn.addEventListener("click",e=>{
+    e.stopPropagation();
+    if(alertPanel.classList.contains("show")) closeAlertPanel(true);
+    else{
+      applyAlertState(savedAlertState);
+      alertPanel.classList.add("show");
+    }
+  });
+  $("fc-alert-close").addEventListener("click",()=>closeAlertPanel(true));
+  $("fc-alert-save").addEventListener("click",()=>{
+    savedAlertState=captureAlertState();
+    alertPanel.classList.remove("show");
+    toast("预警设置已确认");
+  });
+  $("fc-alert-reset").addEventListener("click",()=>{
+    applyAlertState(blankAlertState());
+    toast("已清空当前设置");
+  });
+  document.addEventListener("mousedown",e=>{
+    if(alertPanel.classList.contains("show")&&!alertPanel.contains(e.target)&&e.target!==alertBtn) closeAlertPanel(true);
+  });
 
   /* ── Init render ── */
   syncForecastPanelLayout();
