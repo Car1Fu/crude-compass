@@ -2937,11 +2937,14 @@ window._loadDbDownload = function(){
   }
 
   // 首次切换到套保助手时初始化
+  function hgScheduleInit(){ setTimeout(hgInit,30); }
   const _orig=window.switchView;
   window.switchView=function(viewId){
     _orig(viewId);
-    if(viewId==='view-hedge') setTimeout(hgInit,30);
+    if(viewId==='view-hedge') hgScheduleInit();
   };
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',hgScheduleInit,{once:true});
+  else hgScheduleInit();
 })();
 </script>
 <script>
