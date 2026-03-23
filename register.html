@@ -28,6 +28,22 @@
 
     /* ── Background ── */
     .bg { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+    .bg-image {
+      position: absolute; inset: 0;
+      background-image: url('assets/register_bg.png');
+      background-size: cover;
+      background-position: center center;
+      background-repeat: no-repeat;
+      transform: scale(1.03);
+      opacity: .42;
+      filter: saturate(.94) contrast(1.03);
+    }
+    .bg-overlay {
+      position: absolute; inset: 0;
+      background:
+        linear-gradient(90deg, rgba(8,9,12,.58) 0%, rgba(8,9,12,.44) 34%, rgba(8,9,12,.36) 62%, rgba(8,9,12,.48) 100%),
+        linear-gradient(180deg, rgba(6,7,10,.38) 0%, rgba(6,7,10,.10) 24%, rgba(6,7,10,.30) 100%);
+    }
     .bg-grid {
       position: absolute; inset: 0;
       background-image:
@@ -35,6 +51,7 @@
         linear-gradient(90deg, rgba(214,179,106,.04) 1px, transparent 1px);
       background-size: 64px 64px;
       animation: gridBreath 10s ease-in-out infinite;
+      opacity: .58;
     }
     @keyframes gridBreath { 0%, 100% { opacity: .5; } 50% { opacity: 1; } }
     .bg-glow1 {
@@ -366,6 +383,8 @@
 
 <div class="topline"></div>
 <div class="bg">
+  <div class="bg-image"></div>
+  <div class="bg-overlay"></div>
   <div class="bg-grid"></div>
   <div class="bg-glow1"></div>
   <div class="bg-glow2"></div>
