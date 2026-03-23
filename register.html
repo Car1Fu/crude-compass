@@ -252,6 +252,10 @@
     .field { margin-bottom: 16px; }
     .field-label { display: flex; align-items: center; justify-content: space-between; margin-bottom: 7px; font-size: 12.5px; color: rgba(240,240,242,.65); letter-spacing: .3px; }
     .field-hint { font-size: 11px; color: rgba(214,179,106,.50); }
+    .field-hint.strong {
+      color: rgba(255,214,120,.92);
+      font-weight: 700;
+    }
 
     .input-wrap { position: relative; }
     .input-icon { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); color: rgba(214,179,106,.40); pointer-events: none; display: flex; align-items: center; }
@@ -289,6 +293,16 @@
     .pw-bar-track { height: 3px; border-radius: 999px; background: rgba(255,255,255,.06); overflow: hidden; margin-bottom: 5px; }
     .pw-bar-fill { height: 100%; border-radius: 999px; width: 0; transition: width .3s ease, background .3s ease; }
     .pw-label { font-size: 11px; color: var(--muted); }
+    .pw-rule-note {
+      margin-top: 8px;
+      padding: 9px 12px;
+      border-radius: 10px;
+      border: 1px solid rgba(214,179,106,.20);
+      background: rgba(214,179,106,.07);
+      color: rgba(255,233,184,.90);
+      font-size: 11px;
+      line-height: 1.6;
+    }
 
     /* Checkboxes */
     .check-field { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 14px; }
@@ -553,7 +567,7 @@
         </div>
 
         <div class="field" id="field-password">
-          <div class="field-label"><span>设置密码</span><span class="field-hint">至少 8 位，含字母和数字</span></div>
+          <div class="field-label"><span>设置密码</span><span class="field-hint strong">必须包含字母和数字</span></div>
           <div class="input-wrap">
             <span class="input-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
@@ -567,7 +581,8 @@
             <div class="pw-bar-track"><div class="pw-bar-fill" id="pwBar"></div></div>
             <div class="pw-label" id="pwLabel">请输入密码</div>
           </div>
-          <div class="field-error" id="pw-err">密码至少需要 8 位，并包含字母和数字</div>
+          <div class="pw-rule-note">密码要求：至少 8 位，且必须同时包含 1 个字母和 1 个数字。</div>
+          <div class="field-error" id="password-err">密码至少需要 8 位，并包含字母和数字</div>
         </div>
 
         <div class="field" id="field-confirm">
@@ -655,7 +670,30 @@
     const s = scorePw(v);
     const st = strengths[s];
     pwBar.style.width = st.width; pwBar.style.background = st.color;
-    pwLabel.textContent = `密码强度：${st.label}`; pwLabel.style.color = st.color;
+    const hasLetter = /[a-zA-Z]/.test(v);
+    const hasNumber = /[0-9]/.test(v);
+    if (v.length < 8) {
+      pwLabel.textContent = '密码至少需要 8 位';
+      pwLabel.style.color = '#ff8c4b';
+      return;
+    }
+    if (!hasLetter && !hasNumber) {
+      pwLabel.textContent = '密码必须包含字母和数字';
+      pwLabel.style.color = '#ff8c4b';
+      return;
+    }
+    if (!hasLetter) {
+      pwLabel.textContent = '密码还需要至少 1 个字母';
+      pwLabel.style.color = '#ff8c4b';
+      return;
+    }
+    if (!hasNumber) {
+      pwLabel.textContent = '密码还需要至少 1 个数字';
+      pwLabel.style.color = '#ff8c4b';
+      return;
+    }
+    pwLabel.textContent = `密码强度：${st.label}`;
+    pwLabel.style.color = st.color;
   });
 
   // Email live check
@@ -732,26 +770,10 @@
   });
 
   // Submit
-  document.getElementById('regForm').addEventListener('submit', async (e) => {
+  document.getElementById('regForm').addEventListener('submit', (e) => {
     e.preventDefault();
     if (!validate()) return;
-
-    const btn = document.getElementById('submitBtn');
-    btn.classList.add('loading');
-
-    await new Promise(r => setTimeout(r, 2000));
-    btn.classList.remove('loading');
-
-    // Mark steps done
-    ['step1','step2','step3'].forEach(id => {
-      const el = document.getElementById(id);
-      el.classList.remove('active'); el.classList.add('done');
-      el.querySelector('.step-circle').textContent = '✓';
-    });
-    ['line1','line2'].forEach(id => document.getElementById(id).classList.add('done'));
-
-    showToast('🎉 注册成功！正在跳转至登录…');
-    setTimeout(() => { window.location.href = 'login.html'; }, 1800);
+    window.location.href = 'login.html';
   });
 
   function showToast(msg) {
