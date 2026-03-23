@@ -1640,6 +1640,29 @@
       background-repeat: no-repeat, no-repeat;
       background-attachment: scroll, fixed;
     }
+    #view-forecast.fc-light {
+      --fc-bg: #f5f0e7;
+      --fc-panel: rgba(255,251,245,.94);
+      --fc-stroke: rgba(122,95,60,.12);
+      --fc-stroke2: rgba(67,52,30,.10);
+      --fc-gold: #a67b42;
+      --fc-gold2: #7d5f35;
+      --fc-blue: #3c88bb;
+      --fc-green: #238f62;
+      --fc-red: #d45865;
+      --fc-yellow: #cb9b2d;
+      --fc-text: #2e271e;
+      --fc-muted: rgba(46,39,30,.56);
+      --fc-card-bg: rgba(255,252,247,.82);
+      background-color: #f5f0e7 !important;
+      background-image:
+        linear-gradient(180deg, rgba(245,240,231,.54) 0%, rgba(245,240,231,.46) 40%, rgba(242,236,227,.58) 100%),
+        url("../assets/forecast_bgw.png");
+      background-position: center top, center -180px;
+      background-size: cover, cover;
+      background-repeat: no-repeat, no-repeat;
+      background-attachment: scroll, fixed;
+    }
 
     /* ── Hero banner ── */
     .fc-hero {
@@ -1703,10 +1726,20 @@
     }
 
     /* ── Tabs ── */
+    .fc-tabs-shell {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      border-top: 1px solid var(--fc-stroke2);
+      padding-top: 0;
+      margin-top: 12px;
+      flex-wrap: wrap;
+    }
     .fc-tabs {
       display: flex; gap: 2px;
-      border-top: 1px solid var(--fc-stroke2);
-      padding-top: 0; margin-top: 12px;
+      min-width: 0;
+      flex-wrap: wrap;
     }
     .fc-tab {
       display: inline-flex; align-items: center; gap: 7px;
@@ -1725,6 +1758,32 @@
       border-bottom-color: var(--fc-gold);
     }
     .fc-tab-icon { display: flex; align-items: center; }
+    .fc-theme-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(214,179,106,.22);
+      background: rgba(255,255,255,.03);
+      color: var(--fc-gold2);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .3px;
+      cursor: pointer;
+      transition: border-color .18s ease, background-color .18s ease, color .18s ease, transform .18s ease;
+      white-space: nowrap;
+    }
+    .fc-theme-btn:hover {
+      border-color: rgba(214,179,106,.42);
+      background: rgba(214,179,106,.08);
+      transform: translateY(-1px);
+    }
+    .fc-theme-btn svg {
+      width: 14px;
+      height: 14px;
+      flex-shrink: 0;
+    }
 
     /* ── Content panels ── */
     .fc-content {
@@ -1876,6 +1935,240 @@
     .fc-control label {
       font-size: 10px; font-weight: 700; color: var(--fc-muted);
       letter-spacing: .8px; text-transform: uppercase;
+    }
+
+    #view-forecast.fc-light .fc-hero {
+      border-bottom-color: var(--fc-stroke2);
+    }
+    #view-forecast.fc-light .fc-hero-badge {
+      border-color: rgba(122,95,60,.18);
+      background: rgba(166,123,66,.08);
+      color: rgba(125,95,53,.88);
+    }
+    #view-forecast.fc-light .fc-hero-badge-dot {
+      background: rgba(166,123,66,.88);
+      box-shadow: 0 0 8px rgba(166,123,66,.22);
+    }
+    #view-forecast.fc-light .fc-hero-title,
+    #view-forecast.fc-light .fc-card-head h3,
+    #view-forecast.fc-light .fc-stat .v,
+    #view-forecast.fc-light .fc-alert-head .t {
+      color: var(--fc-text);
+    }
+    #view-forecast.fc-light .fc-hero-title span {
+      background: linear-gradient(180deg, #7d5f35 0%, #a67b42 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    #view-forecast.fc-light .fc-pill {
+      border-color: rgba(166,123,66,.18);
+      background: rgba(166,123,66,.08);
+      color: rgba(125,95,53,.88);
+    }
+    #view-forecast.fc-light .fc-tab:hover {
+      color: rgba(46,39,30,.78);
+    }
+    #view-forecast.fc-light .fc-content > .wrap::before {
+      background:
+        linear-gradient(180deg, rgba(255,252,247,.62) 0%, rgba(248,243,235,.66) 100%),
+        radial-gradient(circle at 20% 12%, rgba(255,255,255,.18) 0%, rgba(255,255,255,0) 34%);
+      box-shadow: 0 24px 48px rgba(64,42,18,.06);
+    }
+    #view-forecast.fc-light .fc-card {
+      box-shadow: 0 12px 28px rgba(64,42,18,.08);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+    #view-forecast.fc-light .fc-card-head {
+      background: linear-gradient(90deg, rgba(166,123,66,.06) 0%, transparent 100%);
+    }
+    #view-forecast.fc-light .fc-btn.secondary {
+      border-color: rgba(67,52,30,.14);
+      color: var(--fc-muted);
+    }
+    #view-forecast.fc-light .fc-btn.secondary:hover {
+      border-color: rgba(122,95,60,.24);
+      color: var(--fc-gold);
+    }
+    #view-forecast.fc-light .fc-select {
+      border-color: rgba(122,95,60,.22);
+      background:
+        linear-gradient(180deg, rgba(255,252,247,.98), rgba(248,243,235,.98)),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2.2 4.2 6 8l3.8-3.8' fill='none' stroke='%23a67b42' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat, no-repeat;
+      background-position: 0 0, calc(100% - 12px) 50%;
+      background-size: auto, 12px 12px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.88);
+      color: var(--fc-text);
+      color-scheme: light;
+    }
+    #view-forecast.fc-light .fc-select:hover {
+      border-color: rgba(166,123,66,.42);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.99), rgba(250,246,239,.99)),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2.2 4.2 6 8l3.8-3.8' fill='none' stroke='%237d5f35' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat, no-repeat;
+      background-position: 0 0, calc(100% - 12px) 50%;
+      background-size: auto, 12px 12px;
+      color: #21180f;
+    }
+    #view-forecast.fc-light .fc-select:focus {
+      border-color: rgba(166,123,66,.56);
+      box-shadow: 0 0 0 3px rgba(166,123,66,.12), inset 0 1px 0 rgba(255,255,255,.92);
+    }
+    #view-forecast.fc-light .fc-select option {
+      background: #fffaf3;
+      color: #2e271e;
+    }
+    #view-forecast.fc-light .fc-chart-wrap,
+    #view-forecast.fc-light .fc-alert-panel {
+      background: rgba(255,252,247,.96);
+      border-color: rgba(67,52,30,.10);
+      box-shadow: 0 12px 28px rgba(64,42,18,.10);
+    }
+    #view-forecast.fc-light .fc-tooltip {
+      background: rgba(255,252,247,.98);
+      border-color: rgba(122,95,60,.16);
+      color: var(--fc-text);
+      box-shadow: 0 12px 28px rgba(64,42,18,.12);
+    }
+    #view-forecast.fc-light .fc-stat,
+    #view-forecast.fc-light .fc-impact-card,
+    #view-forecast.fc-light .fc-impact-note,
+    #view-forecast.fc-light .fc-impact-summary-box,
+    #view-forecast.fc-light .fc-note,
+    #view-forecast.fc-light .fc-alert-group {
+      background: rgba(255,255,255,.64);
+      border-color: rgba(67,52,30,.10);
+      box-shadow: none;
+    }
+    #view-forecast.fc-light .fc-slider input[type="range"] {
+      background: rgba(67,52,30,.10);
+    }
+    #view-forecast.fc-light .fc-slider input[type="range"]::-webkit-slider-thumb,
+    #view-forecast.fc-light .fc-slider input[type="range"]::-moz-range-thumb {
+      border-color: rgba(255,248,238,.95);
+    }
+    #view-forecast.fc-light .fc-impact-track {
+      background: rgba(67,52,30,.08);
+      box-shadow: inset 0 0 0 1px rgba(67,52,30,.04);
+    }
+    #view-forecast.fc-light .fc-impact-label,
+    #view-forecast.fc-light .fc-impact-note,
+    #view-forecast.fc-light .fc-consensus-table td,
+    #view-forecast.fc-light .fc-trend-summary {
+      color: var(--fc-text);
+    }
+    #view-forecast.fc-light .fc-consensus-table tr:hover td,
+    #view-forecast.fc-light .fc-bt-matrix tr:hover td {
+      background: rgba(166,123,66,.06);
+    }
+    #view-forecast.fc-light .fc-kpi {
+      box-shadow: 0 10px 24px rgba(64,42,18,.06);
+      backdrop-filter: blur(10px);
+    }
+    #view-forecast.fc-light .fc-kpi .v,
+    #view-forecast.fc-light #fc-panel-factors .fc-kpi .v,
+    #view-forecast.fc-light #fc-panel-backtest .fc-kpi .v,
+    #view-forecast.fc-light .fc-factor-name,
+    #view-forecast.fc-light .fc-factor-val,
+    #view-forecast.fc-light .fc-pop-title,
+    #view-forecast.fc-light .fc-pop-text,
+    #view-forecast.fc-light .fc-news-item a,
+    #view-forecast.fc-light .fc-event-title {
+      color: var(--fc-text);
+    }
+    #view-forecast.fc-light .fc-factor-row {
+      border-bottom-color: rgba(67,52,30,.10);
+    }
+    #view-forecast.fc-light .fc-factor-bar {
+      border-color: rgba(122,95,60,.16);
+      background: linear-gradient(180deg, rgba(244,238,228,.96) 0%, rgba(237,230,219,.96) 100%);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.92), inset 0 -1px 0 rgba(122,95,60,.06);
+    }
+    #view-forecast.fc-light .fc-factor-zero {
+      background: linear-gradient(180deg, rgba(144,121,89,.22) 0%, rgba(144,121,89,.10) 100%);
+      box-shadow: 0 0 0 1px rgba(122,95,60,.06);
+    }
+    #view-forecast.fc-light .fc-factor-sign,
+    #view-forecast.fc-light .fc-mini-legend,
+    #view-forecast.fc-light .fc-event-desc,
+    #view-forecast.fc-light .fc-event-date,
+    #view-forecast.fc-light .fc-news-meta,
+    #view-forecast.fc-light .fc-pop-sub,
+    #view-forecast.fc-light .fc-link-btn,
+    #view-forecast.fc-light .fc-alert-subtitle {
+      color: var(--fc-muted);
+    }
+    #view-forecast.fc-light .fc-trend-item,
+    #view-forecast.fc-light .fc-event-card,
+    #view-forecast.fc-light .fc-news-item {
+      background: rgba(255,255,255,.56);
+      border-color: rgba(67,52,30,.10);
+    }
+    #view-forecast.fc-light .fc-timeline {
+      scrollbar-color: rgba(166,123,66,.42) rgba(122,95,60,.08);
+    }
+    #view-forecast.fc-light .fc-timeline::-webkit-scrollbar-track {
+      background: rgba(122,95,60,.08);
+      box-shadow: inset 0 0 0 1px rgba(122,95,60,.06);
+    }
+    #view-forecast.fc-light .fc-timeline::-webkit-scrollbar-thumb {
+      background: linear-gradient(180deg, rgba(183,148,95,.96) 0%, rgba(153,118,71,.96) 100%);
+      border-color: rgba(122,95,60,.10);
+    }
+    #view-forecast.fc-light .fc-timeline::-webkit-scrollbar-thumb:hover {
+      background: linear-gradient(180deg, rgba(166,123,66,.98) 0%, rgba(138,100,55,.98) 100%);
+    }
+    #view-forecast.fc-light .fc-etype,
+    #view-forecast.fc-light .fc-impact-status {
+      color: #fffaf3;
+      text-shadow: none;
+    }
+    #view-forecast.fc-light .fc-mini-chart-wrap,
+    #view-forecast.fc-light .fc-popover,
+    #view-forecast.fc-light .fc-toast {
+      background: rgba(255,252,247,.96);
+      border-color: rgba(67,52,30,.12);
+      box-shadow: 0 12px 28px rgba(64,42,18,.10);
+    }
+    #view-forecast.fc-light .fc-pop-head {
+      background: linear-gradient(180deg, rgba(166,123,66,.06), transparent);
+    }
+    #view-forecast.fc-light .fc-pop-close,
+    #view-forecast.fc-light .fc-link-btn {
+      border-color: rgba(67,52,30,.10);
+      background: rgba(255,255,255,.56);
+    }
+    #view-forecast.fc-light .fc-pop-close:hover,
+    #view-forecast.fc-light .fc-link-btn:hover {
+      border-color: rgba(166,123,66,.22);
+    }
+    #view-forecast.fc-light .fc-pop-close:hover {
+      color: #7d5f35;
+      background: rgba(255,255,255,.88);
+    }
+    #view-forecast.fc-light .fc-toast {
+      color: #7d5f35;
+    }
+    #view-forecast.fc-light .fc-alert-body {
+      scrollbar-color: rgba(166,123,66,.34) rgba(122,95,60,.06);
+    }
+    #view-forecast.fc-light .fc-alert-body::-webkit-scrollbar-track {
+      background: rgba(122,95,60,.06);
+    }
+    #view-forecast.fc-light .fc-alert-body::-webkit-scrollbar-thumb {
+      background: rgba(166,123,66,.34);
+    }
+    #view-forecast.fc-light .fc-theme-btn {
+      border-color: rgba(122,95,60,.18);
+      background: rgba(255,255,255,.68);
+      color: #7d5f35;
+    }
+    #view-forecast.fc-light .fc-theme-btn:hover {
+      border-color: rgba(122,95,60,.30);
+      background: rgba(255,255,255,.88);
     }
 
     /* ── Chart ── */

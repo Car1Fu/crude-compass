@@ -666,24 +666,33 @@
         </div>
 
         <!-- Tab bar -->
-        <div class="fc-tabs">
-          <button class="fc-tab active" data-tab="forecast">
-            <span class="fc-tab-icon">
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M4 19V5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M4 19h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M7 14l3-3 3 2 4-5" stroke="rgba(216,179,106,.9)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            </span>
-            中短期预测
-          </button>
-          <button class="fc-tab" data-tab="factors">
-            <span class="fc-tab-icon">
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M6 20V10" stroke="rgba(111,208,255,.9)" stroke-width="2.2" stroke-linecap="round"/><path d="M12 20V6" stroke="rgba(216,179,106,.9)" stroke-width="2.2" stroke-linecap="round"/><path d="M18 20V13" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
-            </span>
-            因子分析
-          </button>
-          <button class="fc-tab" data-tab="backtest">
-            <span class="fc-tab-icon">
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M20 6 9 17l-5-5" stroke="rgba(57,217,138,.9)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            </span>
-            回测验证
+        <div class="fc-tabs-shell">
+          <div class="fc-tabs">
+            <button class="fc-tab active" data-tab="forecast">
+              <span class="fc-tab-icon">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M4 19V5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M4 19h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M7 14l3-3 3 2 4-5" stroke="rgba(216,179,106,.9)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </span>
+              中短期预测
+            </button>
+            <button class="fc-tab" data-tab="factors">
+              <span class="fc-tab-icon">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M6 20V10" stroke="rgba(111,208,255,.9)" stroke-width="2.2" stroke-linecap="round"/><path d="M12 20V6" stroke="rgba(216,179,106,.9)" stroke-width="2.2" stroke-linecap="round"/><path d="M18 20V13" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+              </span>
+              因子分析
+            </button>
+            <button class="fc-tab" data-tab="backtest">
+              <span class="fc-tab-icon">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M20 6 9 17l-5-5" stroke="rgba(57,217,138,.9)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </span>
+              回测验证
+            </button>
+          </div>
+          <button class="fc-theme-btn" id="fcThemeBtn" type="button" aria-pressed="false">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M12 3.5v2.2M12 18.3v2.2M5.99 5.99l1.56 1.56M16.45 16.45l1.56 1.56M3.5 12h2.2M18.3 12h2.2M5.99 18.01l1.56-1.56M16.45 7.55l1.56-1.56" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+              <circle cx="12" cy="12" r="4.1" stroke="currentColor" stroke-width="1.7"/>
+            </svg>
+            <span>白昼模式</span>
           </button>
         </div>
       </div>
@@ -1691,6 +1700,9 @@ function initForecastOnce(){
 
 function initForecast(){
   const $ = id => document.getElementById(id);
+  const root = document.getElementById("view-forecast");
+  const themeBtn = $("fcThemeBtn");
+  const FC_THEME_KEY = "cc_forecast_theme";
   const money = x => "$" + x.toFixed(2);
   const pct = x => (x*100).toFixed(1) + "%";
   const clamp = (x,a,b) => Math.max(a,Math.min(b,x));
@@ -1704,12 +1716,73 @@ function initForecast(){
   function toast(msg){const el=$("fc-toast");el.textContent=msg;el.classList.add("show");clearTimeout(toast._t);toast._t=setTimeout(()=>el.classList.remove("show"),1200);}
   function svgEl(tag,attrs={}){const el=document.createElementNS("http://www.w3.org/2000/svg",tag);Object.entries(attrs).forEach(([k,v])=>el.setAttribute(k,v));return el;}
   function pathD(xs,ys){return xs.map((x,i)=>(i===0?"M":"L")+x.toFixed(2)+" "+ys[i].toFixed(2)).join(" ");}
+  function fcIsLight(){return !!(root&&root.classList.contains("fc-light"));}
+  function fcThemePalette(){
+    if(fcIsLight()){
+      return{
+        grid:"rgba(67,52,30,.08)",
+        axisText:"rgba(99,82,58,.78)",
+        axisTick:"rgba(67,52,30,.14)",
+        splitLine:"rgba(166,123,66,.24)",
+        pointStroke:"rgba(255,250,242,.96)",
+        hoverLine:"rgba(166,123,66,.20)",
+        hoverFill:"rgba(46,39,30,.92)",
+        hoverStroke:"rgba(255,250,242,.96)",
+        risk:{
+          low:{dot:"background:#238f62;box-shadow:0 0 0 3px rgba(35,143,98,.12)",border:"rgba(35,143,98,.22)",bg:"rgba(35,143,98,.08)"},
+          mid:{dot:"background:#cb9b2d;box-shadow:0 0 0 3px rgba(203,155,45,.12)",border:"rgba(203,155,45,.24)",bg:"rgba(203,155,45,.09)"},
+          high:{dot:"background:#d45865;box-shadow:0 0 0 3px rgba(212,88,101,.12)",border:"rgba(212,88,101,.24)",bg:"rgba(212,88,101,.08)"}
+        },
+        band95Top:"rgba(166,123,66,.12)",
+        band95Mid:"rgba(166,123,66,.18)",
+        band95Bottom:"rgba(166,123,66,.12)",
+        band80Top:"rgba(156,112,54,.18)",
+        band80Mid:"rgba(156,112,54,.28)",
+        band80Bottom:"rgba(156,112,54,.18)",
+        btBandFill:"rgba(156,112,54,.20)",
+        btBandStroke:"rgba(156,112,54,.26)"
+      };
+    }
+    return{
+      grid:"rgba(255,255,255,.05)",
+      axisText:"rgba(200,180,130,.55)",
+      axisTick:"rgba(255,255,255,.10)",
+      splitLine:"rgba(216,179,106,.28)",
+      pointStroke:"rgba(8,12,16,.9)",
+      hoverLine:"rgba(216,179,106,.25)",
+      hoverFill:"rgba(232,237,245,.9)",
+      hoverStroke:"rgba(8,12,16,.9)",
+      risk:{
+        low:{dot:"background:#39d98a;box-shadow:0 0 0 3px rgba(57,217,138,.15)",border:"rgba(57,217,138,.3)",bg:"rgba(57,217,138,.08)"},
+        mid:{dot:"background:#f5c842;box-shadow:0 0 0 3px rgba(245,200,66,.15)",border:"rgba(245,200,66,.3)",bg:"rgba(245,200,66,.08)"},
+        high:{dot:"background:#ff5c7c;box-shadow:0 0 0 3px rgba(255,92,124,.15)",border:"rgba(255,92,124,.3)",bg:"rgba(255,92,124,.08)"}
+      },
+      band95Top:"rgba(216,179,106,.04)",
+      band95Mid:"rgba(216,179,106,.08)",
+      band95Bottom:"rgba(216,179,106,.04)",
+      band80Top:"rgba(216,179,106,.08)",
+      band80Mid:"rgba(216,179,106,.16)",
+      band80Bottom:"rgba(216,179,106,.08)",
+      btBandFill:"rgba(216,179,106,.14)",
+      btBandStroke:"rgba(216,179,106,.18)"
+    };
+  }
+  function applyForecastTheme(mode){
+    const isLight=mode==="light";
+    if(root) root.classList.toggle("fc-light",isLight);
+    if(themeBtn){
+      const label=themeBtn.querySelector("span");
+      if(label) label.textContent=isLight?"黑夜模式":"白昼模式";
+      themeBtn.setAttribute("aria-pressed",isLight?"true":"false");
+    }
+  }
 
   const state = {
     asset:"brent", horizon:1, model:"stacking",
     histLen:360, viewCount:120, viewStart:0,
     factors:{opec:0,inventory:0,usd:0,geo:0,shipping:0,demand:0}
   };
+  applyForecastTheme(localStorage.getItem(FC_THEME_KEY)==="light"?"light":"dark");
 
   /* ── Data ── */
   function buildSeries(){
@@ -1750,6 +1823,7 @@ function initForecast(){
   /* ── Draw forecast chart ── */
   function drawForecast(){
     const series=buildSeries();
+    const palette=fcThemePalette();
     const nH=series.hist.length,total=series.combined.length;
     state.viewCount=clamp(state.viewCount,60,Math.min(300,total));
     state.viewStart=clamp(state.viewStart,0,Math.max(0,total-state.viewCount));
@@ -1771,8 +1845,8 @@ function initForecast(){
     // Grid
     for(let i=0;i<=5;i++){
       const yy=pT+(i/5)*plotH;
-      svg.appendChild(svgEl("line",{x1:pL,x2:W-pR,y1:yy,y2:yy,stroke:"rgba(255,255,255,.05)","stroke-width":"1","stroke-dasharray":"4 6"}));
-      const txt=svgEl("text",{x:8,y:yy+4,fill:"rgba(200,180,130,.55)","font-size":"11"});
+      svg.appendChild(svgEl("line",{x1:pL,x2:W-pR,y1:yy,y2:yy,stroke:palette.grid,"stroke-width":"1","stroke-dasharray":"4 6"}));
+      const txt=svgEl("text",{x:8,y:yy+4,fill:palette.axisText,"font-size":"11"});
       txt.textContent=money(vMax-(i/5)*(vMax-vMin));svg.appendChild(txt);
     }
     // X axis ticks
@@ -1780,14 +1854,14 @@ function initForecast(){
     for(let i=0;i<6;i++){
       const vi=Math.round(i/5*(state.viewCount-1));
       const gi=v0+vi,xx=x(vi);
-      svg.appendChild(svgEl("line",{x1:xx,x2:xx,y1:yBase,y2:yBase+5,stroke:"rgba(255,255,255,.1)","stroke-width":"1"}));
-      const txt=svgEl("text",{x:xx,y:yBase+18,fill:"rgba(200,180,130,.55)","font-size":"11","text-anchor":"middle"});
+      svg.appendChild(svgEl("line",{x1:xx,x2:xx,y1:yBase,y2:yBase+5,stroke:palette.axisTick,"stroke-width":"1"}));
+      const txt=svgEl("text",{x:xx,y:yBase+18,fill:palette.axisText,"font-size":"11","text-anchor":"middle"});
       txt.textContent=fmtDate(series.dates[gi]).slice(5);svg.appendChild(txt);
     }
     // Now line
     const splitGi=nH-1;
     if(splitGi>=v0&&splitGi<=v1){
-      const sl=svgEl("line",{x1:x(splitGi-v0),x2:x(splitGi-v0),y1:pT,y2:pT+plotH,stroke:"rgba(216,179,106,.28)","stroke-width":"1.5","stroke-dasharray":"6 6"});
+      const sl=svgEl("line",{x1:x(splitGi-v0),x2:x(splitGi-v0),y1:pT,y2:pT+plotH,stroke:palette.splitLine,"stroke-width":"1.5","stroke-dasharray":"6 6"});
       svg.appendChild(sl);
     }
     // Future bands
@@ -1804,14 +1878,14 @@ function initForecast(){
       const defs=svgEl("defs",{});
       defs.innerHTML=`
         <linearGradient id="band95Grad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="rgba(216,179,106,.04)"/>
-          <stop offset="50%" stop-color="rgba(216,179,106,.08)"/>
-          <stop offset="100%" stop-color="rgba(216,179,106,.04)"/>
+          <stop offset="0%" stop-color="${palette.band95Top}"/>
+          <stop offset="50%" stop-color="${palette.band95Mid}"/>
+          <stop offset="100%" stop-color="${palette.band95Bottom}"/>
         </linearGradient>
         <linearGradient id="band80Grad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="rgba(216,179,106,.08)"/>
-          <stop offset="50%" stop-color="rgba(216,179,106,.16)"/>
-          <stop offset="100%" stop-color="rgba(216,179,106,.08)"/>
+          <stop offset="0%" stop-color="${palette.band80Top}"/>
+          <stop offset="50%" stop-color="${palette.band80Mid}"/>
+          <stop offset="100%" stop-color="${palette.band80Bottom}"/>
         </linearGradient>
       `;
       svg.insertBefore(defs, svg.firstChild);
@@ -1828,11 +1902,11 @@ function initForecast(){
       cxs=cxs.concat(visF.map(p=>x(p.vi)));cys=cys.concat(visF.map(p=>y(series.combined[p.gi])));
       svg.appendChild(svgEl("path",{d:pathD(cxs,cys),fill:"none",stroke:"rgba(216,179,106,.9)","stroke-width":"2","stroke-dasharray":"8 5"}));
       const last=visF[visF.length-1];
-      svg.appendChild(svgEl("circle",{cx:x(last.vi),cy:y(series.combined[last.gi]),r:"5",fill:"rgba(216,179,106,1)",stroke:"rgba(8,12,16,.9)","stroke-width":"2"}));
+      svg.appendChild(svgEl("circle",{cx:x(last.vi),cy:y(series.combined[last.gi]),r:"5",fill:"rgba(216,179,106,1)",stroke:palette.pointStroke,"stroke-width":"2"}));
     }
     // Hover
-    const cross=svgEl("line",{y1:pT,y2:pT+plotH,stroke:"rgba(216,179,106,.25)","stroke-width":"1","stroke-dasharray":"5 5"});cross.style.display="none";svg.appendChild(cross);
-    const hdot=svgEl("circle",{r:"4.5",fill:"rgba(232,237,245,.9)",stroke:"rgba(8,12,16,.9)","stroke-width":"2"});hdot.style.display="none";svg.appendChild(hdot);
+    const cross=svgEl("line",{y1:pT,y2:pT+plotH,stroke:palette.hoverLine,"stroke-width":"1","stroke-dasharray":"5 5"});cross.style.display="none";svg.appendChild(cross);
+    const hdot=svgEl("circle",{r:"4.5",fill:palette.hoverFill,stroke:palette.hoverStroke,"stroke-width":"2"});hdot.style.display="none";svg.appendChild(hdot);
     const overlay=svgEl("rect",{x:pL,y:pT,width:plotW,height:plotH,fill:"transparent"});overlay.style.cursor="crosshair";svg.appendChild(overlay);
     const tip=$("fc-tip");
     overlay.addEventListener("mousemove",e=>{
@@ -1879,6 +1953,10 @@ function initForecast(){
     rhEl.style.border=`1px solid ${borderC}`;rhEl.style.background=bgC;
     rhEl.innerHTML=`<span class="fc-risk-dot" style="${dotStyle}"></span> 风险等级：${lvl}`;
 
+    const appliedRisk=score>=1.9?{label:"高",style:palette.risk.high}:score>=1.35?{label:"中",style:palette.risk.mid}:{label:"低",style:palette.risk.low};
+    rhEl.style.border=`1px solid ${appliedRisk.style.border}`;
+    rhEl.style.background=appliedRisk.style.bg;
+    rhEl.innerHTML=`<span class="fc-risk-dot" style="${appliedRisk.style.dot}"></span> 风险等级：${appliedRisk.label}`;
     updateIndustry(series);
     drawFactors(series);
     drawBacktest(series);
@@ -2341,6 +2419,7 @@ function initForecast(){
 
   /* ── Backtest ── */
   function drawBacktest(series){
+    const palette=fcThemePalette();
     const asset=state.asset==="brent"?"Brent":"WTI";
     $("fc-bt-mse")&&($("fc-bt-mse").textContent="—");
     const n=60,base=state.asset==="brent"?84:81;
@@ -2391,11 +2470,11 @@ function initForecast(){
     const mn=Math.min(...all)-2.5,mx=Math.max(...all)+2.5;
     const W=1100,H=460,pL=48,pR=16,pT=20,pB=36,plotW=W-pL-pR,plotH=H-pT-pB;
     const bx=i=>pL+(i/(n-1))*plotW,by=v=>pT+(1-(v-mn)/(mx-mn))*plotH;
-    for(let i=0;i<=4;i++){const yy=pT+(i/4)*plotH;svg.appendChild(svgEl("line",{x1:pL,x2:W-pR,y1:yy,y2:yy,stroke:"rgba(255,255,255,.05)","stroke-width":"1"}));}
+    for(let i=0;i<=4;i++){const yy=pT+(i/4)*plotH;svg.appendChild(svgEl("line",{x1:pL,x2:W-pR,y1:yy,y2:yy,stroke:palette.grid,"stroke-width":"1"}));}
     // Band
     const xsA=Array.from({length:n},(_,i)=>bx(i));
     const bandPts=xsA.map((x,i)=>[x,by(hi80[i])]).concat(xsA.slice().reverse().map((x,i)=>[x,by(lo80[n-1-i])]));
-    svg.appendChild(svgEl("path",{d:bandPts.map((p,i)=>(i===0?"M":"L")+p[0].toFixed(2)+" "+p[1].toFixed(2)).join(" ")+"Z",fill:"rgba(216,179,106,.14)",stroke:"rgba(216,179,106,.18)","stroke-width":"1"}));
+    svg.appendChild(svgEl("path",{d:bandPts.map((p,i)=>(i===0?"M":"L")+p[0].toFixed(2)+" "+p[1].toFixed(2)).join(" ")+"Z",fill:palette.btBandFill,stroke:palette.btBandStroke,"stroke-width":"1"}));
     svg.appendChild(svgEl("path",{d:pathD(xsA,actual.map(v=>by(v))),fill:"none",stroke:"rgba(111,208,255,.85)","stroke-width":"2"}));
     svg.appendChild(svgEl("path",{d:pathD(xsA,pred.map(v=>by(v))),fill:"none",stroke:"rgba(216,179,106,.85)","stroke-width":"2","stroke-dasharray":"8 5"}));
   }
@@ -2411,6 +2490,14 @@ function initForecast(){
     });
   });
 
+  if(themeBtn){
+    themeBtn.addEventListener("click",()=>{
+      const next=fcIsLight()?"dark":"light";
+      applyForecastTheme(next);
+      localStorage.setItem(FC_THEME_KEY,next);
+      drawForecast();
+    });
+  }
   /* ── Chart interactions ── */
   let dragging=false,dragStartX=0,dragStartVS=0;
   $("fc-chart-wrap").addEventListener("wheel",e=>{
