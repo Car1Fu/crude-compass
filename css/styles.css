@@ -3167,6 +3167,29 @@
   scrollbar-color: var(--gold-3) transparent !important;
 }
 
+/* 4.1 价格看板顶部两块表格单独压宽，避免横向滚动 */
+#view-database main.db-main {
+  grid-template-columns: 1fr 1.14fr 0.86fr !important;
+}
+#view-database #db-futures-intl .db-tbl-wrap,
+#view-database #db-futures-sh .db-tbl-wrap {
+  overflow-x: hidden !important;
+}
+#view-database #db-futures-intl table.db-tbl th:first-child,
+#view-database #db-futures-intl table.db-tbl td:first-child {
+  width: 26% !important;
+  min-width: 72px !important;
+  white-space: normal !important;
+  word-break: break-word !important;
+}
+#view-database #db-futures-sh table.db-tbl th:first-child,
+#view-database #db-futures-sh table.db-tbl td:first-child {
+  width: 22% !important;
+  min-width: 60px !important;
+  white-space: normal !important;
+  word-break: break-word !important;
+}
+
 /* 5. 卡片内边距增加呼吸空间 */
 #view-database .db-section {
   padding: 16px !important;
