@@ -1076,12 +1076,16 @@
       #view-hedge .hg-tips { font-size:12px; color:#666; margin-top:2px; }
       #view-hedge .hg-error { font-size:12px; color:#ff6666; display:none; margin-top:2px; }
       #view-hedge .hg-contract-tips { font-size:13px; color:var(--hg-accent-soft); margin-top:5px; padding-left:8px; border-left:2px solid var(--hg-accent); }
+      #view-hedge .hg-profile-guide { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin-top:4px; }
+      #view-hedge .hg-profile-card { padding:12px 12px 10px; border-radius:12px; border:1px solid rgba(199,164,106,.14); background:rgba(255,255,255,.03); }
+      #view-hedge .hg-profile-title { color:#f3efe6; font-size:13px; font-weight:800; margin-bottom:6px; }
+      #view-hedge .hg-profile-desc { color:rgba(243,239,230,.62); font-size:12px; line-height:1.7; }
       #view-hedge .hg-advanced { display:none; margin-top:10px; padding-top:10px; border-top:1px dashed #333; flex-direction:column; gap:8px; }
-      #view-hedge .hg-result-area { width:60%; display:flex; flex-direction:column; gap:18px; }
+      #view-hedge .hg-result-area { width:60%; display:flex; flex-direction:column; gap:18px; min-height:0; }
       #view-hedge .hg-card { background:rgba(0,0,0,.70); border:1px solid var(--hg-accent-border-strong); border-radius:10px; padding:22px; backdrop-filter:blur(8px); }
       #view-hedge .hg-card-title { color:var(--hg-accent); font-size:17px; font-weight:900; margin-bottom:18px; padding-bottom:10px; border-bottom:1px solid #222; }
-      #view-hedge .hg-empty-stage { min-height:720px; padding:0; overflow:hidden; }
-      #view-hedge .hg-chat-shell { min-height:720px; display:flex; flex-direction:column; background:linear-gradient(180deg, rgba(7,10,14,.96) 0%, rgba(11,13,18,.92) 52%, rgba(14,16,21,.96) 100%); }
+      #view-hedge .hg-empty-stage { height:720px; padding:0; overflow:hidden; display:flex; }
+      #view-hedge .hg-chat-shell { height:100%; flex:1; display:flex; flex-direction:column; min-height:0; background:linear-gradient(180deg, rgba(7,10,14,.96) 0%, rgba(11,13,18,.92) 52%, rgba(14,16,21,.96) 100%); }
       #view-hedge .hg-chat-topbar { display:flex; align-items:center; justify-content:space-between; gap:18px; padding:18px 20px; border-bottom:1px solid rgba(199,164,106,.16); background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,0)); }
       #view-hedge .hg-chat-agent { display:flex; align-items:center; gap:12px; min-width:0; }
       #view-hedge .hg-chat-avatar { width:42px; height:42px; border-radius:14px; object-fit:cover; border:1px solid rgba(199,164,106,.20); box-shadow:0 10px 26px rgba(0,0,0,.22); flex-shrink:0; background:rgba(255,255,255,.06); }
@@ -1089,7 +1093,7 @@
       #view-hedge .hg-chat-name { color:#f3efe6; font-size:15px; font-weight:800; letter-spacing:.3px; }
       #view-hedge .hg-chat-sub { color:rgba(243,239,230,.50); font-size:11px; margin-top:2px; letter-spacing:.4px; text-transform:uppercase; }
       #view-hedge .hg-chat-state { padding:6px 12px; border-radius:999px; border:1px solid rgba(199,164,106,.18); background:rgba(199,164,106,.08); color:var(--hg-accent-soft); font-size:11px; font-weight:700; letter-spacing:.5px; white-space:nowrap; }
-      #view-hedge .hg-chat-body { flex:1; display:flex; flex-direction:column; gap:14px; padding:22px 20px 14px; overflow-y:auto; scroll-behavior:smooth; }
+      #view-hedge .hg-chat-body { flex:1; min-height:0; display:flex; flex-direction:column; gap:14px; padding:22px 20px 14px; overflow-y:auto; overflow-x:hidden; scroll-behavior:smooth; }
       #view-hedge .hg-chat-body::-webkit-scrollbar { width:8px; }
       #view-hedge .hg-chat-body::-webkit-scrollbar-track { background:transparent; }
       #view-hedge .hg-chat-body::-webkit-scrollbar-thumb { background:rgba(199,164,106,.18); border-radius:999px; }
@@ -1103,7 +1107,7 @@
       #view-hedge .hg-msg-ai { background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.06); color:rgba(243,239,230,.88); border-top-left-radius:8px; box-shadow:0 10px 26px rgba(0,0,0,.18); }
       #view-hedge .hg-msg-user { background:linear-gradient(135deg, rgba(199,164,106,.24), rgba(146,106,54,.20)); border:1px solid rgba(199,164,106,.26); color:#f7f0e2; border-top-right-radius:8px; box-shadow:0 12px 28px rgba(108,74,31,.16); }
       #view-hedge .hg-chat-suggestions { display:flex; flex-wrap:wrap; gap:10px; padding:0 20px 18px; }
-      #view-hedge .hg-chat-chip { display:inline-flex; align-items:center; min-height:34px; padding:0 14px; border-radius:999px; border:1px solid rgba(199,164,106,.18); background:rgba(255,255,255,.03); color:var(--hg-accent-soft); font-size:12px; font-weight:700; letter-spacing:.2px; }
+      #view-hedge .hg-chat-chip { display:inline-flex; align-items:center; min-height:34px; padding:0 14px; border-radius:999px; border:1px solid rgba(199,164,106,.18); background:rgba(255,255,255,.03); color:var(--hg-accent-soft); font-size:12px; font-weight:700; letter-spacing:.2px; cursor:pointer; user-select:none; }
       #view-hedge .hg-chat-inputbar { margin:0 20px 20px; padding:14px 16px; border-radius:18px; border:1px solid rgba(199,164,106,.14); background:rgba(255,255,255,.03); display:flex; align-items:flex-end; justify-content:space-between; gap:16px; box-shadow:inset 0 1px 0 rgba(255,255,255,.03); }
       #view-hedge .hg-chat-input-wrap { flex:1; min-width:0; }
       #view-hedge .hg-chat-input { width:100%; min-height:24px; max-height:120px; border:none; outline:none; resize:none; overflow-y:auto; background:transparent; color:#f3efe6; font-size:14px; line-height:1.6; font-family:var(--font-body); }
@@ -1146,7 +1150,7 @@
       #view-hedge.hg-light .hg-chat-state { color:#5f5142 !important; border-color:rgba(34,28,22,.10) !important; background:rgba(34,28,22,.04) !important; }
       #view-hedge.hg-light .hg-msg-meta { color:rgba(45,36,24,.42) !important; }
       #view-hedge.hg-light .hg-msg-ai { background:rgba(255,255,255,.82) !important; border-color:rgba(34,28,22,.08) !important; color:#2d2418 !important; box-shadow:0 10px 24px rgba(64,42,18,.06) !important; }
-      #view-hedge.hg-light .hg-msg-user { background:linear-gradient(135deg, rgba(34,28,22,.92), rgba(53,43,31,.90)) !important; border-color:rgba(34,28,22,.10) !important; color:#fffaf0 !important; box-shadow:0 12px 28px rgba(64,42,18,.10) !important; }
+      #view-hedge.hg-light .hg-msg-user { background:linear-gradient(135deg, rgba(214,196,169,.72), rgba(198,176,145,.64)) !important; border-color:rgba(122,95,60,.14) !important; color:#2d2418 !important; box-shadow:0 12px 28px rgba(64,42,18,.08) !important; }
       #view-hedge.hg-light .hg-chat-chip { border-color:rgba(34,28,22,.10) !important; background:rgba(255,255,255,.72) !important; color:#5f5142 !important; }
       #view-hedge.hg-light .hg-chat-inputbar { border-color:rgba(34,28,22,.10) !important; background:rgba(255,255,255,.76) !important; box-shadow:inset 0 1px 0 rgba(255,255,255,.88) !important; }
       #view-hedge.hg-light .hg-chat-body::-webkit-scrollbar-thumb { background:rgba(34,28,22,.16) !important; }
@@ -1156,6 +1160,9 @@
       #view-hedge.hg-light .hg-form-label,
       #view-hedge.hg-light .hg-contract-tips,
       #view-hedge.hg-light .hg-result-label { color:#8b7556 !important; }
+      #view-hedge.hg-light .hg-profile-card { background:rgba(255,255,255,.72) !important; border-color:rgba(34,28,22,.10) !important; }
+      #view-hedge.hg-light .hg-profile-title { color:#2d2418 !important; }
+      #view-hedge.hg-light .hg-profile-desc { color:rgba(45,36,24,.62) !important; }
       #view-hedge.hg-light .hg-card-title,
       #view-hedge.hg-light .hg-radio-text,
       #view-hedge.hg-light .hg-result-value { color:#2d2418 !important; }
@@ -1194,7 +1201,7 @@
         border-color:rgba(34,28,22,.20);
         box-shadow:0 12px 28px rgba(64,42,18,.08);
       }
-      @media (max-width:1100px) { #view-hedge .hg-core { flex-direction:column; } #view-hedge .hg-input-area, #view-hedge .hg-result-area { width:100%; } #view-hedge .hg-result-list { grid-template-columns:1fr; } #view-hedge .hg-result-value.big-gold { grid-column:span 1; } #view-hedge .hg-chat-shell { min-height:520px; } #view-hedge .hg-msg-row.ai, #view-hedge .hg-msg-row.user { max-width:100%; } }
+      @media (max-width:1100px) { #view-hedge .hg-core { flex-direction:column; } #view-hedge .hg-input-area, #view-hedge .hg-result-area { width:100%; } #view-hedge .hg-result-list { grid-template-columns:1fr; } #view-hedge .hg-result-value.big-gold { grid-column:span 1; } #view-hedge .hg-empty-stage { height:520px; } #view-hedge .hg-msg-row.ai, #view-hedge .hg-msg-row.user { max-width:100%; } #view-hedge .hg-profile-guide { grid-template-columns:1fr; } }
     </style>
 
     <div class="hg-wrap">
@@ -1233,7 +1240,6 @@
             <label class="hg-form-label"><span class="hg-required">*</span>现货交易到期日期</label>
             <input type="date" class="hg-input" id="hgExpireDate">
             <div class="hg-error" id="hgExpireDateErr">请选择有效的到期日期</div>
-            <div class="hg-contract-tips" id="hgContractTips">系统匹配合约：SC2710</div>
           </div>
 
           <!-- 消费者类型 -->
@@ -1244,20 +1250,19 @@
               <option value="中立型">中立型</option>
               <option value="激进型">激进型</option>
             </select>
-          </div>
-
-          <!-- 套保模型 -->
-          <div class="hg-form-item">
-            <label class="hg-form-label"><span class="hg-required">*</span>套保模型选择</label>
-            <select class="hg-select" id="hgModelSelect">
-              <option value="最小方差模型" selected>最小方差模型</option>
-              <option value="均值-方差权衡模型">均值-方差权衡模型</option>
-            </select>
-            <div class="hg-advanced" id="hgAdvanced">
-              <label class="hg-form-label"><span class="hg-required">*</span>最大可接受损失率（%）</label>
-              <input type="number" class="hg-input" id="hgMaxLoss" placeholder="如30代表30%" step="0.1" min="0">
-              <div class="hg-error" id="hgMaxLossErr">请输入有效的损失率数值</div>
-              <div class="hg-tips">仅均值-方差权衡模型需填写</div>
+            <div class="hg-profile-guide">
+              <div class="hg-profile-card">
+                <div class="hg-profile-title">稳健型</div>
+                <div class="hg-profile-desc">可接受价格波动一般在 3% 以内，阶段性浮亏容忍度通常不超过 5%。更重视锁定成本和现金流稳定。</div>
+              </div>
+              <div class="hg-profile-card">
+                <div class="hg-profile-title">中立型</div>
+                <div class="hg-profile-desc">可接受价格波动大致在 3% 到 8% 之间，阶段性浮亏容忍度通常在 5% 到 10% 之间，追求风险与弹性的平衡。</div>
+              </div>
+              <div class="hg-profile-card">
+                <div class="hg-profile-title">激进型</div>
+                <div class="hg-profile-desc">可接受价格波动在 8% 以上，阶段性浮亏容忍度可到 10% 以上。更看重策略灵活度，并接受更大的短期波动。</div>
+              </div>
             </div>
           </div>
         </div>
@@ -1286,9 +1291,9 @@
                 </div>
               </div>
               <div class="hg-chat-suggestions">
-                <span class="hg-chat-chip">稳健型采购</span>
-                <span class="hg-chat-chip">先看保证金占用</span>
-                <span class="hg-chat-chip">输出执行提醒</span>
+                <span class="hg-chat-chip" data-message="请先给我一个偏稳健的采购套保思路，重点考虑控制风险和执行节奏。">稳健采购思路</span>
+                <span class="hg-chat-chip" data-message="如果按当前业务需求拟定套保方案，我想先看大致需要多少保证金占用，以及资金压力会有多大。">先看保证金占用</span>
+                <span class="hg-chat-chip" data-message="请帮我梳理一下如果要执行套保，建议按什么步骤推进，以及每个阶段需要注意什么。">梳理执行步骤</span>
               </div>
               <div class="hg-chat-inputbar">
                 <div class="hg-chat-input-wrap">
@@ -2755,16 +2760,16 @@ window._loadDbDownload = function(){
 (function(){
   function hgInit(){
     const $=id=>document.getElementById(id);
+    const modelName='最小方差模型';
     const root=$('view-hedge');
     const bizSelect=$('hgBizType');
     const consumerSelect=$('hgConsumerType');
-    const modelSelect=$('hgModelSelect');
     const expireInput=$('hgExpireDate');
     const themeBtn=$('hgThemeBtn');
     const chatBody=$('hgChatBody');
     const chatInput=$('hgChatInput');
     const chatSend=$('hgChatSend');
-    if(!bizSelect || !consumerSelect || !modelSelect || !expireInput || !root) return; // view未激活时跳过
+    if(!bizSelect || !consumerSelect || !expireInput || !root) return; // view未激活时跳过
     if(root.dataset.hgInited==='1') return;
     root.dataset.hgInited='1';
 
@@ -2782,12 +2787,14 @@ window._loadDbDownload = function(){
       if(!date)return;
       const y=date.slice(0,4),m=date.slice(5,7);
       const code='SC'+y.slice(2)+m;
-      $('hgContractTips').textContent='系统匹配合约：'+code;
       $('hgFutCode').textContent=code;
     }
     function hgUpdateHedgeType(biz){$('hgHedgeType').textContent=biz==='采购'?'空头（采购业务）':'多头（销售业务）';}
-    function hgUpdateOpenTime(model,consumer){
-      $('hgOpenTime').textContent=(model==='均值-方差权衡模型'&&consumer==='激进型')?'建议1个工作日内开仓':'建议3个工作日内或分仓建仓';
+    function hgUpdateOpenTime(consumer){
+      $('hgOpenTime').textContent=
+        consumer==='激进型'?'建议1个工作日内灵活开仓':
+        consumer==='中立型'?'建议2个工作日内分批建仓':
+        '建议3个工作日内或分仓建仓';
     }
     function hgToast(msg){const t=$('hgToast');t.textContent=msg;t.classList.add('show');clearTimeout(hgToast._t);hgToast._t=setTimeout(()=>t.classList.remove('show'),1600);}
     function hgFmt(n){return n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',');}
@@ -2801,10 +2808,9 @@ window._loadDbDownload = function(){
     }
     hgApplyTheme(localStorage.getItem('cc_hedge_theme')==='light'?'light':'dark');
 
-    $('hgModelType').textContent=modelSelect.value;
-    $('hgAdvanced').style.display=modelSelect.value==='均值-方差权衡模型'?'flex':'none';
+    $('hgModelType').textContent=modelName;
     hgUpdateHedgeType(bizSelect.value);
-    hgUpdateOpenTime(modelSelect.value,consumerSelect.value);
+    hgUpdateOpenTime(consumerSelect.value);
 
     function hgAutoResizeChat(){
       if(!chatInput) return;
@@ -2840,19 +2846,20 @@ window._loadDbDownload = function(){
       hgSyncSendState();
       chatInput.focus();
     }
+    function hgBuildCalcPrompt(){
+      const date=expireInput.value||'待定日期';
+      const biz=bizSelect.value||'采购';
+      const qty=$('hgSpotQty').value.trim()||'0';
+      const consumer=consumerSelect.value||'稳健型';
+      return `我需要在${date}进行${biz}，数量是${qty}桶原油，我的风险偏好是${consumer}，请帮我拟定一套合适的套保思路。`;
+    }
     hgAutoResizeChat();
     hgSyncSendState();
     setTimeout(hgScrollChatToBottom,0);
 
     // 绑定事件
     bizSelect.addEventListener('change',e=>{hgUpdateHedgeType(e.target.value);});
-    consumerSelect.addEventListener('change',e=>{hgUpdateOpenTime(modelSelect.value,e.target.value);});
-    modelSelect.addEventListener('change',e=>{
-      const sel=e.target.value;
-      $('hgModelType').textContent=sel;
-      $('hgAdvanced').style.display=sel==='均值-方差权衡模型'?'flex':'none';
-      hgUpdateOpenTime(sel,consumerSelect.value);
-    });
+    consumerSelect.addEventListener('change',e=>{hgUpdateOpenTime(e.target.value);});
     if(themeBtn){
       themeBtn.addEventListener('click',()=>{
         const next=root.classList.contains('hg-light')?'dark':'light';
@@ -2874,10 +2881,6 @@ window._loadDbDownload = function(){
       const v=Number($('hgSpotQty').value.trim());
       $('hgSpotQtyErr').style.display=(isNaN(v)||v<100||v%1!==0)?'block':'none';
     });
-    $('hgMaxLoss').addEventListener('input',()=>{
-      const v=Number($('hgMaxLoss').value.trim());
-      $('hgMaxLossErr').style.display=(isNaN(v)||v<0)?'block':'none';
-    });
     if(chatInput){
       chatInput.addEventListener('input',()=>{
         hgAutoResizeChat();
@@ -2896,7 +2899,7 @@ window._loadDbDownload = function(){
     root.querySelectorAll('.hg-chat-chip').forEach(chip=>{
       chip.addEventListener('click',()=>{
         if(!chatInput) return;
-        chatInput.value=chip.textContent.trim();
+        chatInput.value=chip.dataset.message || chip.textContent.trim();
         hgAutoResizeChat();
         hgSyncSendState();
         chatInput.focus();
@@ -2908,10 +2911,6 @@ window._loadDbDownload = function(){
       const qty=Number($('hgSpotQty').value.trim());
       if(isNaN(qty)||qty<100||qty%1!==0){$('hgSpotQtyErr').style.display='block';ok=false;}else{$('hgSpotQtyErr').style.display='none';}
       if(!expireInput.value){$('hgExpireDateErr').style.display='block';ok=false;}else{$('hgExpireDateErr').style.display='none';}
-      if(modelSelect.value==='均值-方差权衡模型'){
-        const lv=Number($('hgMaxLoss').value.trim());
-        if(isNaN(lv)||lv<0){$('hgMaxLossErr').style.display='block';ok=false;}else{$('hgMaxLossErr').style.display='none';}
-      }
       return ok;
     }
 
@@ -2919,7 +2918,6 @@ window._loadDbDownload = function(){
       const biz=bizSelect.value;
       const qty=Number($('hgSpotQty').value.trim());
       const consumer=consumerSelect.value;
-      const model=modelSelect.value;
       let ratio=0.856;
       if(consumer==='中立型') ratio=0.856*0.9;
       else if(consumer==='激进型') ratio=0.856*0.8;
@@ -2930,10 +2928,15 @@ window._loadDbDownload = function(){
       $('hgInitMargin').textContent=hgFmt(init)+' 元';
       $('hgSuppMargin').textContent=hgFmt(supp)+' 元';
       $('hgTotalMargin').textContent=hgFmt(init+supp)+' 元';
-      hgUpdateOpenTime(model,consumer);
+      hgUpdateOpenTime(consumer);
     }
 
-    $('hgCalcBtn').addEventListener('click',()=>{if(hgCheckForm()){hgCalc();hgToast('套保方案计算成功！');}});
+    $('hgCalcBtn').addEventListener('click',()=>{
+      if(hgCheckForm()){
+        hgCalc();
+        hgAppendUserMessage(hgBuildCalcPrompt());
+      }
+    });
   }
 
   // 首次切换到套保助手时初始化
@@ -2949,6 +2952,7 @@ window._loadDbDownload = function(){
 </script>
 <script>
 (function(){
+  return;
   function syncHedgeTheme(){
     const root = document.getElementById('view-hedge');
     let btn = document.getElementById('hgThemeBtn');
