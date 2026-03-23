@@ -922,7 +922,7 @@ function initForecast(){
     const sL=splitRow(rL,.62+(good-.5)*.3),sM=splitRow(rM,clamp(.58+(good-.5)*.3,.45,.85)),sH=splitRow(rH,.60+(good-.5)*.3);
     const m=[[sL[0],sL[1],sL[2]],[sM[1],sM[0],sM[2]],[sH[2],sH[1],sH[0]]];
     $("fc-bt-matrix").innerHTML=`<tr><th>低</th><td>${m[0][0]}</td><td>${m[0][1]}</td><td>${m[0][2]}</td></tr><tr><th>中</th><td>${m[1][0]}</td><td>${m[1][1]}</td><td>${m[1][2]}</td></tr><tr><th>高</th><td>${m[2][0]}</td><td>${m[2][1]}</td><td>${m[2][2]}</td></tr>`;
-    $("fc-bt-matrix-note").textContent=`示例矩阵总样本：${baseN}（仅用于展示 UI）`;
+    $("fc-bt-matrix-note").textContent="矩阵反映真实区间与预测区间的落点分布，对角线越集中，说明分级识别越稳定。";
 
     // Backtest chart
     const svg=$("fc-bt-chart");svg.innerHTML="";
