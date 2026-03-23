@@ -1630,13 +1630,15 @@
       --fc-text: #e8edf5;
       --fc-muted: rgba(255,255,255,.45);
       --fc-card-bg: rgba(12,14,20,.60);
+      --fc-photo-position: center -180px;
+      --fc-photo-size: 112% auto;
       --fc-radius: 14px;
       background-color: #0e1117 !important;
       background-image:
         linear-gradient(180deg, rgba(14,17,23,.72) 0%, rgba(14,17,23,.56) 35%, rgba(14,17,23,.50) 100%),
         url("../assets/forecast_bg.png");
-      background-position: center top, center -180px;
-      background-size: cover, cover;
+      background-position: center top, var(--fc-photo-position);
+      background-size: cover, var(--fc-photo-size);
       background-repeat: no-repeat, no-repeat;
       background-attachment: scroll, fixed;
     }
@@ -1654,12 +1656,14 @@
       --fc-text: #2e271e;
       --fc-muted: rgba(46,39,30,.56);
       --fc-card-bg: rgba(255,252,247,.82);
+      --fc-photo-position: calc(50% + 96px) -96px;
+      --fc-photo-size: 120% auto;
       background-color: #f5f0e7 !important;
       background-image:
-        linear-gradient(180deg, rgba(245,240,231,.54) 0%, rgba(245,240,231,.46) 40%, rgba(242,236,227,.58) 100%),
+        linear-gradient(180deg, rgba(245,240,231,.40) 0%, rgba(245,240,231,.30) 40%, rgba(242,236,227,.44) 100%),
         url("../assets/forecast_bgw.png");
-      background-position: center top, center -180px;
-      background-size: cover, cover;
+      background-position: center top, var(--fc-photo-position);
+      background-size: cover, var(--fc-photo-size);
       background-repeat: no-repeat, no-repeat;
       background-attachment: scroll, fixed;
     }
@@ -1971,7 +1975,7 @@
     }
     #view-forecast.fc-light .fc-content > .wrap::before {
       background:
-        linear-gradient(180deg, rgba(255,252,247,.62) 0%, rgba(248,243,235,.66) 100%),
+        linear-gradient(180deg, rgba(255,252,247,.93) 0%, rgba(248,243,235,.94) 100%),
         radial-gradient(circle at 20% 12%, rgba(255,255,255,.18) 0%, rgba(255,255,255,0) 34%);
       box-shadow: 0 24px 48px rgba(64,42,18,.06);
     }
