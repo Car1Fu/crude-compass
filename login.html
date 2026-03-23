@@ -511,7 +511,7 @@
           </div>
           <div class="field-error" id="email-err">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-            请输入有效的邮箱地址
+            邮箱地址不能为空
           </div>
         </div>
 
@@ -588,9 +588,9 @@
 
   function validateEmail() {
     const v = emailInput.value.trim();
-    const ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
-    setFieldState('email', ok || v === '', v !== '' && !ok ? '请输入有效的邮箱地址' : '');
-    return ok && v !== '';
+    const ok = v.length > 0;
+    setFieldState('email', ok, ok ? '' : '邮箱地址不能为空');
+    return ok;
   }
 
   function validatePw() {
@@ -610,20 +610,12 @@
   }
 
   // Form submit
-  document.getElementById('loginForm').addEventListener('submit', async (e) => {
+  document.getElementById('loginForm').addEventListener('submit', (e) => {
     e.preventDefault();
     const emailOk = validateEmail();
     const pwOk = validatePw();
     if (!emailOk || !pwOk) return;
-
-    const btn = document.getElementById('submitBtn');
-    btn.classList.add('loading');
-
-    // Simulate API call
-    await new Promise(r => setTimeout(r, 1800));
-    btn.classList.remove('loading');
-    showToast('✓ 登录成功，正在跳转…');
-    setTimeout(() => { window.location.href = 'crude_compass_v2.html'; }, 1400);
+    window.location.href = 'index.html';
   });
 
   function showToast(msg) {
