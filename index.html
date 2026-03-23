@@ -1020,9 +1020,38 @@
       #view-hedge .hg-form-item { display:flex; flex-direction:column; gap:8px; }
       #view-hedge .hg-form-label { font-size:14px; color:var(--hg-accent-soft); display:flex; align-items:center; gap:5px; }
       #view-hedge .hg-required { color:var(--hg-accent); font-size:16px; }
-      #view-hedge .hg-input { width:100%; background:rgba(5,5,8,.85); border:1px solid rgba(199,164,106,.28); color:#f0f0f2; padding:13px 16px; border-radius:10px; outline:none; font-size:15px; transition:.22s; font-family: var(--font-body); line-height:1.5; }
-      #view-hedge .hg-input:focus { border-color:var(--hg-accent-soft); border-width:2px; box-shadow:0 0 0 4px rgba(199,164,106,.08), 0 0 18px rgba(199,164,106,.12); }
+      #view-hedge .hg-input,
+      #view-hedge .hg-select { width:100%; background:rgba(5,5,8,.85); border:1px solid rgba(199,164,106,.28); color:#f0f0f2; padding:13px 16px; border-radius:10px; outline:none; font-size:15px; transition:.22s; font-family: var(--font-body); line-height:1.5; }
+      #view-hedge .hg-input:focus,
+      #view-hedge .hg-select:focus { border-color:var(--hg-accent-soft); border-width:2px; box-shadow:0 0 0 4px rgba(199,164,106,.08), 0 0 18px rgba(199,164,106,.12); }
       #view-hedge .hg-input::placeholder { color:#555; }
+      #view-hedge .hg-select {
+        cursor:pointer;
+        appearance:none;
+        -webkit-appearance:none;
+        -moz-appearance:none;
+        padding-right:42px;
+        background-image:
+          linear-gradient(45deg, transparent 50%, rgba(220,200,163,.9) 50%),
+          linear-gradient(135deg, rgba(220,200,163,.9) 50%, transparent 50%);
+        background-position:
+          calc(100% - 18px) calc(50% - 1px),
+          calc(100% - 12px) calc(50% - 1px);
+        background-size:6px 6px, 6px 6px;
+        background-repeat:no-repeat;
+      }
+      #view-hedge .hg-select option {
+        background:#101318;
+        color:#f0f0f2;
+      }
+      #view-hedge .hg-input[type="date"] {
+        color-scheme:dark;
+        cursor:pointer;
+      }
+      #view-hedge .hg-input[type="date"]::-webkit-calendar-picker-indicator {
+        cursor:pointer;
+        opacity:.92;
+      }
       #view-hedge .hg-radio-group { display:flex; gap:18px; flex-wrap:wrap; padding:4px 0; }
       #view-hedge .hg-radio-item { display:flex; align-items:center; gap:8px; cursor:pointer; }
       #view-hedge .hg-custom-radio { width:17px; height:17px; border:2px solid var(--hg-accent); border-radius:50%; display:flex; justify-content:center; align-items:center; background:#0d0d0d; transition:.2s; flex-shrink:0; }
@@ -1066,10 +1095,10 @@
           <!-- 业务类型 -->
           <div class="hg-form-item">
             <label class="hg-form-label"><span class="hg-required">*</span>业务类型</label>
-            <div class="hg-radio-group" id="hgBizGroup">
-              <div class="hg-radio-item" data-value="采购"><div class="hg-custom-radio checked"></div><div class="hg-radio-text">采购</div></div>
-              <div class="hg-radio-item" data-value="销售"><div class="hg-custom-radio"></div><div class="hg-radio-text">销售</div></div>
-            </div>
+            <select class="hg-select" id="hgBizType">
+              <option value="采购" selected>采购</option>
+              <option value="销售">销售</option>
+            </select>
           </div>
 
           <!-- 现货数量 -->
@@ -1083,28 +1112,28 @@
           <!-- 到期日期 -->
           <div class="hg-form-item">
             <label class="hg-form-label"><span class="hg-required">*</span>现货交易到期日期</label>
-            <input type="month" class="hg-input" id="hgExpireDate">
-            <div class="hg-error" id="hgExpireDateErr">请选择有效的到期月份</div>
+            <input type="date" class="hg-input" id="hgExpireDate">
+            <div class="hg-error" id="hgExpireDateErr">请选择有效的到期日期</div>
             <div class="hg-contract-tips" id="hgContractTips">系统匹配合约：SC2710</div>
           </div>
 
           <!-- 消费者类型 -->
           <div class="hg-form-item">
             <label class="hg-form-label"><span class="hg-required">*</span>消费者类型</label>
-            <div class="hg-radio-group" id="hgConsumerGroup">
-              <div class="hg-radio-item" data-value="稳健型"><div class="hg-custom-radio checked"></div><div class="hg-radio-text">稳健型</div></div>
-              <div class="hg-radio-item" data-value="中立型"><div class="hg-custom-radio"></div><div class="hg-radio-text">中立型</div></div>
-              <div class="hg-radio-item" data-value="激进型"><div class="hg-custom-radio"></div><div class="hg-radio-text">激进型</div></div>
-            </div>
+            <select class="hg-select" id="hgConsumerType">
+              <option value="稳健型" selected>稳健型</option>
+              <option value="中立型">中立型</option>
+              <option value="激进型">激进型</option>
+            </select>
           </div>
 
           <!-- 套保模型 -->
           <div class="hg-form-item">
             <label class="hg-form-label"><span class="hg-required">*</span>套保模型选择</label>
-            <div class="hg-radio-group" id="hgModelGroup">
-              <div class="hg-radio-item" data-value="最小方差模型"><div class="hg-custom-radio checked"></div><div class="hg-radio-text">最小方差模型</div></div>
-              <div class="hg-radio-item" data-value="均值-方差权衡模型"><div class="hg-custom-radio"></div><div class="hg-radio-text">均值-方差权衡模型</div></div>
-            </div>
+            <select class="hg-select" id="hgModelSelect">
+              <option value="最小方差模型" selected>最小方差模型</option>
+              <option value="均值-方差权衡模型">均值-方差权衡模型</option>
+            </select>
             <div class="hg-advanced" id="hgAdvanced">
               <label class="hg-form-label"><span class="hg-required">*</span>最大可接受损失率（%）</label>
               <input type="number" class="hg-input" id="hgMaxLoss" placeholder="如30代表30%" step="0.1" min="0">
@@ -2610,26 +2639,29 @@ window._loadDbDownload = function(){
 (function(){
   function hgInit(){
     const $=id=>document.getElementById(id);
-    const bizItems=document.querySelectorAll('#hgBizGroup .hg-radio-item');
-    const consumerItems=document.querySelectorAll('#hgConsumerGroup .hg-radio-item');
-    const modelItems=document.querySelectorAll('#hgModelGroup .hg-radio-item');
-    if(!bizItems.length) return; // view未激活时跳过
+    const root=$('view-hedge');
+    const bizSelect=$('hgBizType');
+    const consumerSelect=$('hgConsumerType');
+    const modelSelect=$('hgModelSelect');
+    const expireInput=$('hgExpireDate');
+    if(!bizSelect || !consumerSelect || !modelSelect || !expireInput || !root) return; // view未激活时跳过
+    if(root.dataset.hgInited==='1') return;
+    root.dataset.hgInited='1';
 
     // 设置默认到期日
     const now=new Date();
-    const curMonth=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
-    $('hgExpireDate').value=curMonth;
-    hgUpdateContract(curMonth);
+    const now=new Date();
+    const curDate=[
+      now.getFullYear(),
+      String(now.getMonth()+1).padStart(2,'0'),
+      String(now.getDate()).padStart(2,'0')
+    ].join('-');
+    expireInput.value=curDate;
+    hgUpdateContract(curDate);
 
-    function hgToggleRadio(items,clicked){
-      items.forEach(i=>i.querySelector('.hg-custom-radio').classList.remove('checked'));
-      clicked.querySelector('.hg-custom-radio').classList.add('checked');
-      return clicked.dataset.value;
-    }
-    function hgGetVal(items){let v='';items.forEach(i=>{if(i.querySelector('.hg-custom-radio').classList.contains('checked'))v=i.dataset.value;});return v;}
     function hgUpdateContract(date){
       if(!date)return;
-      const[y,m]=date.split('-');
+      const y=date.slice(0,4),m=date.slice(5,7);
       const code='SC'+y.slice(2)+m;
       $('hgContractTips').textContent='系统匹配合约：'+code;
       $('hgFutCode').textContent=code;
@@ -2641,16 +2673,30 @@ window._loadDbDownload = function(){
     function hgToast(msg){const t=$('hgToast');t.textContent=msg;t.classList.add('show');clearTimeout(hgToast._t);hgToast._t=setTimeout(()=>t.classList.remove('show'),1600);}
     function hgFmt(n){return n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',');}
 
+    $('hgModelType').textContent=modelSelect.value;
+    $('hgAdvanced').style.display=modelSelect.value==='均值-方差权衡模型'?'flex':'none';
+    hgUpdateHedgeType(bizSelect.value);
+    hgUpdateOpenTime(modelSelect.value,consumerSelect.value);
+
     // 绑定事件
-    bizItems.forEach(item=>item.addEventListener('click',()=>{hgUpdateHedgeType(hgToggleRadio(bizItems,item));}));
-    consumerItems.forEach(item=>item.addEventListener('click',()=>{hgToggleRadio(consumerItems,item);hgUpdateOpenTime(hgGetVal(modelItems),item.dataset.value);}));
-    modelItems.forEach(item=>item.addEventListener('click',()=>{
-      const sel=hgToggleRadio(modelItems,item);
+    bizSelect.addEventListener('change',e=>{hgUpdateHedgeType(e.target.value);});
+    consumerSelect.addEventListener('change',e=>{hgUpdateOpenTime(modelSelect.value,e.target.value);});
+    modelSelect.addEventListener('change',e=>{
+      const sel=e.target.value;
       $('hgModelType').textContent=sel;
       $('hgAdvanced').style.display=sel==='均值-方差权衡模型'?'flex':'none';
-      hgUpdateOpenTime(sel,hgGetVal(consumerItems));
-    }));
-    $('hgExpireDate').addEventListener('change',e=>{hgUpdateContract(e.target.value);$('hgExpireDateErr').style.display='none';});
+      hgUpdateOpenTime(sel,consumerSelect.value);
+    });
+    if(typeof expireInput.showPicker==='function'){
+      expireInput.addEventListener('click',()=>expireInput.showPicker());
+      expireInput.addEventListener('keydown',e=>{
+        if(e.key==='Enter' || e.key===' '){
+          e.preventDefault();
+          expireInput.showPicker();
+        }
+      });
+    }
+    expireInput.addEventListener('change',e=>{hgUpdateContract(e.target.value);$('hgExpireDateErr').style.display='none';});
     $('hgSpotQty').addEventListener('input',()=>{
       const v=Number($('hgSpotQty').value.trim());
       $('hgSpotQtyErr').style.display=(isNaN(v)||v<100||v%1!==0)?'block':'none';
@@ -2664,8 +2710,8 @@ window._loadDbDownload = function(){
       let ok=true;
       const qty=Number($('hgSpotQty').value.trim());
       if(isNaN(qty)||qty<100||qty%1!==0){$('hgSpotQtyErr').style.display='block';ok=false;}else{$('hgSpotQtyErr').style.display='none';}
-      if(!$('hgExpireDate').value){$('hgExpireDateErr').style.display='block';ok=false;}else{$('hgExpireDateErr').style.display='none';}
-      if(hgGetVal(modelItems)==='均值-方差权衡模型'){
+      if(!expireInput.value){$('hgExpireDateErr').style.display='block';ok=false;}else{$('hgExpireDateErr').style.display='none';}
+      if(modelSelect.value==='均值-方差权衡模型'){
         const lv=Number($('hgMaxLoss').value.trim());
         if(isNaN(lv)||lv<0){$('hgMaxLossErr').style.display='block';ok=false;}else{$('hgMaxLossErr').style.display='none';}
       }
@@ -2673,10 +2719,10 @@ window._loadDbDownload = function(){
     }
 
     function hgCalc(){
-      const biz=hgGetVal(bizItems);
+      const biz=bizSelect.value;
       const qty=Number($('hgSpotQty').value.trim());
-      const consumer=hgGetVal(consumerItems);
-      const model=hgGetVal(modelItems);
+      const consumer=consumerSelect.value;
+      const model=modelSelect.value;
       let ratio=0.856;
       if(consumer==='中立型') ratio=0.856*0.9;
       else if(consumer==='激进型') ratio=0.856*0.8;
@@ -2692,11 +2738,11 @@ window._loadDbDownload = function(){
 
     $('hgCalcBtn').addEventListener('click',()=>{if(hgCheckForm()){hgCalc();hgToast('套保方案计算成功！');}});
     $('hgResetBtn').addEventListener('click',()=>{
-      hgToggleRadio(bizItems,bizItems[0]);hgUpdateHedgeType('采购');
+      bizSelect.value='采购';hgUpdateHedgeType('采购');
       $('hgSpotQty').value='';$('hgSpotQtyErr').style.display='none';
-      $('hgExpireDate').value=curMonth;hgUpdateContract(curMonth);$('hgExpireDateErr').style.display='none';
-      hgToggleRadio(consumerItems,consumerItems[0]);
-      hgToggleRadio(modelItems,modelItems[0]);$('hgModelType').textContent='最小方差模型';$('hgAdvanced').style.display='none';
+      expireInput.value=curDate;hgUpdateContract(curDate);$('hgExpireDateErr').style.display='none';
+      consumerSelect.value='稳健型';
+      modelSelect.value='最小方差模型';$('hgModelType').textContent='最小方差模型';$('hgAdvanced').style.display='none';
       $('hgMaxLoss').value='';$('hgMaxLossErr').style.display='none';
       hgUpdateOpenTime('最小方差模型','稳健型');
     });
