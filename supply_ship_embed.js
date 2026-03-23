@@ -5,10 +5,10 @@
     var frame = document.getElementById('supply-iframe');
     if(!frame || frame.dataset.loaded) return;
     
-    // Inject CSS to disable internal scrolling and force auto height
+    // Keep iframe content scrollable inside the fixed supply container
     var modifiedHtml = _supplyHtml.replace(
       '<style>',
-      '<style>\nhtml,body{overflow:hidden!important;margin:0;padding:0;height:100%;}\n'
+      '<style>\nhtml,body{margin:0;padding:0;min-height:100%;overflow-x:hidden;overflow-y:auto!important;}\n'
     );
 
     var blob = new Blob([modifiedHtml], {type:'text/html'});
