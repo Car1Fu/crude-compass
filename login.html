@@ -620,6 +620,7 @@
       email: emailInput.value.trim(),
       loggedInAt: Date.now()
     }));
+    sessionStorage.setItem('cc_auth_demo_once', '1');
     window.location.href = 'index.html';
   });
 
