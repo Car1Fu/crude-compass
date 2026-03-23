@@ -615,6 +615,11 @@
     const emailOk = validateEmail();
     const pwOk = validatePw();
     if (!emailOk || !pwOk) return;
+    localStorage.setItem('cc_auth_user', JSON.stringify({
+      loggedIn: true,
+      email: emailInput.value.trim(),
+      loggedInAt: Date.now()
+    }));
     window.location.href = 'index.html';
   });
 

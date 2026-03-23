@@ -7,6 +7,7 @@ window.VIEW_NAV = window.VIEW_NAV || {
   'view-forecast':'nl-forecast','view-hedge':'nl-forecast','view-warning':'nl-forecast',
   'view-about':'nl-about','view-pricing':'nl-about','view-contact':'nl-about',
 };
+window.CC_AUTH_STORAGE_KEY = window.CC_AUTH_STORAGE_KEY || 'cc_auth_user';
 function switchView(viewId){
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   const t=document.getElementById(viewId);
@@ -34,6 +35,21 @@ function switchView(viewId){
 }
 
 function openLogin(){ window.location.href = 'login.html'; }
+
+(function initAuthActions(){
+  const host=document.getElementById('authActions');
+  if(!host)return;
+  let session=null;
+  try{session=JSON.parse(localStorage.getItem(window.CC_AUTH_STORAGE_KEY)||'null');}catch{session=null;}
+  if(!session||!session.loggedIn)return;
+  const title=session.email||'已登录账户';
+  host.innerHTML=`<a href="javascript:void(0)" class="auth-avatar" aria-label="已登录账户" title="${title}">
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" stroke="currentColor" stroke-width="1.9"/>
+      <path d="M4.5 20a7.5 7.5 0 0 1 15 0" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+    </svg>
+  </a>`;
+})();
 
 // Apple 风格：滚动时导航栏背景加深
 window.addEventListener('scroll', function() {
