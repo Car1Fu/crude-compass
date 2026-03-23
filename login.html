@@ -38,6 +38,22 @@
       position: fixed; inset: 0; z-index: 0;
       overflow: hidden;
     }
+    .bg-image {
+      position: absolute; inset: 0;
+      background-image: url('assets/login_bg.png');
+      background-size: cover;
+      background-position: center center;
+      background-repeat: no-repeat;
+      transform: scale(1.03);
+      opacity: .46;
+      filter: saturate(.94) contrast(1.03);
+    }
+    .bg-overlay {
+      position: absolute; inset: 0;
+      background:
+        linear-gradient(90deg, rgba(8,9,12,.68) 0%, rgba(8,9,12,.54) 34%, rgba(8,9,12,.42) 62%, rgba(8,9,12,.56) 100%),
+        linear-gradient(180deg, rgba(6,7,10,.42) 0%, rgba(6,7,10,.12) 24%, rgba(6,7,10,.34) 100%);
+    }
     .bg-grid {
       position: absolute; inset: 0;
       background-image:
@@ -45,6 +61,7 @@
         linear-gradient(90deg, rgba(214,179,106,.04) 1px, transparent 1px);
       background-size: 64px 64px;
       animation: gridBreath 10s ease-in-out infinite;
+      opacity: .58;
     }
     @keyframes gridBreath {
       0%, 100% { opacity: .5; }
@@ -94,6 +111,7 @@
       justify-content: center; padding: 64px 72px;
       border-right: 1px solid rgba(214,179,106,.10);
       position: relative; overflow: hidden;
+      background: rgba(8,10,14,.18);
     }
     .brand-side::before {
       content: '';
@@ -212,7 +230,8 @@
       display: flex; flex-direction: column;
       justify-content: center; align-items: center;
       padding: 48px 40px;
-      background: rgba(10,10,12,.55);
+      background: rgba(10,10,12,.34);
+      backdrop-filter: blur(10px);
     }
 
     .form-card {
@@ -419,6 +438,8 @@
 
 <!-- Animated background -->
 <div class="bg">
+  <div class="bg-image"></div>
+  <div class="bg-overlay"></div>
   <div class="bg-grid"></div>
   <div class="bg-glow1"></div>
   <div class="bg-glow2"></div>
