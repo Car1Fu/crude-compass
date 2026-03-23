@@ -1080,7 +1080,38 @@
       #view-hedge .hg-result-area { width:60%; display:flex; flex-direction:column; gap:18px; }
       #view-hedge .hg-card { background:rgba(0,0,0,.70); border:1px solid var(--hg-accent-border-strong); border-radius:10px; padding:22px; backdrop-filter:blur(8px); }
       #view-hedge .hg-card-title { color:var(--hg-accent); font-size:17px; font-weight:900; margin-bottom:18px; padding-bottom:10px; border-bottom:1px solid #222; }
-      #view-hedge .hg-empty-stage { min-height:720px; }
+      #view-hedge .hg-empty-stage { min-height:720px; padding:0; overflow:hidden; }
+      #view-hedge .hg-chat-shell { min-height:720px; display:flex; flex-direction:column; background:linear-gradient(180deg, rgba(7,10,14,.96) 0%, rgba(11,13,18,.92) 52%, rgba(14,16,21,.96) 100%); }
+      #view-hedge .hg-chat-topbar { display:flex; align-items:center; justify-content:space-between; gap:18px; padding:18px 20px; border-bottom:1px solid rgba(199,164,106,.16); background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,0)); }
+      #view-hedge .hg-chat-agent { display:flex; align-items:center; gap:12px; min-width:0; }
+      #view-hedge .hg-chat-avatar { width:42px; height:42px; border-radius:14px; object-fit:cover; border:1px solid rgba(199,164,106,.20); box-shadow:0 10px 26px rgba(0,0,0,.22); flex-shrink:0; background:rgba(255,255,255,.06); }
+      #view-hedge .hg-chat-dot { width:8px; height:8px; border-radius:50%; background:#63d78d; box-shadow:0 0 0 4px rgba(99,215,141,.12); flex-shrink:0; }
+      #view-hedge .hg-chat-name { color:#f3efe6; font-size:15px; font-weight:800; letter-spacing:.3px; }
+      #view-hedge .hg-chat-sub { color:rgba(243,239,230,.50); font-size:11px; margin-top:2px; letter-spacing:.4px; text-transform:uppercase; }
+      #view-hedge .hg-chat-state { padding:6px 12px; border-radius:999px; border:1px solid rgba(199,164,106,.18); background:rgba(199,164,106,.08); color:var(--hg-accent-soft); font-size:11px; font-weight:700; letter-spacing:.5px; white-space:nowrap; }
+      #view-hedge .hg-chat-body { flex:1; display:flex; flex-direction:column; gap:14px; padding:22px 20px 14px; overflow-y:auto; scroll-behavior:smooth; }
+      #view-hedge .hg-chat-body::-webkit-scrollbar { width:8px; }
+      #view-hedge .hg-chat-body::-webkit-scrollbar-track { background:transparent; }
+      #view-hedge .hg-chat-body::-webkit-scrollbar-thumb { background:rgba(199,164,106,.18); border-radius:999px; }
+      #view-hedge .hg-msg-row { display:flex; align-items:flex-end; gap:12px; }
+      #view-hedge .hg-msg-row.ai { align-self:flex-start; max-width:92%; align-items:flex-start; }
+      #view-hedge .hg-msg-row.user { align-self:flex-end; max-width:86%; justify-content:flex-end; }
+      #view-hedge .hg-msg-avatar { width:34px; height:34px; border-radius:12px; object-fit:cover; border:1px solid rgba(199,164,106,.16); box-shadow:0 8px 18px rgba(0,0,0,.18); flex-shrink:0; background:rgba(255,255,255,.06); }
+      #view-hedge .hg-msg-stack { display:flex; flex-direction:column; gap:6px; min-width:0; }
+      #view-hedge .hg-msg-meta { font-size:11px; letter-spacing:.3px; color:rgba(243,239,230,.42); padding-left:4px; }
+      #view-hedge .hg-msg { max-width:100%; padding:14px 16px; border-radius:18px; line-height:1.75; font-size:14px; }
+      #view-hedge .hg-msg-ai { background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.06); color:rgba(243,239,230,.88); border-top-left-radius:8px; box-shadow:0 10px 26px rgba(0,0,0,.18); }
+      #view-hedge .hg-msg-user { background:linear-gradient(135deg, rgba(199,164,106,.24), rgba(146,106,54,.20)); border:1px solid rgba(199,164,106,.26); color:#f7f0e2; border-top-right-radius:8px; box-shadow:0 12px 28px rgba(108,74,31,.16); }
+      #view-hedge .hg-chat-suggestions { display:flex; flex-wrap:wrap; gap:10px; padding:0 20px 18px; }
+      #view-hedge .hg-chat-chip { display:inline-flex; align-items:center; min-height:34px; padding:0 14px; border-radius:999px; border:1px solid rgba(199,164,106,.18); background:rgba(255,255,255,.03); color:var(--hg-accent-soft); font-size:12px; font-weight:700; letter-spacing:.2px; }
+      #view-hedge .hg-chat-inputbar { margin:0 20px 20px; padding:14px 16px; border-radius:18px; border:1px solid rgba(199,164,106,.14); background:rgba(255,255,255,.03); display:flex; align-items:flex-end; justify-content:space-between; gap:16px; box-shadow:inset 0 1px 0 rgba(255,255,255,.03); }
+      #view-hedge .hg-chat-input-wrap { flex:1; min-width:0; }
+      #view-hedge .hg-chat-input { width:100%; min-height:24px; max-height:120px; border:none; outline:none; resize:none; overflow-y:auto; background:transparent; color:#f3efe6; font-size:14px; line-height:1.6; font-family:var(--font-body); }
+      #view-hedge .hg-chat-input::placeholder { color:rgba(243,239,230,.34); }
+      #view-hedge .hg-chat-send { width:38px; height:38px; border:none; cursor:pointer; border-radius:12px; display:grid; place-items:center; background:linear-gradient(135deg, rgba(199,164,106,.92), rgba(156,116,66,.92)); color:rgba(10,8,4,.92); box-shadow:0 8px 20px rgba(108,74,31,.18); flex-shrink:0; transition:transform .2s ease, opacity .2s ease, box-shadow .2s ease; }
+      #view-hedge .hg-chat-send:hover { transform:translateY(-1px); box-shadow:0 10px 22px rgba(108,74,31,.22); }
+      #view-hedge .hg-chat-send:disabled { cursor:not-allowed; opacity:.45; transform:none; box-shadow:none; }
+      #view-hedge .hg-chat-send svg { width:16px; height:16px; }
       #view-hedge .hg-hidden-bind { display:none; }
       #view-hedge .hg-result-list { display:grid; grid-template-columns:repeat(2,1fr); gap:14px 18px; }
       #view-hedge .hg-result-item { display:flex; flex-direction:column; gap:4px; }
@@ -1094,29 +1125,53 @@
       #view-hedge .hg-toast.show { display:block; }
       #view-hedge.hg-light { background:#f5f3ee !important; color:#2d2418; }
       #view-hedge.hg-light > div { background:#f5f3ee !important; }
-      #view-hedge.hg-light .hg-page-title { color:#9c7442 !important; border-bottom-color:rgba(156,116,66,.22) !important; }
-      #view-hedge.hg-light .hg-page-title svg path { stroke:#9c7442; }
+      #view-hedge.hg-light .hg-page-title { color:#2d2418 !important; border-bottom-color:rgba(34,28,22,.24) !important; }
+      #view-hedge.hg-light .hg-page-title svg path { stroke:#2d2418; }
       #view-hedge.hg-light .hg-wrap { color:#2d2418; }
       #view-hedge.hg-light .hg-input-area,
       #view-hedge.hg-light .hg-card {
         background:rgba(255,252,247,.96) !important;
-        border-color:rgba(156,116,66,.18) !important;
+        border-color:rgba(34,28,22,.18) !important;
         box-shadow:0 14px 36px rgba(64,42,18,.06);
         backdrop-filter:none;
       }
       #view-hedge.hg-light .hg-empty-stage { background:rgba(255,252,247,.96) !important; }
+      #view-hedge.hg-light .hg-chat-shell { background:linear-gradient(180deg, rgba(255,253,249,.98) 0%, rgba(249,244,237,.98) 100%) !important; }
+      #view-hedge.hg-light .hg-chat-topbar { border-bottom-color:rgba(34,28,22,.10) !important; background:linear-gradient(180deg, rgba(34,28,22,.02), rgba(34,28,22,0)) !important; }
+      #view-hedge.hg-light .hg-chat-avatar,
+      #view-hedge.hg-light .hg-msg-avatar { border-color:rgba(34,28,22,.10) !important; box-shadow:0 8px 20px rgba(64,42,18,.08) !important; }
+      #view-hedge.hg-light .hg-chat-dot { background:#2d2418 !important; box-shadow:0 0 0 4px rgba(34,28,22,.08) !important; }
+      #view-hedge.hg-light .hg-chat-name { color:#2d2418 !important; }
+      #view-hedge.hg-light .hg-chat-sub { color:rgba(45,36,24,.46) !important; }
+      #view-hedge.hg-light .hg-chat-state { color:#5f5142 !important; border-color:rgba(34,28,22,.10) !important; background:rgba(34,28,22,.04) !important; }
+      #view-hedge.hg-light .hg-msg-meta { color:rgba(45,36,24,.42) !important; }
+      #view-hedge.hg-light .hg-msg-ai { background:rgba(255,255,255,.82) !important; border-color:rgba(34,28,22,.08) !important; color:#2d2418 !important; box-shadow:0 10px 24px rgba(64,42,18,.06) !important; }
+      #view-hedge.hg-light .hg-msg-user { background:linear-gradient(135deg, rgba(34,28,22,.92), rgba(53,43,31,.90)) !important; border-color:rgba(34,28,22,.10) !important; color:#fffaf0 !important; box-shadow:0 12px 28px rgba(64,42,18,.10) !important; }
+      #view-hedge.hg-light .hg-chat-chip { border-color:rgba(34,28,22,.10) !important; background:rgba(255,255,255,.72) !important; color:#5f5142 !important; }
+      #view-hedge.hg-light .hg-chat-inputbar { border-color:rgba(34,28,22,.10) !important; background:rgba(255,255,255,.76) !important; box-shadow:inset 0 1px 0 rgba(255,255,255,.88) !important; }
+      #view-hedge.hg-light .hg-chat-body::-webkit-scrollbar-thumb { background:rgba(34,28,22,.16) !important; }
+      #view-hedge.hg-light .hg-chat-input { color:#2d2418 !important; }
+      #view-hedge.hg-light .hg-chat-input::placeholder { color:rgba(45,36,24,.34) !important; }
+      #view-hedge.hg-light .hg-chat-send { background:linear-gradient(135deg, #2d2418, #47392b) !important; color:#fffaf0 !important; box-shadow:0 10px 24px rgba(64,42,18,.12) !important; }
       #view-hedge.hg-light .hg-form-label,
       #view-hedge.hg-light .hg-contract-tips,
       #view-hedge.hg-light .hg-result-label { color:#8b7556 !important; }
       #view-hedge.hg-light .hg-card-title,
       #view-hedge.hg-light .hg-radio-text,
       #view-hedge.hg-light .hg-result-value { color:#2d2418 !important; }
+      #view-hedge.hg-light .hg-card-title { border-bottom-color:rgba(34,28,22,.16) !important; }
       #view-hedge.hg-light .hg-input,
       #view-hedge.hg-light .hg-select {
         background:#fffdfa !important;
         color:#2d2418 !important;
-        border-color:rgba(156,116,66,.22) !important;
+        border-color:rgba(34,28,22,.22) !important;
       }
+      #view-hedge.hg-light .hg-select:focus,
+      #view-hedge.hg-light .hg-input:focus { border-color:rgba(34,28,22,.48) !important; box-shadow:0 0 0 4px rgba(34,28,22,.07), 0 0 18px rgba(34,28,22,.08) !important; }
+      #view-hedge.hg-light .hg-custom-radio { border-color:#2d2418 !important; background:#fffdfa !important; }
+      #view-hedge.hg-light .hg-custom-radio.checked { background:#2d2418 !important; }
+      #view-hedge.hg-light .hg-custom-radio.checked::after { background:#fffdfa !important; }
+      #view-hedge.hg-light .hg-contract-tips { border-left-color:#2d2418 !important; }
       #view-hedge.hg-light .hg-input::placeholder { color:#a79a87 !important; }
       #view-hedge.hg-light .hg-select option { background:#fffdfa !important; color:#2d2418 !important; }
       #view-hedge.hg-light .hg-input[type="date"] { color-scheme:light; }
@@ -1126,20 +1181,20 @@
       #view-hedge.hg-light .hg-theme-btn {
         background:#fffdf8;
         color:#6f5330;
-        border-color:rgba(156,116,66,.18);
+        border-color:rgba(34,28,22,.16);
         box-shadow:0 10px 24px rgba(64,42,18,.08);
       }
       #view-hedge.hg-light .hg-theme-btn:hover {
         background:#ffffff;
-        border-color:rgba(156,116,66,.28);
+        border-color:rgba(34,28,22,.28);
       }
       #view-hedge.hg-light .hg-toast {
         background:#fffdf8;
         color:#8b6738;
-        border-color:rgba(156,116,66,.22);
+        border-color:rgba(34,28,22,.20);
         box-shadow:0 12px 28px rgba(64,42,18,.08);
       }
-      @media (max-width:1100px) { #view-hedge .hg-core { flex-direction:column; } #view-hedge .hg-input-area, #view-hedge .hg-result-area { width:100%; } #view-hedge .hg-result-list { grid-template-columns:1fr; } #view-hedge .hg-result-value.big-gold { grid-column:span 1; } }
+      @media (max-width:1100px) { #view-hedge .hg-core { flex-direction:column; } #view-hedge .hg-input-area, #view-hedge .hg-result-area { width:100%; } #view-hedge .hg-result-list { grid-template-columns:1fr; } #view-hedge .hg-result-value.big-gold { grid-column:span 1; } #view-hedge .hg-chat-shell { min-height:520px; } #view-hedge .hg-msg-row.ai, #view-hedge .hg-msg-row.user { max-width:100%; } }
     </style>
 
     <div class="hg-wrap">
@@ -1209,7 +1264,44 @@
 
         <!-- 右：结果区 -->
         <div class="hg-result-area">
-          <div class="hg-card hg-empty-stage"></div>
+          <div class="hg-card hg-empty-stage">
+            <div class="hg-chat-shell">
+              <div class="hg-chat-topbar">
+                <div class="hg-chat-agent">
+                  <img class="hg-chat-avatar" src="assets/AI.png" alt="AI 助手形象">
+                  <div>
+                    <div class="hg-chat-name">套保 AI 助手</div>
+                    <div class="hg-chat-sub">Hedge Assistant Online</div>
+                  </div>
+                </div>
+                <div class="hg-chat-state"><span class="hg-chat-dot"></span> 在线响应</div>
+              </div>
+              <div class="hg-chat-body" id="hgChatBody">
+                <div class="hg-msg-row ai">
+                  <img class="hg-msg-avatar" src="assets/AI.png" alt="AI 助手头像">
+                  <div class="hg-msg-stack">
+                    <div class="hg-msg-meta">套保 AI 助手</div>
+                    <div class="hg-msg hg-msg-ai">请在左侧补充相关信息，我会基于这些输入给出更贴近业务的套保建议。你也可以直接和我对话，一起讨论套保策略。</div>
+                  </div>
+                </div>
+              </div>
+              <div class="hg-chat-suggestions">
+                <span class="hg-chat-chip">稳健型采购</span>
+                <span class="hg-chat-chip">先看保证金占用</span>
+                <span class="hg-chat-chip">输出执行提醒</span>
+              </div>
+              <div class="hg-chat-inputbar">
+                <div class="hg-chat-input-wrap">
+                  <textarea class="hg-chat-input" id="hgChatInput" rows="1" placeholder="输入你的问题，回车发送，Shift + Enter 换行"></textarea>
+                </div>
+                <button class="hg-chat-send" id="hgChatSend" type="button" aria-label="发送消息" disabled>
+                  <svg viewBox="0 0 24 24" fill="none">
+                    <path d="M4 12 20 4 14 20 11 13 4 12Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
           <div class="hg-hidden-bind" aria-hidden="true">
             <span id="hgModelType">最小方差模型</span>
             <span id="hgFutCode">SC2710</span>
@@ -2669,6 +2761,9 @@ window._loadDbDownload = function(){
     const modelSelect=$('hgModelSelect');
     const expireInput=$('hgExpireDate');
     const themeBtn=$('hgThemeBtn');
+    const chatBody=$('hgChatBody');
+    const chatInput=$('hgChatInput');
+    const chatSend=$('hgChatSend');
     if(!bizSelect || !consumerSelect || !modelSelect || !expireInput || !root) return; // view未激活时跳过
     if(root.dataset.hgInited==='1') return;
     root.dataset.hgInited='1';
@@ -2711,6 +2806,44 @@ window._loadDbDownload = function(){
     hgUpdateHedgeType(bizSelect.value);
     hgUpdateOpenTime(modelSelect.value,consumerSelect.value);
 
+    function hgAutoResizeChat(){
+      if(!chatInput) return;
+      chatInput.style.height='auto';
+      chatInput.style.height=Math.min(chatInput.scrollHeight,120)+'px';
+    }
+    function hgSyncSendState(){
+      if(!chatInput || !chatSend) return;
+      chatSend.disabled=!chatInput.value.trim();
+    }
+    function hgScrollChatToBottom(){
+      if(!chatBody) return;
+      chatBody.scrollTop=chatBody.scrollHeight;
+    }
+    function hgAppendUserMessage(text){
+      if(!chatBody) return;
+      const row=document.createElement('div');
+      row.className='hg-msg-row user';
+      const bubble=document.createElement('div');
+      bubble.className='hg-msg hg-msg-user';
+      bubble.textContent=text;
+      row.appendChild(bubble);
+      chatBody.appendChild(row);
+      hgScrollChatToBottom();
+    }
+    function hgSendChatMessage(){
+      if(!chatInput) return;
+      const text=chatInput.value.trim();
+      if(!text) return;
+      hgAppendUserMessage(text);
+      chatInput.value='';
+      hgAutoResizeChat();
+      hgSyncSendState();
+      chatInput.focus();
+    }
+    hgAutoResizeChat();
+    hgSyncSendState();
+    setTimeout(hgScrollChatToBottom,0);
+
     // 绑定事件
     bizSelect.addEventListener('change',e=>{hgUpdateHedgeType(e.target.value);});
     consumerSelect.addEventListener('change',e=>{hgUpdateOpenTime(modelSelect.value,e.target.value);});
@@ -2744,6 +2877,30 @@ window._loadDbDownload = function(){
     $('hgMaxLoss').addEventListener('input',()=>{
       const v=Number($('hgMaxLoss').value.trim());
       $('hgMaxLossErr').style.display=(isNaN(v)||v<0)?'block':'none';
+    });
+    if(chatInput){
+      chatInput.addEventListener('input',()=>{
+        hgAutoResizeChat();
+        hgSyncSendState();
+      });
+      chatInput.addEventListener('keydown',e=>{
+        if(e.key==='Enter' && !e.shiftKey){
+          e.preventDefault();
+          hgSendChatMessage();
+        }
+      });
+    }
+    if(chatSend){
+      chatSend.addEventListener('click',hgSendChatMessage);
+    }
+    root.querySelectorAll('.hg-chat-chip').forEach(chip=>{
+      chip.addEventListener('click',()=>{
+        if(!chatInput) return;
+        chatInput.value=chip.textContent.trim();
+        hgAutoResizeChat();
+        hgSyncSendState();
+        chatInput.focus();
+      });
     });
 
     function hgCheckForm(){
