@@ -982,18 +982,27 @@
 
     <!-- 套保助手专属CSS（scoped via hedge- prefix） -->
     <style>
+      #view-hedge {
+        --hg-accent: #c7a46a;
+        --hg-accent-strong: #a87f47;
+        --hg-accent-soft: #dcc8a3;
+        --hg-accent-border: rgba(199,164,106,.24);
+        --hg-accent-border-strong: rgba(199,164,106,.38);
+        --hg-accent-glow: rgba(199,164,106,.16);
+        --hg-accent-panel: rgba(199,164,106,.08);
+      }
       #view-hedge .hg-wrap { max-width:1600px; margin:0 auto; padding:28px 20px 60px; }
-      #view-hedge .hg-page-title { color:#FFD700; font-size:22px; font-weight:900; letter-spacing:.5px; margin-bottom:24px; padding-bottom:14px; border-bottom:1px solid rgba(255,215,0,.20); display:flex; align-items:center; gap:12px; }
+      #view-hedge .hg-page-title { color:var(--hg-accent); font-size:22px; font-weight:900; letter-spacing:.5px; margin-bottom:24px; padding-bottom:14px; border-bottom:1px solid var(--hg-accent-border); display:flex; align-items:center; gap:12px; }
       #view-hedge .hg-core { display:flex; gap:28px; }
-      #view-hedge .hg-input-area { width:40%; background:rgba(40,40,40,.75); border:1px solid rgba(255,215,0,.45); border-radius:10px; padding:28px; display:flex; flex-direction:column; gap:22px; backdrop-filter:blur(8px); }
+      #view-hedge .hg-input-area { width:40%; background:rgba(30,29,28,.78); border:1px solid var(--hg-accent-border-strong); border-radius:10px; padding:28px; display:flex; flex-direction:column; gap:22px; backdrop-filter:blur(8px); }
       #view-hedge .hg-btn-group { display:flex; gap:14px; }
-      #view-hedge .hg-btn { padding:10px 22px; border-radius:6px; cursor:pointer; font-size:14px; font-weight:700; border:1px solid #FFD700; transition:.2s; }
+      #view-hedge .hg-btn { padding:10px 22px; border-radius:6px; cursor:pointer; font-size:14px; font-weight:700; border:1px solid var(--hg-accent); transition:.2s; }
       #view-hedge .hg-reset-btn { background:rgba(25,25,30,.9); color:rgba(240,240,242,.85); border-color:rgba(255,255,255,.15); }
       #view-hedge .hg-reset-btn:hover { background:rgba(50,50,58,.9); color:#fff; }
       #view-hedge .hg-calc-btn {
-        background: linear-gradient(135deg, #d8b36a 0%, #b8924c 100%);
+        background: linear-gradient(135deg, #c6a16b 0%, #9c7442 100%);
         color: rgba(8,6,2,.95); font-size:15px; font-weight:800; letter-spacing:.6px;
-        box-shadow: 0 8px 24px rgba(214,179,106,.28);
+        box-shadow: 0 8px 24px rgba(176,132,73,.22);
         position:relative; overflow:hidden;
         font-family: var(--font-display);
       }
@@ -1007,42 +1016,42 @@
         0% { left:-100%; }
         100% { left:200%; }
       }
-      #view-hedge .hg-calc-btn:hover { background:linear-gradient(135deg, #e8c37a 0%, #c8a25c 100%); transform:translateY(-1px); box-shadow:0 12px 28px rgba(214,179,106,.38); }
+      #view-hedge .hg-calc-btn:hover { background:linear-gradient(135deg, #d0ad78 0%, #ab8451 100%); transform:translateY(-1px); box-shadow:0 12px 28px rgba(176,132,73,.28); }
       #view-hedge .hg-form-item { display:flex; flex-direction:column; gap:8px; }
-      #view-hedge .hg-form-label { font-size:14px; color:#F5DEB3; display:flex; align-items:center; gap:5px; }
-      #view-hedge .hg-required { color:#FFD700; font-size:16px; }
-      #view-hedge .hg-input { width:100%; background:rgba(5,5,8,.85); border:1px solid rgba(255,215,0,.35); color:#f0f0f2; padding:13px 16px; border-radius:10px; outline:none; font-size:15px; transition:.22s; font-family: var(--font-body); line-height:1.5; }
-      #view-hedge .hg-input:focus { border-color:#F5DEB3; border-width:2px; box-shadow:0 0 0 4px rgba(255,215,0,.10), 0 0 18px rgba(255,215,0,.15); }
+      #view-hedge .hg-form-label { font-size:14px; color:var(--hg-accent-soft); display:flex; align-items:center; gap:5px; }
+      #view-hedge .hg-required { color:var(--hg-accent); font-size:16px; }
+      #view-hedge .hg-input { width:100%; background:rgba(5,5,8,.85); border:1px solid rgba(199,164,106,.28); color:#f0f0f2; padding:13px 16px; border-radius:10px; outline:none; font-size:15px; transition:.22s; font-family: var(--font-body); line-height:1.5; }
+      #view-hedge .hg-input:focus { border-color:var(--hg-accent-soft); border-width:2px; box-shadow:0 0 0 4px rgba(199,164,106,.08), 0 0 18px rgba(199,164,106,.12); }
       #view-hedge .hg-input::placeholder { color:#555; }
       #view-hedge .hg-radio-group { display:flex; gap:18px; flex-wrap:wrap; padding:4px 0; }
       #view-hedge .hg-radio-item { display:flex; align-items:center; gap:8px; cursor:pointer; }
-      #view-hedge .hg-custom-radio { width:17px; height:17px; border:2px solid #FFD700; border-radius:50%; display:flex; justify-content:center; align-items:center; background:#0d0d0d; transition:.2s; flex-shrink:0; }
-      #view-hedge .hg-custom-radio.checked { background:#FFD700; }
+      #view-hedge .hg-custom-radio { width:17px; height:17px; border:2px solid var(--hg-accent); border-radius:50%; display:flex; justify-content:center; align-items:center; background:#0d0d0d; transition:.2s; flex-shrink:0; }
+      #view-hedge .hg-custom-radio.checked { background:var(--hg-accent); }
       #view-hedge .hg-custom-radio.checked::after { content:""; width:7px; height:7px; border-radius:50%; background:#000; }
       #view-hedge .hg-radio-text { font-size:14px; color:#fff; }
       #view-hedge .hg-tips { font-size:12px; color:#666; margin-top:2px; }
       #view-hedge .hg-error { font-size:12px; color:#ff6666; display:none; margin-top:2px; }
-      #view-hedge .hg-contract-tips { font-size:13px; color:#F5DEB3; margin-top:5px; padding-left:8px; border-left:2px solid #FFD700; }
+      #view-hedge .hg-contract-tips { font-size:13px; color:var(--hg-accent-soft); margin-top:5px; padding-left:8px; border-left:2px solid var(--hg-accent); }
       #view-hedge .hg-advanced { display:none; margin-top:10px; padding-top:10px; border-top:1px dashed #333; flex-direction:column; gap:8px; }
       #view-hedge .hg-result-area { width:60%; display:flex; flex-direction:column; gap:18px; }
-      #view-hedge .hg-card { background:rgba(0,0,0,.70); border:1px solid rgba(255,215,0,.40); border-radius:10px; padding:22px; backdrop-filter:blur(8px); }
-      #view-hedge .hg-card-title { color:#FFD700; font-size:17px; font-weight:900; margin-bottom:18px; padding-bottom:10px; border-bottom:1px solid #222; }
+      #view-hedge .hg-card { background:rgba(0,0,0,.70); border:1px solid var(--hg-accent-border-strong); border-radius:10px; padding:22px; backdrop-filter:blur(8px); }
+      #view-hedge .hg-card-title { color:var(--hg-accent); font-size:17px; font-weight:900; margin-bottom:18px; padding-bottom:10px; border-bottom:1px solid #222; }
       #view-hedge .hg-result-list { display:grid; grid-template-columns:repeat(2,1fr); gap:14px 18px; }
       #view-hedge .hg-result-item { display:flex; flex-direction:column; gap:4px; }
-      #view-hedge .hg-result-label { font-size:13px; color:#F5DEB3; letter-spacing:.4px; }
+      #view-hedge .hg-result-label { font-size:13px; color:var(--hg-accent-soft); letter-spacing:.4px; }
       #view-hedge .hg-result-value { font-size:16px; color:#fff; font-weight:600; font-family: var(--font-mono); }
-      #view-hedge .hg-result-value.gold { color:#FFD700; font-size:24px; font-weight:700; font-family: var(--font-mono); }
-      #view-hedge .hg-result-value.big-gold { color:#FFD700; font-size:36px; font-weight:700; grid-column:span 2; font-family: var(--font-mono); letter-spacing:-.5px; }
+      #view-hedge .hg-result-value.gold { color:var(--hg-accent); font-size:24px; font-weight:700; font-family: var(--font-mono); }
+      #view-hedge .hg-result-value.big-gold { color:var(--hg-accent); font-size:36px; font-weight:700; grid-column:span 2; font-family: var(--font-mono); letter-spacing:-.5px; }
       #view-hedge .hg-result-note { font-size:11px; color:#555; margin-top:2px; }
       #view-hedge .hg-exec-advice { display:flex; flex-direction:column; gap:10px; }
-      #view-hedge .hg-toast { position:fixed; left:50%; bottom:24px; transform:translateX(-50%); background:rgba(8,12,16,.96); border:1px solid rgba(255,215,0,.3); color:#FFD700; padding:10px 22px; border-radius:999px; font-size:13px; font-weight:800; box-shadow:0 10px 30px rgba(0,0,0,.5); display:none; z-index:3000; }
+      #view-hedge .hg-toast { position:fixed; left:50%; bottom:24px; transform:translateX(-50%); background:rgba(8,12,16,.96); border:1px solid var(--hg-accent-border-strong); color:var(--hg-accent); padding:10px 22px; border-radius:999px; font-size:13px; font-weight:800; box-shadow:0 10px 30px rgba(0,0,0,.5); display:none; z-index:3000; }
       #view-hedge .hg-toast.show { display:block; }
       @media (max-width:1100px) { #view-hedge .hg-core { flex-direction:column; } #view-hedge .hg-input-area, #view-hedge .hg-result-area { width:100%; } #view-hedge .hg-result-list { grid-template-columns:1fr; } #view-hedge .hg-result-value.big-gold { grid-column:span 1; } }
     </style>
 
     <div class="hg-wrap">
       <div class="hg-page-title">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="#FFD700" stroke-width="2" stroke-linejoin="round"/></svg>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="#c7a46a" stroke-width="2" stroke-linejoin="round"/></svg>
         套保助手
       </div>
 
@@ -1142,13 +1151,13 @@
           <!-- Export PDF -->
           <button onclick="alert('📄 PDF导出功能即将上线！\n\n将自动生成包含套保方案、保证金测算和执行建议的完整PDF报告，可直接发送邮件或存档。')" style="
             width:100%; padding:14px; border-radius:12px;
-            border:1px solid rgba(214,179,106,.40);
-            background:linear-gradient(135deg, rgba(214,179,106,.12) 0%, rgba(214,179,106,.04) 100%);
-            color:rgba(214,179,106,.92); font-size:14px; font-weight:700;
+            border:1px solid rgba(199,164,106,.34);
+            background:linear-gradient(135deg, rgba(199,164,106,.10) 0%, rgba(199,164,106,.03) 100%);
+            color:rgba(214,194,160,.92); font-size:14px; font-weight:700;
             cursor:pointer; font-family: var(--font-display);
             display:flex; align-items:center; justify-content:center; gap:10px;
             letter-spacing:.4px; transition:.18s ease;
-          " onmouseover="this.style.borderColor='rgba(214,179,106,.70)'; this.style.transform='translateY(-1px)'; this.style.boxShadow='0 6px 20px rgba(214,179,106,.15)'" onmouseout="this.style.borderColor='rgba(214,179,106,.40)'; this.style.transform=''; this.style.boxShadow=''">
+          " onmouseover="this.style.borderColor='rgba(199,164,106,.56)'; this.style.transform='translateY(-1px)'; this.style.boxShadow='0 6px 20px rgba(176,132,73,.12)'" onmouseout="this.style.borderColor='rgba(199,164,106,.34)'; this.style.transform=''; this.style.boxShadow=''">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><polyline points="14 2 14 8 20 8" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><line x1="12" y1="18" x2="12" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="9" y1="15" x2="15" y2="15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
             导出套保方案 PDF
           </button>
