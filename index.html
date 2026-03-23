@@ -995,7 +995,7 @@
       #view-hedge .hg-page-title { color:var(--hg-accent); font-size:22px; font-weight:900; letter-spacing:.5px; margin-bottom:24px; padding-bottom:14px; border-bottom:1px solid var(--hg-accent-border); display:flex; align-items:center; gap:12px; }
       #view-hedge .hg-core { display:flex; gap:28px; }
       #view-hedge .hg-input-area { width:40%; background:rgba(30,29,28,.78); border:1px solid var(--hg-accent-border-strong); border-radius:10px; padding:28px; display:flex; flex-direction:column; gap:22px; backdrop-filter:blur(8px); }
-      #view-hedge .hg-btn-group { display:flex; gap:14px; }
+      #view-hedge .hg-btn-group { display:flex; gap:14px; align-items:center; }
       #view-hedge .hg-btn { padding:10px 22px; border-radius:6px; cursor:pointer; font-size:14px; font-weight:700; border:1px solid var(--hg-accent); transition:.2s; }
       #view-hedge .hg-reset-btn { background:rgba(25,25,30,.9); color:rgba(240,240,242,.85); border-color:rgba(255,255,255,.15); }
       #view-hedge .hg-reset-btn:hover { background:rgba(50,50,58,.9); color:#fff; }
@@ -1005,6 +1005,17 @@
         box-shadow: 0 8px 24px rgba(176,132,73,.22);
         position:relative; overflow:hidden;
         font-family: var(--font-display);
+      }
+      #view-hedge .hg-theme-btn {
+        margin-left:auto;
+        background:rgba(18,20,28,.68);
+        color:#f3efe6;
+        border-color:rgba(214,194,160,.24);
+        box-shadow:0 8px 20px rgba(0,0,0,.18);
+      }
+      #view-hedge .hg-theme-btn:hover {
+        background:rgba(26,29,38,.86);
+        border-color:rgba(214,194,160,.38);
       }
       #view-hedge .hg-calc-btn::after {
         content:'';
@@ -1065,6 +1076,8 @@
       #view-hedge .hg-result-area { width:60%; display:flex; flex-direction:column; gap:18px; }
       #view-hedge .hg-card { background:rgba(0,0,0,.70); border:1px solid var(--hg-accent-border-strong); border-radius:10px; padding:22px; backdrop-filter:blur(8px); }
       #view-hedge .hg-card-title { color:var(--hg-accent); font-size:17px; font-weight:900; margin-bottom:18px; padding-bottom:10px; border-bottom:1px solid #222; }
+      #view-hedge .hg-empty-stage { min-height:720px; }
+      #view-hedge .hg-hidden-bind { display:none; }
       #view-hedge .hg-result-list { display:grid; grid-template-columns:repeat(2,1fr); gap:14px 18px; }
       #view-hedge .hg-result-item { display:flex; flex-direction:column; gap:4px; }
       #view-hedge .hg-result-label { font-size:13px; color:var(--hg-accent-soft); letter-spacing:.4px; }
@@ -1075,6 +1088,53 @@
       #view-hedge .hg-exec-advice { display:flex; flex-direction:column; gap:10px; }
       #view-hedge .hg-toast { position:fixed; left:50%; bottom:24px; transform:translateX(-50%); background:rgba(8,12,16,.96); border:1px solid var(--hg-accent-border-strong); color:var(--hg-accent); padding:10px 22px; border-radius:999px; font-size:13px; font-weight:800; box-shadow:0 10px 30px rgba(0,0,0,.5); display:none; z-index:3000; }
       #view-hedge .hg-toast.show { display:block; }
+      #view-hedge.hg-light { background:#f5f3ee !important; color:#2d2418; }
+      #view-hedge.hg-light > div { background:#f5f3ee !important; }
+      #view-hedge.hg-light .hg-page-title { color:#9c7442 !important; border-bottom-color:rgba(156,116,66,.22) !important; }
+      #view-hedge.hg-light .hg-page-title svg path { stroke:#9c7442; }
+      #view-hedge.hg-light .hg-wrap { color:#2d2418; }
+      #view-hedge.hg-light .hg-input-area,
+      #view-hedge.hg-light .hg-card {
+        background:rgba(255,252,247,.96) !important;
+        border-color:rgba(156,116,66,.18) !important;
+        box-shadow:0 14px 36px rgba(64,42,18,.06);
+        backdrop-filter:none;
+      }
+      #view-hedge.hg-light .hg-empty-stage { background:rgba(255,252,247,.96) !important; }
+      #view-hedge.hg-light .hg-form-label,
+      #view-hedge.hg-light .hg-contract-tips,
+      #view-hedge.hg-light .hg-result-label { color:#8b7556 !important; }
+      #view-hedge.hg-light .hg-card-title,
+      #view-hedge.hg-light .hg-radio-text,
+      #view-hedge.hg-light .hg-result-value { color:#2d2418 !important; }
+      #view-hedge.hg-light .hg-input,
+      #view-hedge.hg-light .hg-select {
+        background:#fffdfa !important;
+        color:#2d2418 !important;
+        border-color:rgba(156,116,66,.22) !important;
+      }
+      #view-hedge.hg-light .hg-input::placeholder { color:#a79a87 !important; }
+      #view-hedge.hg-light .hg-select option { background:#fffdfa !important; color:#2d2418 !important; }
+      #view-hedge.hg-light .hg-input[type="date"] { color-scheme:light; }
+      #view-hedge.hg-light .hg-error { color:#c55757 !important; }
+      #view-hedge.hg-light .hg-tips,
+      #view-hedge.hg-light .hg-result-note { color:#9f927f !important; }
+      #view-hedge.hg-light .hg-theme-btn {
+        background:#fffdf8;
+        color:#6f5330;
+        border-color:rgba(156,116,66,.18);
+        box-shadow:0 10px 24px rgba(64,42,18,.08);
+      }
+      #view-hedge.hg-light .hg-theme-btn:hover {
+        background:#ffffff;
+        border-color:rgba(156,116,66,.28);
+      }
+      #view-hedge.hg-light .hg-toast {
+        background:#fffdf8;
+        color:#8b6738;
+        border-color:rgba(156,116,66,.22);
+        box-shadow:0 12px 28px rgba(64,42,18,.08);
+      }
       @media (max-width:1100px) { #view-hedge .hg-core { flex-direction:column; } #view-hedge .hg-input-area, #view-hedge .hg-result-area { width:100%; } #view-hedge .hg-result-list { grid-template-columns:1fr; } #view-hedge .hg-result-value.big-gold { grid-column:span 1; } }
     </style>
 
@@ -1088,8 +1148,8 @@
         <!-- 左：输入区 -->
         <div class="hg-input-area">
           <div class="hg-btn-group">
-            <button class="hg-btn hg-reset-btn" id="hgResetBtn">重置输入</button>
             <button class="hg-btn hg-calc-btn" id="hgCalcBtn">计算套保方案</button>
+            <button class="hg-btn hg-theme-btn" id="hgThemeBtn" type="button" aria-pressed="false">白昼模式</button>
           </div>
 
           <!-- 业务类型 -->
@@ -1145,51 +1205,19 @@
 
         <!-- 右：结果区 -->
         <div class="hg-result-area">
-          <div class="hg-card">
-            <div class="hg-card-title">套保结果</div>
-            <div class="hg-result-list">
-              <div class="hg-result-item"><div class="hg-result-label">所选模型类型</div><div class="hg-result-value" id="hgModelType">最小方差模型</div></div>
-              <div class="hg-result-item"><div class="hg-result-label">期货合约代码</div><div class="hg-result-value gold" id="hgFutCode">SC2710</div></div>
-              <div class="hg-result-item"><div class="hg-result-label">对冲类型</div><div class="hg-result-value" id="hgHedgeType">空头（采购业务）</div></div>
-              <div class="hg-result-item"><div class="hg-result-label">最终套保比例</div><div class="hg-result-value gold" id="hgHedgeRatio">85.60%</div></div>
-              <div class="hg-result-item" style="grid-column:span 2">
-                <div class="hg-result-label">期货合约数量</div>
-                <div class="hg-result-value big-gold" id="hgFutQty">5 手</div>
-                <div class="hg-result-note">已向上取整，合约单位：1000桶/手</div>
-              </div>
-            </div>
+          <div class="hg-card hg-empty-stage"></div>
+          <div class="hg-hidden-bind" aria-hidden="true">
+            <span id="hgModelType">最小方差模型</span>
+            <span id="hgFutCode">SC2710</span>
+            <span id="hgHedgeType">空头（采购业务）</span>
+            <span id="hgHedgeRatio">85.60%</span>
+            <span id="hgFutQty">5 手</span>
+            <span id="hgInitMargin">252,000.00 元</span>
+            <span id="hgSuppMargin">40,320.00 元</span>
+            <span id="hgTotalMargin">292,320.00 元</span>
+            <span id="hgOpenTime">建议3个工作日内或分仓建仓</span>
+            <span id="hgCloseTime">现货交易完成后1个工作日内平仓</span>
           </div>
-
-          <div class="hg-card">
-            <div class="hg-card-title">保证金测算</div>
-            <div class="hg-result-list">
-              <div class="hg-result-item"><div class="hg-result-label">首次开仓保证金</div><div class="hg-result-value gold" id="hgInitMargin">252,000.00 元</div><div class="hg-result-note">按交易所10%保证金比例测算</div></div>
-              <div class="hg-result-item"><div class="hg-result-label">最高补缴保证金额度</div><div class="hg-result-value gold" id="hgSuppMargin">40,320.00 元</div><div class="hg-result-note">按交易所8%维持保证金比例测算</div></div>
-              <div class="hg-result-item" style="grid-column:span 2"><div class="hg-result-label">最高总保证金</div><div class="hg-result-value big-gold" id="hgTotalMargin">292,320.00 元</div></div>
-            </div>
-          </div>
-
-          <div class="hg-card">
-            <div class="hg-card-title">执行建议</div>
-            <div class="hg-exec-advice">
-              <div class="hg-result-item"><div class="hg-result-label">开仓时机</div><div class="hg-result-value gold" id="hgOpenTime">建议3个工作日内或分仓建仓</div></div>
-              <div class="hg-result-item"><div class="hg-result-label">平仓节点</div><div class="hg-result-value gold" id="hgCloseTime">现货交易完成后1个工作日内平仓</div></div>
-            </div>
-          </div>
-
-          <!-- Export PDF -->
-          <button onclick="alert('📄 PDF导出功能即将上线！\n\n将自动生成包含套保方案、保证金测算和执行建议的完整PDF报告，可直接发送邮件或存档。')" style="
-            width:100%; padding:14px; border-radius:12px;
-            border:1px solid rgba(199,164,106,.34);
-            background:linear-gradient(135deg, rgba(199,164,106,.10) 0%, rgba(199,164,106,.03) 100%);
-            color:rgba(214,194,160,.92); font-size:14px; font-weight:700;
-            cursor:pointer; font-family: var(--font-display);
-            display:flex; align-items:center; justify-content:center; gap:10px;
-            letter-spacing:.4px; transition:.18s ease;
-          " onmouseover="this.style.borderColor='rgba(199,164,106,.56)'; this.style.transform='translateY(-1px)'; this.style.boxShadow='0 6px 20px rgba(176,132,73,.12)'" onmouseout="this.style.borderColor='rgba(199,164,106,.34)'; this.style.transform=''; this.style.boxShadow=''">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><polyline points="14 2 14 8 20 8" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><line x1="12" y1="18" x2="12" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="9" y1="15" x2="15" y2="15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-            导出套保方案 PDF
-          </button>
         </div>
       </div>
     </div>
@@ -2644,12 +2672,12 @@ window._loadDbDownload = function(){
     const consumerSelect=$('hgConsumerType');
     const modelSelect=$('hgModelSelect');
     const expireInput=$('hgExpireDate');
+    const themeBtn=$('hgThemeBtn');
     if(!bizSelect || !consumerSelect || !modelSelect || !expireInput || !root) return; // view未激活时跳过
     if(root.dataset.hgInited==='1') return;
     root.dataset.hgInited='1';
 
     // 设置默认到期日
-    const now=new Date();
     const now=new Date();
     const curDate=[
       now.getFullYear(),
@@ -2672,6 +2700,15 @@ window._loadDbDownload = function(){
     }
     function hgToast(msg){const t=$('hgToast');t.textContent=msg;t.classList.add('show');clearTimeout(hgToast._t);hgToast._t=setTimeout(()=>t.classList.remove('show'),1600);}
     function hgFmt(n){return n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',');}
+    function hgApplyTheme(mode){
+      const isLight=mode==='light';
+      root.classList.toggle('hg-light',isLight);
+      if(themeBtn){
+        themeBtn.textContent=isLight?'黑夜模式':'白昼模式';
+        themeBtn.setAttribute('aria-pressed',isLight?'true':'false');
+      }
+    }
+    hgApplyTheme(localStorage.getItem('cc_hedge_theme')==='light'?'light':'dark');
 
     $('hgModelType').textContent=modelSelect.value;
     $('hgAdvanced').style.display=modelSelect.value==='均值-方差权衡模型'?'flex':'none';
@@ -2687,6 +2724,13 @@ window._loadDbDownload = function(){
       $('hgAdvanced').style.display=sel==='均值-方差权衡模型'?'flex':'none';
       hgUpdateOpenTime(sel,consumerSelect.value);
     });
+    if(themeBtn){
+      themeBtn.addEventListener('click',()=>{
+        const next=root.classList.contains('hg-light')?'dark':'light';
+        hgApplyTheme(next);
+        localStorage.setItem('cc_hedge_theme',next);
+      });
+    }
     if(typeof expireInput.showPicker==='function'){
       expireInput.addEventListener('click',()=>expireInput.showPicker());
       expireInput.addEventListener('keydown',e=>{
@@ -2737,15 +2781,6 @@ window._loadDbDownload = function(){
     }
 
     $('hgCalcBtn').addEventListener('click',()=>{if(hgCheckForm()){hgCalc();hgToast('套保方案计算成功！');}});
-    $('hgResetBtn').addEventListener('click',()=>{
-      bizSelect.value='采购';hgUpdateHedgeType('采购');
-      $('hgSpotQty').value='';$('hgSpotQtyErr').style.display='none';
-      expireInput.value=curDate;hgUpdateContract(curDate);$('hgExpireDateErr').style.display='none';
-      consumerSelect.value='稳健型';
-      modelSelect.value='最小方差模型';$('hgModelType').textContent='最小方差模型';$('hgAdvanced').style.display='none';
-      $('hgMaxLoss').value='';$('hgMaxLossErr').style.display='none';
-      hgUpdateOpenTime('最小方差模型','稳健型');
-    });
   }
 
   // 首次切换到套保助手时初始化
@@ -2754,6 +2789,47 @@ window._loadDbDownload = function(){
     _orig(viewId);
     if(viewId==='view-hedge') setTimeout(hgInit,30);
   };
+})();
+</script>
+<script>
+(function(){
+  function syncHedgeTheme(){
+    const root = document.getElementById('view-hedge');
+    let btn = document.getElementById('hgThemeBtn');
+    if(!root || !btn) return;
+
+    if(btn.dataset.themeBound !== '1'){
+      const freshBtn = btn.cloneNode(true);
+      btn.replaceWith(freshBtn);
+      btn = freshBtn;
+      btn.dataset.themeBound = '1';
+    }
+
+    function apply(mode){
+      const isLight = mode === 'light';
+      root.classList.toggle('hg-light', isLight);
+      btn.textContent = isLight ? '黑夜模式' : '白昼模式';
+      btn.setAttribute('aria-pressed', isLight ? 'true' : 'false');
+    }
+
+    apply(localStorage.getItem('cc_hedge_theme') === 'light' ? 'light' : 'dark');
+    btn.onclick = function(){
+      const next = root.classList.contains('hg-light') ? 'dark' : 'light';
+      apply(next);
+      localStorage.setItem('cc_hedge_theme', next);
+    };
+  }
+
+  if(!window.__hgThemeSyncPatched){
+    const _origSwitch = window.switchView;
+    window.switchView = function(viewId){
+      _origSwitch(viewId);
+      if(viewId === 'view-hedge') setTimeout(syncHedgeTheme, 40);
+    };
+    window.__hgThemeSyncPatched = true;
+  }
+
+  setTimeout(syncHedgeTheme, 40);
 })();
 </script>
 
