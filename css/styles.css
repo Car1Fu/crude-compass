@@ -1537,7 +1537,7 @@
       background-image:
         linear-gradient(180deg, rgba(14,17,23,.72) 0%, rgba(14,17,23,.56) 35%, rgba(14,17,23,.50) 100%),
         url("../assets/forecast_bg.png");
-      background-position: center top, center top;
+      background-position: center top, center -180px;
       background-size: cover, cover;
       background-repeat: no-repeat, no-repeat;
       background-attachment: scroll, fixed;
