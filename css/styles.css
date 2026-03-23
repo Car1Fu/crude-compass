@@ -2077,6 +2077,8 @@
       font-size: 17px; font-weight: 800; color: var(--fc-gold);
       font-family: var(--font-mono);
     }
+    #fc-panel-factors .fc-kpi .v { color: #fff; }
+    #fc-panel-backtest .fc-kpi .v { color: #fff; }
 
     /* ── Factors grid ── */
     .fc-factors-grid {
