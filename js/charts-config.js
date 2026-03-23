@@ -30,7 +30,7 @@
       const b=B[i%B.length],h=cl(Math.floor(Math.random()*360),0,720);
       const ts=now-h*3600*1000-Math.floor(Math.random()*3600*1000);
       const impact=cl(b.impact+Math.floor((Math.random()*18)-9),1,100);
-      return{id:"n"+(20000+i),ts,theme:b.theme,title:b.title+(Math.random()>.7?"（更新）":""),source:b.source,impact,score:impact*.7+Math.max(0,100-h)*.3,summary:"示例摘要：关键事实 → 可能的价格/价差/运价影响 → 持续性判断 → 关联标的与风险点。"};
+      return{id:"n"+(20000+i),ts,theme:b.theme,title:b.title+(Math.random()>.7?"（更新）":""),source:b.source,impact,score:impact*.7+Math.max(0,100-h)*.3,summary:""};
     }).sort((a,b)=>b.ts-a.ts);
   }
   let S={q:"",items:gen()};
@@ -69,7 +69,7 @@
     if(viewEl&&viewEl.classList.contains("mn-light"))w.classList.add("mn-light");
     let body=mode==="list"
       ?`<div class="modal-list">${list.map(x=>`<div class="modal-item" data-id="${x.id}"><p class="tt">${esc(x.title)}</p><div class="mm"><span>${esc(x.source)} · ${fD(x.ts)} ${fT(x.ts)}</span>${impactSpan(x.impact)}</div></div>`).join("")}</div>`
-      :`<div class="modal-text">${esc(det.summary)}</div>`;
+      :`${det.summary?`<div class="modal-text">${esc(det.summary)}</div>`:""}`;
     w.innerHTML=`<div class="modal"><div class="modal-head"><div><div class="t">${esc(title)}</div><div class="s">${esc(subtitle||"")}</div></div><button class="modal-close-btn" id="mC">关闭</button></div><div class="modal-body">${body}</div></div>`;
     document.body.appendChild(w);
     w.addEventListener("click",e=>{if(e.target===w)w.remove();});
@@ -86,7 +86,7 @@
   }
   function fc(item){
     if(!item)return`<div class="mn-feature" data-theme="Geopolitics"><div class="f-img"><div class="f-badge"><span class="f-dot"></span>暂无结果</div><div class="f-overlay"><div class="f-title">当前搜索下无匹配</div></div></div></div>`;
-    return`<div class="mn-feature" data-id="${item.id}" data-theme="${item.theme}"><div class="f-img"><div class="f-badge"><span class="f-dot"></span>今日重点 · ${impactSpan(item.impact)}</div><div class="f-overlay"><div class="f-kicker">${esc(item.source)}</div><div class="f-title">${esc(item.title)}</div><p class="f-sub">${esc(item.summary)}</p><div class="f-meta"><span>${fD(item.ts)} ${fT(item.ts)}</span><span>点击阅读</span></div></div></div></div>`;
+    return`<div class="mn-feature" data-id="${item.id}" data-theme="${item.theme}"><div class="f-img"><div class="f-badge"><span class="f-dot"></span>今日重点 · ${impactSpan(item.impact)}</div><div class="f-overlay"><div class="f-kicker">${esc(item.source)}</div><div class="f-title">${esc(item.title)}</div><div class="f-meta"><span>${fD(item.ts)} ${fT(item.ts)}</span><span>点击阅读</span></div></div></div></div>`;
   }
   function renderFeatureSection(sectionKey, sectionName, items, moreLabel){
     const top=items[0]||null;

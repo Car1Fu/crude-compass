@@ -335,8 +335,8 @@
     }
     td{ white-space:nowrap; }
     /* 涨跌色：纯色，无背景，无边框 */
-    .pos  { color:#16a34a; font-weight:700; font-family:var(--font-mono); }
-    .neg  { color:#dc2626; font-weight:700; font-family:var(--font-mono); }
+    .pos  { color:#dc2626; font-weight:700; font-family:var(--font-mono); }
+    .neg  { color:#16a34a; font-weight:700; font-family:var(--font-mono); }
     .muted{ color:#9ca3af; font-family:var(--font-mono); }
     /* 图表区 */
     .chart-title{ margin:0 0 10px; font-size:18px; color:#0f2244; letter-spacing:.2px; font-weight:900; display:flex; align-items:center; justify-content:space-between; gap:10px; }
@@ -344,6 +344,67 @@
     .legend span{ display:flex; align-items:center; gap:6px; }
     .dot{ width:10px; height:10px; border-radius:999px; display:inline-block; border:2px solid currentColor; background:transparent; }
     .svgbox{ width:100%; height:320px; border-radius:14px; border:1px solid #dde1e8; background:linear-gradient(180deg,#ffffff,#f8fafc); overflow:hidden; }
+    .price-chart-box{ position:relative; }
+    .price-chart-box svg{ display:block; }
+    .price-chart-box polyline,
+    .price-chart-box circle{
+      transition:opacity .18s ease, stroke-width .18s ease, transform .18s ease;
+    }
+    .chart-tooltip{
+      position:absolute;
+      top:14px;
+      left:14px;
+      min-width:156px;
+      padding:12px 14px;
+      border-radius:14px;
+      border:1px solid rgba(15,34,68,.10);
+      background:rgba(255,255,255,.94);
+      box-shadow:0 14px 30px rgba(15,34,68,.12);
+      color:#1f2937;
+      backdrop-filter:blur(12px);
+      -webkit-backdrop-filter:blur(12px);
+      pointer-events:none;
+      z-index:2;
+    }
+    .chart-tooltip[hidden]{ display:none; }
+    .chart-tooltip-date{
+      margin-bottom:8px;
+      font-size:11px;
+      font-weight:800;
+      letter-spacing:.8px;
+      color:#7c8798;
+    }
+    .chart-tooltip-row{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:16px;
+      font-size:13px;
+    }
+    .chart-tooltip-row[hidden]{ display:none; }
+    .chart-tooltip-row + .chart-tooltip-row{ margin-top:6px; }
+    .chart-tooltip-row strong{
+      color:#0f172a;
+      font-family:var(--font-mono);
+      font-size:13px;
+    }
+    .chart-tooltip-key{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      font-weight:700;
+      color:#475569;
+    }
+    .chart-tooltip-key::before{
+      content:'';
+      width:9px;
+      height:9px;
+      border-radius:999px;
+      background:currentColor;
+      box-shadow:0 0 0 3px rgba(255,255,255,.85);
+    }
+    .chart-tooltip-key-wti{ color:#1b6ca8; }
+    .chart-tooltip-key-brent{ color:#7fb8d8; }
 
     .latest-news-shell{ margin-bottom:28px; }
     .news-grid{ display:grid; grid-template-columns:1.2fr 0.8fr; gap:22px; align-items:start; }
@@ -1339,8 +1400,8 @@
   --db-accent2: #f6e3b2 !important;
   --db-text: #f0f0f2 !important;
   --db-muted: rgba(240,240,242,.50) !important;
-  --db-good: #39d98a !important;
-  --db-bad: #ff5c7c !important;
+  --db-good: #ff5c7c !important;
+  --db-bad: #39d98a !important;
 }
     #view-database .db-wrap {
       max-width: 1320px;
@@ -2876,8 +2937,8 @@
   --db-accent2: #f6e3b2 !important;
   --db-text: #f0f0f2 !important;
   --db-muted: rgba(240,240,242,.50) !important;
-  --db-good: #39d98a !important;
-  --db-bad: #ff5c7c !important;
+  --db-good: #ff5c7c !important;
+  --db-bad: #39d98a !important;
 }
 
 /* 2. 容器边距对齐 */
