@@ -145,47 +145,45 @@
           <div class="shell-head">
             <h2>市场快照</h2>
             <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end;">
-              <div class="shell-meta" id="updateTime">Updated at —</div>
-              <a class="explore-link" href="#home-news">探索最新新闻 <svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
+              <a class="explore-link" href="javascript:void(0)" onclick="switchView('view-database')">市场实时数据 <svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
             </div>
           </div>
           <div class="shell-body">
             <div class="grid2">
               <div class="card">
-                <div class="card-title">Market Prices</div>
-                <div class="subhead">Futures Markets</div>
+                <div class="card-title">市场价格</div>
+                <div class="subhead">期货市场</div>
                 <table>
-                  <thead><tr><th>Crude Oil</th><th>Last</th><th>Change</th></tr></thead>
+                  <thead><tr><th>原油品种</th><th>最新价</th><th>涨跌</th></tr></thead>
                   <tbody>
-                    <tr><td>ICE Brent ($/bbl)</td><td>69.24</td><td class="pos">+0.84</td></tr>
-                    <tr><td class="muted">3rd month</td><td>67.50</td><td class="pos">+0.76</td></tr>
-                    <tr><td class="muted">12th month</td><td>64.96</td><td class="pos">+0.49</td></tr>
+                    <tr><td>ICE 布伦特（美元/桶）</td><td>69.24</td><td class="pos">+0.84</td></tr>
+                    <tr><td class="muted">第 3 个月合约</td><td>67.50</td><td class="pos">+0.76</td></tr>
+                    <tr><td class="muted">第 12 个月合约</td><td>64.96</td><td class="pos">+0.49</td></tr>
                   </tbody>
                 </table>
-                <div class="subhead">Spot Markets</div>
+                <div class="subhead">现货市场</div>
                 <table>
-                  <thead><tr><th>Crude Oil ($/bbl)</th><th>Last</th><th>Change</th></tr></thead>
+                  <thead><tr><th>原油品种（美元/桶）</th><th>最新价</th><th>涨跌</th></tr></thead>
                   <tbody>
-                    <tr><td>OPEC Basket</td><td>63.50</td><td class="neg">-0.19</td></tr>
+                    <tr><td>OPEC 一揽子原油</td><td>63.50</td><td class="neg">-0.19</td></tr>
                   </tbody>
                 </table>
-                <div class="subhead">Natural Gas ($/MMBtu)</div>
+                <div class="subhead">天然气（美元/MMBtu）</div>
                 <table>
-                  <thead><tr><th>Hub</th><th>Last</th><th>Change</th></tr></thead>
+                  <thead><tr><th>交易枢纽</th><th>最新价</th><th>涨跌</th></tr></thead>
                   <tbody>
-                    <tr><td>AECO</td><td>1.51</td><td class="neg">-0.13</td></tr>
-                    <tr><td>Henry Hub</td><td>9.02</td><td class="neg">-2.88</td></tr>
-                    <tr><td>Katy Hub</td><td>4.08</td><td class="neg">-5.71</td></tr>
-                    <tr><td>Transco Z6 - NY</td><td>37.95</td><td class="muted">—</td></tr>
+                    <tr><td>AECO 枢纽</td><td>1.51</td><td class="neg">-0.13</td></tr>
+                    <tr><td>亨利港</td><td>9.02</td><td class="neg">-2.88</td></tr>
+                    <tr><td>凯蒂枢纽</td><td>4.08</td><td class="neg">-5.71</td></tr>
+                    <tr><td>Transco Z6（纽约）</td><td>37.95</td><td class="muted">—</td></tr>
                   </tbody>
                 </table>
-                <div class="shell-meta" style="margin-top:10px;">提示：此处为排版示例，可替换为你们数据源/API。</div>
               </div>
               <div class="card">
-                <div class="chart-title"><span>WTI &amp; Brent Prices</span><span class="shell-meta">2005–2025 (demo)</span></div>
+                <div class="chart-title"><span>WTI 与布伦特价格走势</span></div>
                 <div class="legend">
-                  <span style="color:#1b6ca8"><i class="dot"></i>WTI Spot</span>
-                  <span style="color:#7fb8d8"><i class="dot"></i>Brent Spot</span>
+                  <span style="color:#1b6ca8"><i class="dot"></i>WTI 现货</span>
+                  <span style="color:#7fb8d8"><i class="dot"></i>布伦特现货</span>
                 </div>
                 <div class="svgbox">
                   <svg viewBox="0 0 900 360" width="100%" height="100%" preserveAspectRatio="none">
@@ -201,7 +199,6 @@
                     <polyline id="lineBrent" fill="none" stroke="#7fb8d8" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" opacity="0.95"/>
                   </svg>
                 </div>
-                <div class="shell-meta" style="margin-top:10px;">后续接入真实数据：按日期映射 X，价格映射 Y 即可保持 UI 不变。</div>
               </div>
             </div>
           </div>
@@ -215,17 +212,21 @@
           <div class="shell-head">
             <h2>最新新闻</h2>
             <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end;">
-              <div class="shell-meta">信息流 + 精选解读（示例排版）</div>
               <a class="explore-link" onclick="switchView('view-module-news')">探索最新新闻 <svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
             </div>
           </div>
           <div class="shell-body">
             <div class="news-grid">
               <div class="card news-feature">
-                <span class="tag">精选 · 宏观/供需</span>
-                <div class="news-title">油价波动加剧：供需与地缘扰动共同抬升短端风险</div>
-                <p class="news-excerpt">这里是摘要示例：用 2–3 行概述新闻核心结论，并引导用户点击查看全文或报告解读。</p>
-                <div class="news-meta"><span>2026-01-30 · 研究团队</span><button class="news-btn">阅读更多</button></div>
+                <div class="news-feature-visual" aria-hidden="true">
+                  <span class="tag news-feature-tag">精选 · 宏观/供需</span>
+                  <img class="news-feature-image" src="assets/news_placeholder_red.svg" alt="精选新闻配图">
+                </div>
+                <div class="news-feature-body">
+                  <div class="news-feature-source">REUTERS</div>
+                  <div class="news-title">油价波动加剧：供需与地缘扰动共同抬升短端风险</div>
+                  <div class="news-meta"><span>2026-01-30 · 研究团队</span><button class="news-btn">阅读更多</button></div>
+                </div>
               </div>
               <div class="news-list">
                 <div class="news-item"><p class="t">库存数据超预期：期限结构短暂走平</p><p class="m">2026-01-30 · 数据/库存</p></div>
@@ -1334,14 +1335,6 @@ window.addEventListener('scroll', function() {
   }
 });
 function scrollToTop(){window.scrollTo({top:0,behavior:'smooth'});}
-
-/* ── Update time ── */
-(function(){
-  const el=document.getElementById("updateTime");
-  if(!el)return;
-  const d=new Date(),p=n=>String(n).padStart(2,"0");
-  el.textContent=`Updated at ${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
-})();
 
 /* ── Price chart (home) ── */
 (function(){

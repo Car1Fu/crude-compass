@@ -48,14 +48,6 @@ window.addEventListener('scroll', function() {
 });
 function scrollToTop(){window.scrollTo({top:0,behavior:'smooth'});}
 
-/* ── Update time ── */
-(function(){
-  const el=document.getElementById("updateTime");
-  if(!el)return;
-  const d=new Date(),p=n=>String(n).padStart(2,"0");
-  el.textContent=`Updated at ${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
-})();
-
 /* ── Price chart (home) ── */
 (function(){
   const wti=document.getElementById("lineWTI"),brent=document.getElementById("lineBrent");
