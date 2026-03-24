@@ -617,13 +617,13 @@
       --mn-empty-text: rgba(75,85,99,.76);
       background: #f6f4ee !important;
     }
-    #view-module-news.mn-light .mn-feature[data-theme="Geopolitics"] .f-img{ background:linear-gradient(160deg,rgba(254,226,226,.92),rgba(255,255,255,.98)); }
-    #view-module-news.mn-light .mn-feature[data-theme="Macro"] .f-img{ background:linear-gradient(160deg,rgba(219,234,254,.94),rgba(255,255,255,.98)); }
-    #view-module-news.mn-light .mn-feature[data-theme="Supply"] .f-img{ background:linear-gradient(160deg,rgba(254,243,199,.94),rgba(255,255,255,.98)); }
-    #view-module-news.mn-light .mn-feature[data-theme="Demand"] .f-img{ background:linear-gradient(160deg,rgba(224,242,254,.94),rgba(255,255,255,.98)); }
-    #view-module-news.mn-light .mn-feature[data-theme="Inventory"] .f-img{ background:linear-gradient(160deg,rgba(254,249,195,.94),rgba(255,255,255,.98)); }
-    #view-module-news.mn-light .mn-feature[data-theme="Freight"] .f-img{ background:linear-gradient(160deg,rgba(220,252,231,.94),rgba(255,255,255,.98)); }
-    #view-module-news.mn-light .mn-feature[data-theme="Spreads"] .f-img{ background:linear-gradient(160deg,rgba(255,237,213,.94),rgba(255,255,255,.98)); }
+    #view-module-news.mn-light .mn-feature[data-theme="Geopolitics"] .f-img{ background:linear-gradient(160deg,rgba(255,60,60,.26),rgba(14,10,8,.82)), url("../assets/geo.png") center/cover no-repeat; }
+    #view-module-news.mn-light .mn-feature[data-theme="Macro"] .f-img{ background:linear-gradient(160deg,rgba(60,120,255,.16),rgba(8,12,20,.82)), url("../assets/macro.png") center/cover no-repeat; }
+    #view-module-news.mn-light .mn-feature[data-theme="Supply"] .f-img{ background:linear-gradient(160deg,rgba(214,179,106,.18),rgba(14,12,6,.82)), url("../assets/supply.png") center/cover no-repeat; }
+    #view-module-news.mn-light .mn-feature[data-theme="Demand"] .f-img{ background:linear-gradient(160deg,rgba(60,180,255,.14),rgba(6,12,18,.82)), url("../assets/demand.png") center/cover no-repeat; }
+    #view-module-news.mn-light .mn-feature[data-theme="Inventory"] .f-img{ background:linear-gradient(160deg,rgba(214,179,106,.16),rgba(10,10,8,.82)), url("../assets/warehouse.png") center/cover no-repeat; }
+    #view-module-news.mn-light .mn-feature[data-theme="Freight"] .f-img{ background:linear-gradient(160deg,rgba(80,220,80,.12),rgba(6,12,8,.82)), url("../assets/ship.png") center/cover no-repeat; }
+    #view-module-news.mn-light .mn-feature[data-theme="Spreads"] .f-img{ background:linear-gradient(160deg,rgba(255,200,0,.14),rgba(14,12,4,.82)), url("../assets/oil.png") center/cover no-repeat; }
 
     .module-news-shell{
       background: transparent;
@@ -772,14 +772,14 @@
     /* Feature card (HIGHLIGHT) */
     .mn-feature{ position:relative; cursor:pointer; overflow:hidden; flex-shrink:0; transition:opacity .2s ease; border-right:1px solid var(--mn-feature-border); height:100%; }
     .mn-feature:hover{ opacity:.88; }
-    .mn-feature .f-img{ height:100%; min-height:0; position:relative; overflow:hidden; background:url("../assets/news_placeholder_red.svg") center/cover no-repeat; }
-    .mn-feature[data-theme="Geopolitics"] .f-img{ background:linear-gradient(160deg,rgba(255,60,60,.26),rgba(14,10,8,.82)), url("../assets/news_placeholder_red.svg") center/cover no-repeat; }
-    .mn-feature[data-theme="Macro"]       .f-img{ background:linear-gradient(160deg,rgba(60,120,255,.16),rgba(8,12,20,.82)), url("../assets/news_placeholder_red.svg") center/cover no-repeat; }
-    .mn-feature[data-theme="Supply"]      .f-img{ background:linear-gradient(160deg,rgba(214,179,106,.18),rgba(14,12,6,.82)), url("../assets/news_placeholder_red.svg") center/cover no-repeat; }
-    .mn-feature[data-theme="Demand"]      .f-img{ background:linear-gradient(160deg,rgba(60,180,255,.14),rgba(6,12,18,.82)), url("../assets/news_placeholder_red.svg") center/cover no-repeat; }
-    .mn-feature[data-theme="Inventory"]   .f-img{ background:linear-gradient(160deg,rgba(214,179,106,.16),rgba(10,10,8,.82)), url("../assets/news_placeholder_red.svg") center/cover no-repeat; }
-    .mn-feature[data-theme="Freight"]     .f-img{ background:linear-gradient(160deg,rgba(80,220,80,.12),rgba(6,12,8,.82)), url("../assets/news_placeholder_red.svg") center/cover no-repeat; }
-    .mn-feature[data-theme="Spreads"]     .f-img{ background:linear-gradient(160deg,rgba(255,200,0,.14),rgba(14,12,4,.82)), url("../assets/news_placeholder_red.svg") center/cover no-repeat; }
+    .mn-feature .f-img{ height:100%; min-height:0; position:relative; overflow:hidden; background:url("../assets/news.png") center/cover no-repeat; }
+    .mn-feature[data-theme="Geopolitics"] .f-img{ background:linear-gradient(160deg,rgba(255,60,60,.26),rgba(14,10,8,.82)), url("../assets/geo.png") center/cover no-repeat; }
+    .mn-feature[data-theme="Macro"]       .f-img{ background:linear-gradient(160deg,rgba(60,120,255,.16),rgba(8,12,20,.82)), url("../assets/macro.png") center/cover no-repeat; }
+.mn-feature[data-theme="Supply"]      .f-img{ background:linear-gradient(160deg,rgba(214,179,106,.18),rgba(14,12,6,.82)), url("../assets/supply.png") center/cover no-repeat; }
+    .mn-feature[data-theme="Demand"]      .f-img{ background:linear-gradient(160deg,rgba(60,180,255,.14),rgba(6,12,18,.82)), url("../assets/demand.png") center/cover no-repeat; }
+    .mn-feature[data-theme="Inventory"]   .f-img{ background:linear-gradient(160deg,rgba(214,179,106,.16),rgba(10,10,8,.82)), url("../assets/warehouse.png") center/cover no-repeat; }
+.mn-feature[data-theme="Freight"]     .f-img{ background:linear-gradient(160deg,rgba(80,220,80,.12),rgba(6,12,8,.82)), url("../assets/ship.png") center/cover no-repeat; }
+    .mn-feature[data-theme="Spreads"]     .f-img{ background:linear-gradient(160deg,rgba(255,200,0,.14),rgba(14,12,4,.82)), url("../assets/oil.png") center/cover no-repeat; }
     .f-badge{ position:absolute; left:14px; top:14px; padding:5px 10px; border-radius:999px; background:var(--mn-badge-bg); border:1px solid var(--mn-badge-border); font-size:10px; display:flex; gap:6px; align-items:center; z-index:2; color:var(--mn-badge-text); font-weight:700; letter-spacing:.5px; }
     .f-dot{ width:6px; height:6px; border-radius:50%; background:var(--mn-dot-bg); box-shadow:0 0 0 3px var(--mn-dot-ring); animation:dotBlink 2s ease-in-out infinite; flex-shrink:0; }
     @keyframes dotBlink { 0%,100%{opacity:1;} 50%{opacity:.3;} }
