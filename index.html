@@ -2321,15 +2321,44 @@ function initForecast(){
     volatility:[{title:"隐含波动率抬升，期权保护需求增强",src:"Derivatives",date:"2025-11-22"},{title:"流动性收缩导致尾部风险再定价",src:"Risk",date:"2025-12-10"}],
   };
 
-  function getContrib(){
-    const w={demand:.20,shipping:.14,opec:.18,inventory:-.16,usd:-.12,geo:.00};
-    const raw=Object.keys(w).map(k=>{
-      const v=(state.factors[k]||0)*w[k]+seededNoise((state.horizon*10+(k.charCodeAt(0)%7)),23)*.03;
-      return{k,v};
+  function getStableFactorProfile(){
+    const profile=state.asset==="brent"
+      ? {demand:.19,shipping:.15,opec:.18,inventory:-.13,usd:-.10,geo:.13,volatility:.12}
+      : {demand:.22,shipping:.11,opec:.17,inventory:-.16,usd:-.11,geo:.10,volatility:.11};
+    const horizonAdj=state.horizon<=7
+      ? {shipping:.01,geo:.02,volatility:.03,inventory:-.01}
+      : state.horizon<=14
+        ? {demand:.01,opec:.01,inventory:-.01,volatility:.01}
+        : {demand:.02,opec:.02,inventory:-.02,geo:-.01,volatility:-.01};
+    const modelAdj=state.model==="ap"
+      ? {demand:.01,inventory:-.01}
+      : state.model==="stacking"
+        ? {shipping:.01,geo:.01}
+        : state.model==="lstm"
+          ? {volatility:.01,geo:.01}
+          : state.model==="prophet"
+            ? {inventory:-.01,usd:-.01}
+            : {};
+    [horizonAdj,modelAdj].forEach(adj=>{
+      Object.keys(adj).forEach(key=>{
+        profile[key]=(profile[key]||0)+adj[key];
+      });
     });
-    raw.push({k:"volatility",v:Math.abs(state.factors.geo)*.015+.03});
-    const sumAbs=raw.reduce((s,x)=>s+Math.abs(x.v),0)||1;
-    return raw.map(x=>({key:x.k,name:fNames[x.k]||x.k,val:x.v/sumAbs})).sort((a,b)=>Math.abs(b.val)-Math.abs(a.val)).slice(0,7);
+    return profile;
+  }
+
+  function getContrib(){
+    const profile=getStableFactorProfile();
+    const seedBase=(state.asset==="brent"?17:11)+(state.horizon*3)+({ap:19,stacking:23,lstm:29,prophet:31}[state.model]||13);
+    const raw=Object.keys(profile).map((k,idx)=>({
+      key:k,
+      val:profile[k]+seededNoise(seedBase+idx,59)*.004
+    }));
+    const sumAbs=raw.reduce((s,x)=>s+Math.abs(x.val),0)||1;
+    return raw
+      .map(x=>({key:x.key,name:fNames[x.key]||x.key,val:x.val/sumAbs}))
+      .sort((a,b)=>Math.abs(b.val)-Math.abs(a.val))
+      .slice(0,7);
   }
 
   let popTimer=null;
@@ -2363,8 +2392,10 @@ function initForecast(){
     const dom=contrib[0];
     $("fc-kpi-top1").textContent=`${dom.name} · ${pct(Math.abs(dom.val))}`;
     $("fc-kpi-dir").textContent=dom.val>=0?"偏多（上行）":"偏空（下行）";
-    const mBase=state.model==="ap"?.66:state.model==="stacking"?.62:state.model==="lstm"?.58:state.model==="prophet"?.49:.45;
-    $("fc-kpi-expl").textContent=pct(clamp(mBase-clamp(Math.abs(state.factors.geo)/10,0,1)*.10+.06,.30,.75));
+    const mBase=state.model==="ap"?.72:state.model==="stacking"?.68:state.model==="lstm"?.63:state.model==="prophet"?.55:.50;
+    const horizonPenalty=state.horizon<=7?0:state.horizon<=14?.03:.06;
+    const assetAdj=state.asset==="brent"?.01:0;
+    $("fc-kpi-expl").textContent=pct(clamp(mBase-horizonPenalty+assetAdj,.30,.75));
 
     // Factor board
     const board=$("fc-factor-board");board.innerHTML="";
