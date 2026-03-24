@@ -2278,6 +2278,33 @@ function initForecast(){
   }
 
   /* ── Sliders ── */
+  const brentConsensusData=[
+    {name:"路透调查一致预期",publish:"2026-01-05",price:"61.27",type:"2026年均"},
+    {name:"高盛",publish:"2026-01-12",price:"56",type:"2026年均"},
+    {name:"摩根大通",publish:"2025-11-24",price:"58",type:"2026年均"},
+    {name:"摩根士丹利",publish:"2025-11-03",price:"60",type:"2026上半年均值"},
+    {name:"巴克莱",publish:"2025-12-16",price:"65",type:"2026年均"},
+    {name:"花旗",publish:"2025-10-01",price:"62",type:"2026Q2-Q4季度均值"},
+  ];
+  renderConsensus=function(){
+    const consensusCard=document.getElementById("fc-consensus-tbody")?.closest(".fc-card");
+    if(consensusCard) consensusCard.classList.add("fc-consensus-card");
+    const titleEl=consensusCard?.querySelector(".fc-card-head h3");
+    if(titleEl) titleEl.textContent="Brent市场一致预期";
+    const thead=consensusCard?.querySelector("thead");
+    if(thead) thead.innerHTML="<tr><th>机构</th><th>发布时间</th><th>预期价格</th><th>类型</th></tr>";
+    const noteEl=consensusCard?.querySelector(".fc-note");
+    if(noteEl) noteEl.textContent="该表展示 Brent 相关机构一致预期，包含发布时间、预期价格与统计口径，和上方 T+1/T+7/T+30 短期预测属于不同时间尺度。";
+    const tbody=$("fc-consensus-tbody");
+    if(!tbody) return;
+    tbody.innerHTML="";
+    brentConsensusData.forEach(r=>{
+      const tr=document.createElement("tr");
+      tr.innerHTML=`<td><strong style="font-size:12px">${r.name}</strong></td><td>${r.publish}</td><td><strong style="color:var(--fc-gold)">${r.price}</strong></td><td>${r.type}</td>`;
+      tbody.appendChild(tr);
+    });
+  };
+
   const sliderDefs=[
     {key:"opec",name:"OPEC+供给",hint:"↓更紧 → 上行",sign:-1},
     {key:"inventory",name:"美国库存",hint:"↑偏空 → 下行",sign:-1},
