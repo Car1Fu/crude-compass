@@ -522,6 +522,20 @@
             outline: none;
         }
 
+        .data-item-add.is-selected {
+            opacity: 0.9;
+            border-color: rgba(248, 113, 113, 0.45);
+            background: rgba(248, 113, 113, 0.10);
+            color: var(--negative);
+        }
+
+        .data-item-add.is-selected:hover,
+        .data-item-add.is-selected:focus-visible {
+            border-color: rgba(248, 113, 113, 0.65);
+            background: rgba(248, 113, 113, 0.16);
+            color: var(--negative);
+        }
+
         .data-item-name {
             flex: 1;
             overflow: hidden;
@@ -1729,6 +1743,10 @@
                     addBtn.setAttribute('aria-label', `添加 ${name}`);
                     addBtn.addEventListener('click', function(event) {
                         event.stopPropagation();
+                        if (selectedDataList.some(data => data.key === item.dataset.key)) {
+                            removeSelectedDataByKey(item.dataset.key);
+                            return;
+                        }
                         addDataFromItem(item);
                     });
 
@@ -1814,8 +1832,18 @@
             const selectedKeys = new Set(selectedDataList.map(item => item.key));
 
             document.querySelectorAll('.data-item').forEach(item => {
-                item.classList.toggle('selected', selectedKeys.has(item.dataset.key));
+                const isSelected = selectedKeys.has(item.dataset.key);
+                const addBtn = item.querySelector('.data-item-add');
+
+                item.classList.toggle('selected', isSelected);
                 item.classList.toggle('active', !!currentData && currentData.key === item.dataset.key);
+
+                if (addBtn) {
+                    addBtn.classList.toggle('is-selected', isSelected);
+                    addBtn.textContent = isSelected ? '−' : '+';
+                    addBtn.setAttribute('aria-label', `${isSelected ? '移除' : '添加'} ${item.dataset.name}`);
+                    addBtn.setAttribute('title', `${isSelected ? '移除' : '添加'} ${item.dataset.name}`);
+                }
             });
         }
 
@@ -1924,6 +1952,14 @@
             updateHeader(currentData);
             updateSidebarSelectionState();
             renderSelectedData();
+        }
+
+        function removeSelectedDataByKey(key) {
+            const index = selectedDataList.findIndex(item => item.key === key);
+            if (index === -1) {
+                return;
+            }
+            removeSelectedData(index);
         }
 
         function getSource(name) {
