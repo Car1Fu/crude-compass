@@ -134,7 +134,7 @@
   renderNow();setInterval(renderNow,20000);
   const qEl=document.getElementById("mnQ");if(qEl)qEl.addEventListener("input",()=>{S.q=qEl.value;render();});
   const clr=document.getElementById("mnClear");if(clr)clr.addEventListener("click",()=>{if(qEl)qEl.value="";S.q="";render();});
-  applyTheme(localStorage.getItem(THEME_KEY)==="light"?"light":"dark");
+  applyTheme("dark");
   if(themeBtn)themeBtn.addEventListener("click",()=>{
     const next=viewEl&&viewEl.classList.contains("mn-light")?"dark":"light";
     localStorage.setItem(THEME_KEY,next);
@@ -213,7 +213,7 @@
   document.getElementById("rpBulkMerge").onclick=()=>{const reps=[...rpState.selected].map(id=>RP_REPORTS.find(r=>r.id===id)).filter(Boolean);if(!reps.length)return;const res=rpBuildPDF(reps,"今日研报包");if(res)rpDlBlob(res.blob,res.fileName);reps.forEach(r=>rpRead.add(r.id));localStorage.setItem(LS_READ,JSON.stringify([...rpRead]));rpRenderAll(false);};
   document.getElementById("rpBulkClear").onclick=()=>{rpState.selected.clear();rpSyncSel();rpRenderAll(false);};
   document.getElementById("rpGoPage").onclick=()=>{const v=Number(document.getElementById("rpJumpInput").value),tp=rpPageCount(rpFiltered().length);if(!v||v<1||v>tp)return;rpState.page=v;rpRenderAll(false);};
-  rpApplyTheme(localStorage.getItem(RP_THEME_KEY)==="light"?"light":"dark");
+  rpApplyTheme("dark");
   if(rpThemeBtn)rpThemeBtn.addEventListener("click",()=>{const next=rpViewEl&&rpViewEl.classList.contains("rp-light")?"dark":"light";localStorage.setItem(RP_THEME_KEY,next);rpApplyTheme(next);});
   window.rpRenderAllGlobal = rpRenderAll;
 })();
@@ -1161,7 +1161,7 @@ function initForecast(){
   };
 
   /* ── K线图 ── */
-  let dbKChart=null, dbKProduct='brent';
+  let dbKChart=null, dbKProduct='wti';
   function dbRenderKline(product){
     const wrap=document.getElementById('dbKLineChart');
     if(!wrap) return;
