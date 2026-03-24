@@ -901,16 +901,24 @@ function initForecast(){
 
     // Timeline
     const events=[
-      {date:"2025-06-15",type:"geo",title:"关键通道风险升温，市场风险溢价快速抬升",desc:"地缘扰动推升短端波动，区间显著加宽。"},
-      {date:"2025-07-19",type:"macro",title:"美元走强 + 利率上行引发商品资金再平衡",desc:"资金面变化导致价格短线承压，波动上行。"},
-      {date:"2025-08-02",type:"inventory",title:"EIA库存超预期变化触发短线反转",desc:"库存数据成为当周核心定价因子。"},
-      {date:"2025-10-05",type:"opec",title:"OPEC+会议释放产量指引，供给预期再定价",desc:"供给路径不确定性下降，价格中枢上移。"},
-      {date:"2025-11-22",type:"macro",title:"隐含波动率抬升，期权保护需求上升",desc:"尾部风险被重新定价，风险等级阶段性上调。"},
-      {date:"2025-12-10",type:"geo",title:"事件驱动冲击：市场从方向转向波动交易",desc:"方向争夺减弱，波动成为主要交易维度。"},
+      {date:"2025-01-10",type:"supply",label:"供给",title:"美国宣布对俄罗斯能源部门、油轮和贸易网络实施新一轮严厉制裁",desc:"对原油供给形成收紧预期，市场担忧俄油出口受阻，推动国际油价与风险溢价上行。"},
+      {date:"2025-02-03",type:"macro",label:"宏观",title:"美国推进对加拿大、墨西哥、中国商品加征关税，其中加拿大能源进口被征收10%关税",desc:"对原油的宏观预期转弱，市场开始交易贸易摩擦拖累全球增长和石油需求的风险。"},
+      {date:"2025-03-03",type:"supply",label:"供给",title:"OPEC+决定按原计划自4月开始小幅增产，首轮增量约13.8万桶/日",desc:"对原油供给的释放预期启动，市场定价开始从“供应偏紧”转向“增供是否压价”。"},
+      {date:"2025-03-04",type:"supply",label:"供给",title:"美国要求雪佛龙在30天内结束其在委内瑞拉的原油出口和相关业务",desc:"对原油供给形成边际收紧预期，委内瑞拉重质原油出口与美国炼厂原料来源面临扰动。"},
+      {date:"2025-04-03",type:"supply",label:"供给",title:"OPEC+意外将5月增产规模提高到41.1万桶/日，显著高于市场此前预期",desc:"对原油供给宽松预期明显强化，油价出现阶段性下跌，市场转向交易“份额竞争”逻辑。"},
+      {date:"2025-06-13",type:"geo",label:"地缘",title:"以色列与伊朗互相发动空袭，中东局势骤然升级，国际油价当日大涨约7%",desc:"对原油地缘风险溢价形成快速抬升，市场集中交易中东供应中断与航运受扰风险。"},
+      {date:"2025-07-05",type:"supply",label:"供给",title:"OPEC+决定8月再增产54.8万桶/日，增产节奏继续加快",desc:"对原油供给进一步宽松，表明产油国更重视夺回市场份额而非单纯托价。"},
+      {date:"2025-08-03",type:"supply",label:"供给",title:"OPEC+决定9月再增产54.7万桶/日，市场对潜在过剩的担忧继续升温",desc:"对原油供给过剩预期进一步强化，油价承压下行，市场更关注需求疲弱与库存累积。"},
+      {date:"2025-09-07",type:"supply",label:"供给",title:"OPEC+决定自10月起进一步增产13.7万桶/日，并继续推进减产回补",desc:"对原油供给恢复的确定性增强，确认2025年下半年油市主线已转向增供与份额竞争。"},
+      {date:"2025-10-20",type:"spread",label:"价差",title:"Brent收于61.01美元/桶、WTI收于57.52美元/桶，市场结构转入contango并交易供应过剩",desc:"对原油价差形成明显影响，近远月价差走弱反映库存压力与供给过剩预期升温。"},
+      {date:"2025-11-30",type:"supply",label:"供给",title:"OPEC+决定2026年一季度维持产量不变，暂停进一步增产",desc:"对原油供给形成阶段性托底，说明产油国开始正视过剩压力并放缓增供节奏。"},
+      {date:"2025-12-10",type:"spread",label:"价差",title:"亚洲买家要求委内瑞拉原油进一步深度折价，因俄伊受制裁原油大量流入亚洲市场",desc:"对原油价差造成挤压，重质受制裁原油之间的替代与竞争使委内瑞拉原油折价显著扩大。"},
+      {date:"2025-12-18",type:"freight",label:"运价",title:"美国制裁29艘运输伊朗石油的“影子船队”船只及其管理公司",desc:"对原油运价与运输风险形成抬升，受制裁油流的航运、保险与转运成本上升。"},
+      {date:"2026-01-06",type:"supply",label:"供给",title:"美国与委内瑞拉达成协议，允许最多20亿美元委内瑞拉原油转运美国",desc:"对原油供给预期形成边际修复，部分重质原油将回流美国市场并缓解区域炼厂原料紧张。"},
     ];
     $("fc-timeline").innerHTML=events.map(e=>`
       <div class="fc-event-card">
-        <div class="fc-event-top"><div class="fc-event-date">${e.date}</div><div class="fc-etype ${e.type}">${e.type.toUpperCase()}</div></div>
+        <div class="fc-event-top"><div class="fc-event-date">${e.date}</div><div class="fc-etype ${e.type}">${e.label || e.type.toUpperCase()}</div></div>
         <div class="fc-event-title">${e.title}</div>
         <div class="fc-event-desc">${e.desc}</div>
       </div>`).join("");

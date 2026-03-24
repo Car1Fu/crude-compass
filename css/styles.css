@@ -2750,7 +2750,7 @@
       background: linear-gradient(180deg, rgba(63, 84, 115, .98) 0%, rgba(42, 58, 83, .98) 100%);
     }
     .fc-event-card {
-      min-width: 240px; max-width: 280px; flex-shrink: 0;
+      min-width: 220px; max-width: 252px; flex-shrink: 0;
       padding: 14px 16px; border-radius: 12px;
       border: 1px solid var(--fc-stroke2);
       background: rgba(255,255,255,.025);
@@ -2794,6 +2794,22 @@
     .fc-etype.opec {
       border-color: rgba(214, 179, 106, .42);
       background: linear-gradient(180deg, rgba(42, 33, 18, .94) 0%, rgba(35, 27, 15, .88) 100%);
+    }
+    .fc-etype.supply {
+      border-color: rgba(214, 179, 106, .42);
+      background: linear-gradient(180deg, rgba(42, 33, 18, .94) 0%, rgba(35, 27, 15, .88) 100%);
+    }
+    .fc-etype.demand {
+      border-color: rgba(82, 198, 160, .42);
+      background: linear-gradient(180deg, rgba(16, 38, 32, .94) 0%, rgba(12, 30, 25, .88) 100%);
+    }
+    .fc-etype.spread {
+      border-color: rgba(164, 120, 235, .42);
+      background: linear-gradient(180deg, rgba(33, 23, 49, .94) 0%, rgba(26, 18, 40, .88) 100%);
+    }
+    .fc-etype.freight {
+      border-color: rgba(89, 200, 220, .42);
+      background: linear-gradient(180deg, rgba(15, 33, 40, .94) 0%, rgba(11, 26, 31, .88) 100%);
     }
     .fc-event-title {
       font-size: 13px; font-weight: 700; color: var(--fc-text); line-height: 1.4;
