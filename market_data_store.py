@@ -271,22 +271,69 @@ def upsert_market_rows(
     return len(payload)
 
 
+def delete_market_rows_by_keys(
+    rows: Iterable[dict[str, object]],
+    db_path: Path | str = DEFAULT_DB_PATH,
+) -> int:
+    payload = []
+    for row in rows:
+        symbol = row.get("symbol")
+        trade_date = row.get("trade_date")
+        if symbol and trade_date:
+            payload.append((symbol, trade_date))
+
+    if not payload:
+        return 0
+
+    init_market_database(db_path)
+    with get_connection(db_path) as connection:
+        cursor = connection.executemany(
+            """
+            DELETE FROM market_daily_prices
+            WHERE symbol = ? AND trade_date = ?
+            """,
+            payload,
+        )
+        return cursor.rowcount if cursor.rowcount is not None else 0
+
+
+def delete_rows_with_missing_open(
+    db_path: Path | str = DEFAULT_DB_PATH,
+) -> int:
+    init_market_database(db_path)
+    with get_connection(db_path) as connection:
+        cursor = connection.execute(
+            """
+            DELETE FROM market_daily_prices
+            WHERE open_price IS NULL
+            """
+        )
+        return cursor.rowcount if cursor.rowcount is not None else 0
+
+
 def import_market_data(
     excel_path: Path | str,
     db_path: Path | str = DEFAULT_DB_PATH,
     sheet_name: str | None = None,
 ) -> dict[str, object]:
     rows = read_market_rows_from_xlsx(excel_path, sheet_name=sheet_name)
-    inserted = upsert_market_rows(rows, db_path=db_path)
+    dropped_rows = [row for row in rows if row.get("open_price") is None]
+    valid_rows = [row for row in rows if row.get("open_price") is not None]
+
+    deleted_missing_open_keys = delete_market_rows_by_keys(dropped_rows, db_path=db_path)
+    inserted = upsert_market_rows(valid_rows, db_path=db_path)
+    deleted_missing_open_legacy = delete_rows_with_missing_open(db_path=db_path)
 
     by_symbol: dict[str, int] = defaultdict(int)
-    for row in rows:
+    for row in valid_rows:
         by_symbol[str(row["symbol"])] += 1
 
     return {
         "excel_path": str(Path(excel_path)),
         "db_path": str(Path(db_path)),
         "row_count": inserted,
+        "dropped_missing_open": len(dropped_rows),
+        "deleted_missing_open": deleted_missing_open_keys + deleted_missing_open_legacy,
         "symbols": dict(sorted(by_symbol.items())),
     }
 

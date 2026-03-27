@@ -6,20 +6,12 @@ from pathlib import Path
 from market_data_store import DEFAULT_DB_PATH, DEFAULT_SAMPLE_XLSX, import_market_data
 
 
-DEFAULT_DESKTOP_XLSX = Path.home() / "Desktop" / "\u539f\u6cb9\u6570\u636e.xlsx"
-
-
 def resolve_default_excel_path() -> Path:
-    candidates = [
-        DEFAULT_DESKTOP_XLSX,
-        DEFAULT_SAMPLE_XLSX,
-    ]
-    for candidate in candidates:
-        if candidate.exists():
-            return candidate
+    if DEFAULT_SAMPLE_XLSX.exists():
+        return DEFAULT_SAMPLE_XLSX
     raise FileNotFoundError(
-        "No Excel source found. Expected one of: "
-        f"{DEFAULT_DESKTOP_XLSX} or {DEFAULT_SAMPLE_XLSX}"
+        "No Excel source found. Expected workspace file: "
+        f"{DEFAULT_SAMPLE_XLSX}"
     )
 
 
@@ -61,6 +53,8 @@ def main() -> int:
     print(f"Excel file: {summary['excel_path']}")
     print(f"SQLite file: {summary['db_path']}")
     print(f"Imported rows: {summary['row_count']}")
+    print(f"Dropped rows with empty open: {summary['dropped_missing_open']}")
+    print(f"Deleted rows with empty open from SQLite: {summary['deleted_missing_open']}")
     print(f"Symbols: {summary['symbols']}")
     return 0
 

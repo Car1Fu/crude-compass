@@ -12,13 +12,13 @@
     return response.json();
   }
 
-  function calcMA(data, period) {
-    return data.map((_, index) => {
-      if (index < period - 1) return [data[index][0], null];
-      const sum = data
+  function calcMA(candles, period) {
+    return candles.map((_, index) => {
+      if (index < period - 1) return null;
+      const sum = candles
         .slice(index - period + 1, index + 1)
-        .reduce((accumulator, item) => accumulator + item[2], 0);
-      return [data[index][0], +(sum / period).toFixed(2)];
+        .reduce((accumulator, item) => accumulator + item[1], 0);
+      return +(sum / period).toFixed(2);
     });
   }
 
@@ -66,17 +66,30 @@
   }
 
   function buildKlineData(rows) {
-    return rows
+    const filteredRows = rows
       .filter((row) => row.trade_date)
-      .map((row) => [
-        new Date(`${row.trade_date}T00:00:00`).getTime(),
-        Number(row.open_price),
-        Number(row.close_price),
-        Number(row.low_price),
-        Number(row.high_price),
-        Number(row.volume || 0),
-      ])
-      .filter((row) => row.slice(1, 5).every(Number.isFinite));
+      .map((row) => ({
+        tradeDate: row.trade_date,
+        openPrice: Number(row.open_price),
+        closePrice: Number(row.close_price),
+        lowPrice: Number(row.low_price),
+        highPrice: Number(row.high_price),
+        volume: Number(row.volume || 0),
+      }))
+      .filter((row) =>
+        [row.openPrice, row.closePrice, row.lowPrice, row.highPrice].every(Number.isFinite)
+      );
+
+    return {
+      categories: filteredRows.map((row) => row.tradeDate),
+      candles: filteredRows.map((row) => [
+        row.openPrice,
+        row.closePrice,
+        row.lowPrice,
+        row.highPrice,
+        row.volume,
+      ]),
+    };
   }
 
   async function renderRealKline(product) {
@@ -99,10 +112,10 @@
 
       const rows = Array.isArray(payload && payload.rows) ? payload.rows : [];
       const klineData = buildKlineData(rows);
-      if (!klineData.length) return;
+      if (!klineData.candles.length) return;
 
-      const ma5 = calcMA(klineData, 5);
-      const ma20 = calcMA(klineData, 20);
+      const ma5 = calcMA(klineData.candles, 5);
+      const ma20 = calcMA(klineData.candles, 20);
 
       chart.setOption({
         animation: false,
@@ -114,10 +127,11 @@
           backgroundColor: "rgba(18,18,20,.95)",
           textStyle: { color: "#f6e3b2" },
           formatter(points) {
-            const item = points[0] && points[0].data;
+            const candlePoint = points.find((point) => point.seriesType === "candlestick");
+            const item = candlePoint && candlePoint.data;
+            const date = (candlePoint && candlePoint.axisValueLabel) || "";
             if (!item) return "";
-            const date = new Date(item[0]).toISOString().slice(0, 10);
-            return `Date: ${date}<br>Open: ${item[1]} Close: ${item[2]}<br>Low: ${item[3]} High: ${item[4]}<br>Volume: ${item[5]}`;
+            return `Date: ${date}<br>Open: ${item[0]} Close: ${item[1]}<br>Low: ${item[2]} High: ${item[3]}<br>Volume: ${item[4]}`;
           },
         },
         legend: {
@@ -131,15 +145,15 @@
         },
         grid: { left: "3%", right: "3%", bottom: "5%", top: "15%", containLabel: true },
         xAxis: {
-          type: "time",
-          scale: true,
+          type: "category",
+          data: klineData.categories,
           axisLine: { lineStyle: { color: "rgba(214,179,106,.25)" } },
           splitLine: { show: false },
           axisLabel: {
             color: "rgba(240,240,242,.50)",
             formatter(value) {
-              const date = new Date(value);
-              return `${date.getMonth() + 1}/${date.getDate()}`;
+              const parts = String(value).split("-");
+              return parts.length === 3 ? `${parts[1]}/${parts[2]}` : value;
             },
           },
         },
@@ -154,7 +168,7 @@
           {
             name: "K Line",
             type: "candlestick",
-            data: klineData,
+            data: klineData.candles,
             itemStyle: {
               color: "#ff5c7c",
               color0: "#39d98a",
