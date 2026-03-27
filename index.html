@@ -21,7 +21,7 @@
   <div class="wrap">
     <div class="nav">
       <a class="brand" onclick="switchView('view-home')" style="padding:4px 8px;">
-        <img src="assets/logo.png" alt="原油罗盘 Crude Compass" style="height:46px; width:auto; display:block; filter:drop-shadow(0 2px 8px rgba(214,179,106,.25));">
+        <img src="assets/Logo.png" alt="原油罗盘 Crude Compass" style="height:46px; width:auto; display:block; filter:drop-shadow(0 2px 8px rgba(214,179,106,.25));">
       </a>
       <div class="nav-right">
         <nav class="menu">
@@ -92,7 +92,7 @@
           </div>
           <!-- Logo大图替代文字标题 -->
           <div style="margin: 4px 0 8px;">
-            <img src="assets/logo.png" alt="原油罗盘 Crude Compass"
+            <img src="assets/Logo.png" alt="原油罗盘 Crude Compass"
               style="height:clamp(54px,7vw,88px); width:auto; display:block;
                      filter:drop-shadow(0 0 28px rgba(214,179,106,.35)) drop-shadow(0 4px 12px rgba(0,0,0,.6));
                      animation:heroSweep 4.2s ease-in-out infinite;">
@@ -1378,7 +1378,7 @@
         </div>
       </div>
       <div class="footer-right">
-        <img src="./assets/logo.png" alt="logo" onerror="this.style.display='none'">
+        <img src="./assets/Logo.png" alt="logo" onerror="this.style.display='none'">
         <button class="backtotop" onclick="scrollToTop()">
           <svg viewBox="0 0 24 24"><path d="M12 19V6"/><path d="M7 10l5-5 5 5"/></svg>
         </button>
@@ -1394,7 +1394,7 @@
 const VIEW_NAV = {
   'view-home':null,'view-module-news':'nl-zixun','view-research':'nl-zixun',
   'view-supply':'nl-zixun','view-database':'nl-data','view-api':'nl-data',
-  'view-forecast':'nl-forecast','view-hedge':'nl-forecast','view-warning':'nl-forecast',
+  'view-forecast':'nl-forecast','view-hedge':'nl-forecast',
   'view-about':'nl-about','view-pricing':'nl-about','view-contact':'nl-about',
 };
 function switchView(viewId){
@@ -1421,13 +1421,6 @@ function switchView(viewId){
     }, 50);
   }
   if(viewId==='view-research') { setTimeout(()=>{ if(!window._rpInited){window._rpInited=true; if(typeof rpRenderAllGlobal==='function') rpRenderAllGlobal(); } }, 30); }
-  if(viewId==='view-warning') {
-    setTimeout(()=>{ 
-      if(typeof waInitSwitches==='function') waInitSwitches(); 
-      if(typeof waInitUploads==='function') waInitUploads(); 
-      if(typeof waInitCalc==='function') waInitCalc(); 
-    }, 30); 
-  }
 }
 
 

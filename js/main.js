@@ -4,7 +4,7 @@
 window.VIEW_NAV = window.VIEW_NAV || {
   'view-home':null,'view-module-news':'nl-zixun','view-research':'nl-zixun',
   'view-supply':'nl-zixun','view-database':'nl-data','view-api':'nl-data',
-  'view-forecast':'nl-forecast','view-hedge':'nl-forecast','view-warning':'nl-forecast',
+  'view-forecast':'nl-forecast','view-hedge':'nl-forecast',
   'view-about':'nl-about','view-pricing':'nl-about','view-contact':'nl-about',
 };
 window.CC_AUTH_STORAGE_KEY = window.CC_AUTH_STORAGE_KEY || 'cc_auth_user';
