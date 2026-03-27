@@ -1113,9 +1113,11 @@
       #view-hedge .hg-msg-avatar { width:34px; height:34px; border-radius:12px; object-fit:cover; border:1px solid rgba(199,164,106,.16); box-shadow:0 8px 18px rgba(0,0,0,.18); flex-shrink:0; background:rgba(255,255,255,.06); }
       #view-hedge .hg-msg-stack { display:flex; flex-direction:column; gap:6px; min-width:0; }
       #view-hedge .hg-msg-meta { font-size:11px; letter-spacing:.3px; color:rgba(243,239,230,.42); padding-left:4px; }
-      #view-hedge .hg-msg { max-width:100%; padding:14px 16px; border-radius:18px; line-height:1.75; font-size:14px; }
+      #view-hedge .hg-msg { max-width:100%; padding:14px 16px; border-radius:18px; line-height:1.75; font-size:14px; white-space:pre-wrap; word-break:break-word; }
       #view-hedge .hg-msg-ai { background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.06); color:rgba(243,239,230,.88); border-top-left-radius:8px; box-shadow:0 10px 26px rgba(0,0,0,.18); }
       #view-hedge .hg-msg-user { background:linear-gradient(135deg, rgba(199,164,106,.24), rgba(146,106,54,.20)); border:1px solid rgba(199,164,106,.26); color:#f7f0e2; border-top-right-radius:8px; box-shadow:0 12px 28px rgba(108,74,31,.16); }
+      #view-hedge .hg-msg-pending { opacity:.78; }
+      #view-hedge .hg-msg-error { border-color:rgba(209,98,98,.34); }
       #view-hedge .hg-chat-suggestions { display:flex; flex-wrap:wrap; gap:10px; padding:0 20px 18px; }
       #view-hedge .hg-chat-chip { display:inline-flex; align-items:center; min-height:34px; padding:0 14px; border-radius:999px; border:1px solid rgba(199,164,106,.18); background:rgba(255,255,255,.03); color:var(--hg-accent-soft); font-size:12px; font-weight:700; letter-spacing:.2px; cursor:pointer; user-select:none; }
       #view-hedge .hg-chat-inputbar { margin:0 20px 20px; padding:14px 16px; border-radius:18px; border:1px solid rgba(199,164,106,.14); background:rgba(255,255,255,.03); display:flex; align-items:flex-end; justify-content:space-between; gap:16px; box-shadow:inset 0 1px 0 rgba(255,255,255,.03); }
@@ -1289,7 +1291,7 @@
                     <div class="hg-chat-sub">Hedge Assistant Online</div>
                   </div>
                 </div>
-                <div class="hg-chat-state"><span class="hg-chat-dot"></span> 在线响应</div>
+                <div class="hg-chat-state" id="hgChatState"><span class="hg-chat-dot"></span> 在线响应</div>
               </div>
               <div class="hg-chat-body" id="hgChatBody">
                 <div class="hg-msg-row ai">
@@ -2923,6 +2925,15 @@ window._loadDbDownload = function(){
     const chatBody=$('hgChatBody');
     const chatInput=$('hgChatInput');
     const chatSend=$('hgChatSend');
+    const chatState=$('hgChatState');
+    const defaultHedgeEndpoint = /^https?:/i.test(window.location.href)
+      ? `${window.location.origin}/api/hedge-chat`
+      : 'http://127.0.0.1:8008/api/hedge-chat';
+    const hedgeChatConfig=Object.assign({
+      endpoint:defaultHedgeEndpoint,
+      model:'openai/gpt-4o-mini'
+    }, window.CC_HEDGE_CHAT_CONFIG || {});
+    let hgRequestInFlight=false;
     if(!bizSelect || !consumerSelect || !expireInput || !root) return; // view未激活时跳过
     if(root.dataset.hgInited==='1') return;
     root.dataset.hgInited='1';
@@ -2971,13 +2982,60 @@ window._loadDbDownload = function(){
       chatInput.style.height='auto';
       chatInput.style.height=Math.min(chatInput.scrollHeight,120)+'px';
     }
+    function hgSetChatState(label){
+      if(!chatState) return;
+      chatState.innerHTML=`<span class="hg-chat-dot"></span> ${label}`;
+    }
     function hgSyncSendState(){
       if(!chatInput || !chatSend) return;
-      chatSend.disabled=!chatInput.value.trim();
+      chatSend.disabled=!chatInput.value.trim() || hgRequestInFlight;
     }
     function hgScrollChatToBottom(){
       if(!chatBody) return;
       chatBody.scrollTop=chatBody.scrollHeight;
+    }
+    function hgExtractMessageText(payload){
+      const content=payload?.choices?.[0]?.message?.content;
+      if(typeof content==='string') return content.trim();
+      if(Array.isArray(content)){
+        return content.map(part=>{
+          if(typeof part==='string') return part;
+          if(part && typeof part.text==='string') return part.text;
+          return '';
+        }).join('').trim();
+      }
+      return '';
+    }
+    function hgAppendAssistantMessage(text, options={}){
+      if(!chatBody) return null;
+      const row=document.createElement('div');
+      row.className='hg-msg-row ai';
+
+      const avatar=document.createElement('img');
+      avatar.className='hg-msg-avatar';
+      avatar.src='assets/AI.png';
+      avatar.alt='AI assistant avatar';
+
+      const stack=document.createElement('div');
+      stack.className='hg-msg-stack';
+
+      const meta=document.createElement('div');
+      meta.className='hg-msg-meta';
+      meta.textContent=options.meta || '套保 AI 助手';
+
+      const bubble=document.createElement('div');
+      bubble.className='hg-msg hg-msg-ai';
+      if(options.pending) bubble.classList.add('hg-msg-pending');
+      if(options.error) bubble.classList.add('hg-msg-error');
+      bubble.textContent=text;
+
+      stack.appendChild(meta);
+      stack.appendChild(bubble);
+      row.appendChild(avatar);
+      row.appendChild(stack);
+      chatBody.appendChild(row);
+      hgScrollChatToBottom();
+      return bubble;
     }
     function hgAppendUserMessage(text){
       if(!chatBody) return;
@@ -2990,15 +3048,88 @@ window._loadDbDownload = function(){
       chatBody.appendChild(row);
       hgScrollChatToBottom();
     }
+    function hgBuildRequestMessages(userText){
+      const context=[
+        `Business type: ${bizSelect?.value || 'unknown'}`,
+        `Spot quantity (barrels): ${$('hgSpotQty')?.value?.trim() || 'unknown'}`,
+        `Spot expiry date: ${expireInput?.value || 'unknown'}`,
+        `Risk profile: ${consumerSelect?.value || 'unknown'}`,
+        `Suggested hedge ratio: ${$('hgHedgeRatio')?.textContent || 'n/a'}`,
+        `Suggested futures size: ${$('hgFutQty')?.textContent || 'n/a'}`,
+        `Initial margin estimate: ${$('hgInitMargin')?.textContent || 'n/a'}`,
+        `Supplemental margin estimate: ${$('hgSuppMargin')?.textContent || 'n/a'}`,
+        `Total margin estimate: ${$('hgTotalMargin')?.textContent || 'n/a'}`
+      ].join('\n');
+      return [
+        {
+          role:'system',
+          content:'You are the Crude Compass hedge assistant. Give practical crude-oil hedging guidance, ask for missing inputs when needed, avoid pretending to have real-time market data, and reply in the same language as the user.'
+        },
+        {
+          role:'user',
+          content:`Current hedging context:\n${context}\n\nUser question:\n${userText}`
+        }
+      ];
+    }
+    async function hgRequestAssistantReply(userText){
+      const response=await fetch(hedgeChatConfig.endpoint,{
+        method:'POST',
+        headers:{
+          'Content-Type':'application/json'
+        },
+        body:JSON.stringify({
+          model:hedgeChatConfig.model,
+          messages:hgBuildRequestMessages(userText)
+        })
+      });
+      const payload=await response.json().catch(()=>null);
+      if(!response.ok){
+        const message=payload?.error || payload?.message || `HTTP ${response.status}`;
+        throw new Error(message);
+      }
+      const replyText=(typeof payload?.reply==='string' && payload.reply.trim())
+        ? payload.reply.trim()
+        : hgExtractMessageText(payload);
+      if(!replyText) throw new Error('The AI service returned an empty reply.');
+      return replyText;
+    }
+    async function hgSubmitChat(text, options={}){
+      if(!text || hgRequestInFlight) return;
+      hgAppendUserMessage(text);
+      if(chatInput && !options.keepInput){
+        chatInput.value='';
+        hgAutoResizeChat();
+      }
+      hgRequestInFlight=true;
+      hgSyncSendState();
+      hgSetChatState('正在思考');
+      const aiBubble=hgAppendAssistantMessage('正在分析你的问题，请稍候…',{pending:true});
+      try{
+        const reply=await hgRequestAssistantReply(text);
+        if(aiBubble){
+          aiBubble.classList.remove('hg-msg-pending');
+          aiBubble.textContent=reply;
+        }
+        hgSetChatState('在线响应');
+      }catch(error){
+        if(aiBubble){
+          aiBubble.classList.remove('hg-msg-pending');
+          aiBubble.classList.add('hg-msg-error');
+          aiBubble.textContent=`暂时无法连接 AI 服务，请稍后重试。\n\n${error.message || 'Unknown error'}`;
+        }
+        hgSetChatState('连接异常');
+      }finally{
+        hgRequestInFlight=false;
+        hgSyncSendState();
+        hgScrollChatToBottom();
+        if(chatInput) chatInput.focus();
+      }
+    }
     function hgSendChatMessage(){
       if(!chatInput) return;
       const text=chatInput.value.trim();
       if(!text) return;
-      hgAppendUserMessage(text);
-      chatInput.value='';
-      hgAutoResizeChat();
-      hgSyncSendState();
-      chatInput.focus();
+      hgSubmitChat(text);
     }
     function hgBuildCalcPrompt(){
       const date=expireInput.value||'待定日期';
@@ -3009,6 +3140,7 @@ window._loadDbDownload = function(){
     }
     hgAutoResizeChat();
     hgSyncSendState();
+    hgSetChatState('在线响应');
     setTimeout(hgScrollChatToBottom,0);
 
     // 绑定事件
@@ -3088,7 +3220,8 @@ window._loadDbDownload = function(){
     $('hgCalcBtn').addEventListener('click',()=>{
       if(hgCheckForm()){
         hgCalc();
-        hgAppendUserMessage(hgBuildCalcPrompt());
+        hgToast('套保方案已更新');
+        hgSubmitChat(hgBuildCalcPrompt(),{keepInput:true});
       }
     });
   }
