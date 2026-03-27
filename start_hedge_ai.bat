@@ -2,6 +2,14 @@
 setlocal
 cd /d "%~dp0"
 
+echo Importing market data into SQLite...
+python import_market_data.py
+if errorlevel 1 (
+  echo Market data import failed.
+  pause
+  exit /b 1
+)
+
 echo Checking hedge chat proxy on port 8008...
 netstat -ano | findstr ":8008" | findstr "LISTENING" >nul
 if errorlevel 1 (

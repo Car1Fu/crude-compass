@@ -4,8 +4,15 @@ import os
 import traceback
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from urllib.parse import unquote, urlparse
+from urllib.parse import parse_qs, unquote, urlparse
 
+from market_data_store import (
+    DEFAULT_DB_PATH,
+    bootstrap_sample_database,
+    get_latest_snapshots,
+    get_price_series,
+    normalize_symbol,
+)
 from openrouter_config import OPENROUTER_MODEL, build_openrouter_client
 
 
@@ -43,6 +50,14 @@ def _extract_stream_text(stream):
                 elif isinstance(item, dict) and isinstance(item.get("text"), str):
                     chunks.append(item["text"])
     return "".join(chunks).strip()
+
+
+def _coerce_positive_int(value, default=None):
+    try:
+        parsed = int(str(value))
+    except (TypeError, ValueError):
+        return default
+    return parsed if parsed > 0 else default
 
 
 class HedgeChatHandler(BaseHTTPRequestHandler):
@@ -92,9 +107,77 @@ class HedgeChatHandler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         print("[hedge-chat-proxy] GET", self.path, flush=True)
-        if self.path == "/health":
+        parsed = urlparse(self.path)
+        route = parsed.path
+        query = parse_qs(parsed.query)
+
+        if route == "/health":
             self._send_json(200, {"ok": True})
             return
+
+        if route == "/api/market/snapshot":
+            snapshots = get_latest_snapshots(db_path=DEFAULT_DB_PATH)
+            self._send_json(
+                200,
+                {
+                    "items": snapshots,
+                    "as_of": snapshots[0]["trade_date"] if snapshots else None,
+                },
+            )
+            return
+
+        if route == "/api/market/series":
+            symbol = normalize_symbol((query.get("symbol") or ["WTI"])[0])
+            limit = _coerce_positive_int((query.get("limit") or [None])[0], default=260)
+            date_from = (query.get("date_from") or [None])[0]
+            date_to = (query.get("date_to") or [None])[0]
+            if not symbol:
+                self._send_json(400, {"error": "symbol must be WTI or Brent"})
+                return
+            rows = get_price_series(
+                symbol,
+                db_path=DEFAULT_DB_PATH,
+                limit=limit,
+                date_from=date_from,
+                date_to=date_to,
+            )
+            self._send_json(
+                200,
+                {
+                    "symbol": symbol,
+                    "rows": rows,
+                },
+            )
+            return
+
+        if route == "/api/price-board/quotes":
+            snapshots = get_latest_snapshots(db_path=DEFAULT_DB_PATH)
+            self._send_json(
+                200,
+                {
+                    "items": snapshots,
+                    "as_of": snapshots[0]["trade_date"] if snapshots else None,
+                },
+            )
+            return
+
+        if route == "/api/price-board/kline":
+            raw_symbol = (query.get("symbol") or query.get("product") or ["WTI"])[0]
+            symbol = normalize_symbol(raw_symbol)
+            limit = _coerce_positive_int((query.get("limit") or [None])[0], default=365)
+            if not symbol:
+                self._send_json(400, {"error": "symbol must be WTI or Brent"})
+                return
+            rows = get_price_series(symbol, db_path=DEFAULT_DB_PATH, limit=limit)
+            self._send_json(
+                200,
+                {
+                    "symbol": symbol,
+                    "rows": rows,
+                },
+            )
+            return
+
         static_path = self._resolve_static_path()
         if static_path is None:
             self._send_json(404, {"error": "Not found"})
@@ -148,6 +231,14 @@ class HedgeChatHandler(BaseHTTPRequestHandler):
 
 
 def main():
+    bootstrap_summary = bootstrap_sample_database(db_path=DEFAULT_DB_PATH)
+    if bootstrap_summary:
+        print(
+            "[hedge-chat-proxy] Bootstrapped SQLite market data "
+            f"from {bootstrap_summary['excel_path']} "
+            f"({bootstrap_summary['row_count']} rows)",
+            flush=True,
+        )
     server = ThreadingHTTPServer((HOST, PORT), HedgeChatHandler)
     print(f"Hedge chat proxy listening on http://{HOST}:{PORT}")
     print(f"App page: http://{HOST}:{PORT}/")

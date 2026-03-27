@@ -1,0 +1,4 @@
+data/*.sqlite3
+_sample_crude_data.xlsx
+__pycache__/
+*.pyc
