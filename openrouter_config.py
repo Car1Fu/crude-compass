@@ -6,7 +6,7 @@ from openai import OpenAI
 OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
 OPENROUTER_API_KEY = os.environ.get(
     "OPENROUTER_API_KEY",
-    "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",
+    "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",
 )
 OPENROUTER_MODEL = os.environ.get("OPENROUTER_MODEL", "openai/gpt-4o-mini")
 
