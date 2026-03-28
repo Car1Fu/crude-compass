@@ -9,6 +9,8 @@ from urllib.parse import parse_qs, unquote, urlparse
 from market_data_store import (
     DEFAULT_DB_PATH,
     bootstrap_sample_database,
+    get_generic_latest_metrics,
+    get_generic_metric_series,
     get_latest_snapshots,
     get_price_series,
     normalize_symbol,
@@ -157,6 +159,62 @@ class HedgeChatHandler(BaseHTTPRequestHandler):
                 {
                     "items": snapshots,
                     "as_of": snapshots[0]["trade_date"] if snapshots else None,
+                },
+            )
+            return
+
+        if route == "/api/price-board/generic/latest":
+            dataset_code = (query.get("dataset_code") or [""])[0].strip()
+            metric_key = (query.get("metric_key") or [None])[0]
+            series_names = query.get("series_name") or None
+            if not dataset_code:
+                self._send_json(400, {"error": "dataset_code is required"})
+                return
+
+            items = get_generic_latest_metrics(
+                dataset_code,
+                db_path=DEFAULT_DB_PATH,
+                metric_key=metric_key,
+                series_names=series_names,
+            )
+            self._send_json(
+                200,
+                {
+                    "dataset_code": dataset_code,
+                    "metric_key": metric_key,
+                    "items": items,
+                    "as_of": items[0]["trade_date"] if items else None,
+                },
+            )
+            return
+
+        if route == "/api/price-board/generic/series":
+            dataset_code = (query.get("dataset_code") or [""])[0].strip()
+            series_name = (query.get("series_name") or [""])[0].strip()
+            metric_key = (query.get("metric_key") or [None])[0]
+            limit = _coerce_positive_int((query.get("limit") or [None])[0], default=5000)
+            date_from = (query.get("date_from") or [None])[0]
+            date_to = (query.get("date_to") or [None])[0]
+            if not dataset_code or not series_name:
+                self._send_json(400, {"error": "dataset_code and series_name are required"})
+                return
+
+            rows = get_generic_metric_series(
+                dataset_code,
+                series_name,
+                db_path=DEFAULT_DB_PATH,
+                metric_key=metric_key,
+                limit=limit,
+                date_from=date_from,
+                date_to=date_to,
+            )
+            self._send_json(
+                200,
+                {
+                    "dataset_code": dataset_code,
+                    "series_name": series_name,
+                    "metric_key": metric_key,
+                    "rows": rows,
                 },
             )
             return
