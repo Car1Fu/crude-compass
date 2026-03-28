@@ -315,11 +315,16 @@ function scrollToTop() {
     const boxRect = chartBox.getBoundingClientRect();
     const scaleX = boxRect.width / 900;
     const scaleY = boxRect.height / 360;
-    const tooltipWidth = 168;
-    const tooltipHeight = 88;
+    const tooltipWidth = tooltip.offsetWidth || 168;
+    const tooltipHeight = tooltip.offsetHeight || 88;
+    const anchorX = x * scaleX;
+    const prefersLeftSide = anchorX > boxRect.width / 2;
+    const nextTooltipX = prefersLeftSide
+      ? anchorX - tooltipWidth - 16
+      : anchorX + 16;
     const tooltipX = Math.min(
       boxRect.width - tooltipWidth - 12,
-      Math.max(12, x * scaleX + 16)
+      Math.max(12, nextTooltipX)
     );
     const tooltipY = Math.min(
       boxRect.height - tooltipHeight - 12,

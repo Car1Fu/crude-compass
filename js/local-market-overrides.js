@@ -146,7 +146,14 @@
             const item = candlePoint && candlePoint.data;
             const date = (candlePoint && candlePoint.axisValueLabel) || "";
             if (!item) return "";
-            return `Date: ${date}<br>Open: ${item[0]} Close: ${item[1]}<br>Low: ${item[2]} High: ${item[3]}<br>Volume: ${item[4]}`;
+            const formatNumber = (value) => Number(value).toFixed(2);
+            const formatVolume = (value) => Number(value || 0).toLocaleString("zh-CN");
+            return [
+              `日期：${date}`,
+              `开盘：${formatNumber(item[0])}　收盘：${formatNumber(item[1])}`,
+              `最低：${formatNumber(item[2])}　最高：${formatNumber(item[3])}`,
+              `成交量：${formatVolume(item[4])}`,
+            ].join("<br>");
           },
         },
         legend: {
