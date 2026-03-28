@@ -1498,6 +1498,14 @@ function scrollToTop(){window.scrollTo({top:0,behavior:'smooth'});}
   }
   let S={q:"",items:gen()};
   const THEME_KEY="cc_module_news_theme";
+  const readNewsTheme=()=>{
+    try{
+      const stored=localStorage.getItem(THEME_KEY);
+      return stored==="light"||stored==="dark" ? stored : "dark";
+    }catch{
+      return "dark";
+    }
+  };
   const $id=id=>document.getElementById(id);
   const p2=n=>String(n).padStart(2,"0");
   const fT=ts=>{const d=new Date(ts);return`${p2(d.getHours())}:${p2(d.getMinutes())}`;};
@@ -1597,7 +1605,7 @@ function scrollToTop(){window.scrollTo({top:0,behavior:'smooth'});}
   renderNow();setInterval(renderNow,20000);
   const qEl=document.getElementById("mnQ");if(qEl)qEl.addEventListener("input",()=>{S.q=qEl.value;render();});
   const clr=document.getElementById("mnClear");if(clr)clr.addEventListener("click",()=>{if(qEl)qEl.value="";S.q="";render();});
-  applyTheme("dark");
+  applyTheme(readNewsTheme());
   if(themeBtn)themeBtn.addEventListener("click",()=>{
     const next=viewEl&&viewEl.classList.contains("mn-light")?"dark":"light";
     localStorage.setItem(THEME_KEY,next);
@@ -1628,6 +1636,14 @@ const RP_REPORTS=(()=>{const out=[];const base=20260301;const anchor=new Date("2
   const rpRead=new Set(JSON.parse(localStorage.getItem(LS_READ)||"[]"));
   const rpState={q:"",sort:"new",type:"",tags:new Set(),from:"",to:"",onlyUnread:false,showFav:false,selected:new Set(),page:1,pageSize:20};
   const RP_THEME_KEY="cc_research_theme";
+  const readResearchTheme=()=>{
+    try{
+      const stored=localStorage.getItem(RP_THEME_KEY);
+      return stored==="light"||stored==="dark" ? stored : "dark";
+    }catch{
+      return "dark";
+    }
+  };
   const rpViewEl=document.getElementById("view-research");
   const rpThemeBtn=document.getElementById("rpThemeToggle");
   function rpApplyTheme(mode){
@@ -1676,7 +1692,7 @@ const RP_REPORTS=(()=>{const out=[];const base=20260301;const anchor=new Date("2
   document.getElementById("rpBulkMerge").onclick=()=>{const reps=[...rpState.selected].map(id=>RP_REPORTS.find(r=>r.id===id)).filter(Boolean);if(!reps.length)return;const res=rpBuildPDF(reps,"今日研报包");if(res)rpDlBlob(res.blob,res.fileName);reps.forEach(r=>rpRead.add(r.id));localStorage.setItem(LS_READ,JSON.stringify([...rpRead]));rpRenderAll(false);};
   document.getElementById("rpBulkClear").onclick=()=>{rpState.selected.clear();rpSyncSel();rpRenderAll(false);};
   document.getElementById("rpGoPage").onclick=()=>{const v=Number(document.getElementById("rpJumpInput").value),tp=rpPageCount(rpFiltered().length);if(!v||v<1||v>tp)return;rpState.page=v;rpRenderAll(false);};
-  rpApplyTheme("dark");
+  rpApplyTheme(readResearchTheme());
   if(rpThemeBtn)rpThemeBtn.addEventListener("click",()=>{const next=rpViewEl&&rpViewEl.classList.contains("rp-light")?"dark":"light";localStorage.setItem(RP_THEME_KEY,next);rpApplyTheme(next);});
   window.rpRenderAllGlobal = rpRenderAll;
 })();
@@ -1696,6 +1712,14 @@ function initForecast(){
   const root = document.getElementById("view-forecast");
   const themeBtn = $("fcThemeBtn");
   const FC_THEME_KEY = "cc_forecast_theme";
+  const readForecastTheme=()=>{
+    try{
+      const stored=localStorage.getItem(FC_THEME_KEY);
+      return stored==="light"||stored==="dark" ? stored : "dark";
+    }catch{
+      return "dark";
+    }
+  };
   const money = x => "$" + x.toFixed(2);
   const pct = x => (x*100).toFixed(1) + "%";
   const clamp = (x,a,b) => Math.max(a,Math.min(b,x));
@@ -1783,7 +1807,7 @@ function initForecast(){
     state.model==="prophet" ? "Prophet" :
     state.model==="arima" ? "ARIMA" : String(state.model).toUpperCase()
   );
-  applyForecastTheme("dark");
+  applyForecastTheme(readForecastTheme());
 
   /* ── Data ── */
   function buildSeries(){

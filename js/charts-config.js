@@ -2,6 +2,8 @@
    MODULE NEWS ENGINE
 ══════════════════════════════════════════ */
 (()=>{
+  const newsRoot=document.getElementById("mnSections");
+  if(newsRoot && newsRoot.children.length) return;
   const MODS=[
     {key:"HIGHLIGHT",name:"今日重点"},{key:"Supply",name:"供给政策（OPEC+）"},{key:"Geopolitics",name:"风险事件（地缘）"},
     {key:"Inventory",name:"数据与流向（库存）"},{key:"Freight",name:"航运与物流（运价）"},
@@ -35,6 +37,14 @@
   }
   let S={q:"",items:gen()};
   const THEME_KEY="cc_module_news_theme";
+  const getStoredTheme=key=>{
+    try{
+      const stored=localStorage.getItem(key);
+      return stored==="light"||stored==="dark" ? stored : "dark";
+    }catch{
+      return "dark";
+    }
+  };
   const $id=id=>document.getElementById(id);
   const p2=n=>String(n).padStart(2,"0");
   const fT=ts=>{const d=new Date(ts);return`${p2(d.getHours())}:${p2(d.getMinutes())}`;};
@@ -134,7 +144,7 @@
   renderNow();setInterval(renderNow,20000);
   const qEl=document.getElementById("mnQ");if(qEl)qEl.addEventListener("input",()=>{S.q=qEl.value;render();});
   const clr=document.getElementById("mnClear");if(clr)clr.addEventListener("click",()=>{if(qEl)qEl.value="";S.q="";render();});
-  applyTheme("dark");
+  applyTheme(getStoredTheme(THEME_KEY));
   if(themeBtn)themeBtn.addEventListener("click",()=>{
     const next=viewEl&&viewEl.classList.contains("mn-light")?"dark":"light";
     localStorage.setItem(THEME_KEY,next);
@@ -165,8 +175,17 @@
   const rpRead=new Set(JSON.parse(localStorage.getItem(LS_READ)||"[]"));
   const rpState={q:"",sort:"new",type:"",tags:new Set(),from:"",to:"",onlyUnread:false,showFav:false,selected:new Set(),page:1,pageSize:20};
   const RP_THEME_KEY="cc_research_theme";
+  const readStoredResearchTheme=()=>{
+    try{
+      const stored=localStorage.getItem(RP_THEME_KEY);
+      return stored==="light"||stored==="dark" ? stored : "dark";
+    }catch{
+      return "dark";
+    }
+  };
   const rpViewEl=document.getElementById("view-research");
   const rpThemeBtn=document.getElementById("rpThemeToggle");
+  if(typeof window.rpRenderAllGlobal === "function") return;
   function rpApplyTheme(mode){
     if(!rpViewEl||!rpThemeBtn)return;
     const isLight=mode==="light";
@@ -213,7 +232,7 @@
   document.getElementById("rpBulkMerge").onclick=()=>{const reps=[...rpState.selected].map(id=>RP_REPORTS.find(r=>r.id===id)).filter(Boolean);if(!reps.length)return;const res=rpBuildPDF(reps,"今日研报包");if(res)rpDlBlob(res.blob,res.fileName);reps.forEach(r=>rpRead.add(r.id));localStorage.setItem(LS_READ,JSON.stringify([...rpRead]));rpRenderAll(false);};
   document.getElementById("rpBulkClear").onclick=()=>{rpState.selected.clear();rpSyncSel();rpRenderAll(false);};
   document.getElementById("rpGoPage").onclick=()=>{const v=Number(document.getElementById("rpJumpInput").value),tp=rpPageCount(rpFiltered().length);if(!v||v<1||v>tp)return;rpState.page=v;rpRenderAll(false);};
-  rpApplyTheme("dark");
+  rpApplyTheme(readStoredResearchTheme());
   if(rpThemeBtn)rpThemeBtn.addEventListener("click",()=>{const next=rpViewEl&&rpViewEl.classList.contains("rp-light")?"dark":"light";localStorage.setItem(RP_THEME_KEY,next);rpApplyTheme(next);});
   window.rpRenderAllGlobal = rpRenderAll;
 })();
@@ -230,6 +249,17 @@ window.initForecastOnce = function(){
 
 function initForecast(){
   const $ = id => document.getElementById(id);
+  const root = $("view-forecast");
+  const themeBtn = $("fcThemeBtn");
+  const FC_THEME_KEY = "cc_forecast_theme";
+  const readStoredTheme=()=>{
+    try{
+      const stored=localStorage.getItem(FC_THEME_KEY);
+      return stored==="light"||stored==="dark" ? stored : "dark";
+    }catch{
+      return "dark";
+    }
+  };
   const money = x => "$" + x.toFixed(2);
   const pct = x => (x*100).toFixed(1) + "%";
   const clamp = (x,a,b) => Math.max(a,Math.min(b,x));
@@ -243,6 +273,16 @@ function initForecast(){
   function toast(msg){const el=$("fc-toast");el.textContent=msg;el.classList.add("show");clearTimeout(toast._t);toast._t=setTimeout(()=>el.classList.remove("show"),1200);}
   function svgEl(tag,attrs={}){const el=document.createElementNS("http://www.w3.org/2000/svg",tag);Object.entries(attrs).forEach(([k,v])=>el.setAttribute(k,v));return el;}
   function pathD(xs,ys){return xs.map((x,i)=>(i===0?"M":"L")+x.toFixed(2)+" "+ys[i].toFixed(2)).join(" ");}
+  function fcIsLight(){return !!(root&&root.classList.contains("fc-light"));}
+  function applyForecastTheme(mode){
+    const isLight=mode==="light";
+    if(root) root.classList.toggle("fc-light",isLight);
+    if(themeBtn){
+      const label=themeBtn.querySelector("span");
+      if(label) label.textContent=isLight?"黑夜模式":"白昼模式";
+      themeBtn.setAttribute("aria-pressed",isLight?"true":"false");
+    }
+  }
   const forecastApiBase = (window.CC_MARKET_API_CONFIG && window.CC_MARKET_API_CONFIG.base)
     || (/^https?:/i.test(window.location.href) ? window.location.origin : "http://127.0.0.1:8008");
   const forecastHistoryLimit = 300;
@@ -339,6 +379,7 @@ function initForecast(){
   }
 
   function setForecastHistoryStats(spot){
+    const isLight=fcIsLight();
     $("fc-stat-pt-label").textContent="预测（待接入）";
     $("fc-stat-spot").textContent=spot==null ? "—" : money(spot);
     $("fc-stat-point").textContent="待接入";
@@ -346,9 +387,11 @@ function initForecast(){
     $("fc-stat-dir").textContent="待接入";
     const badge=$("fc-risk-badge-hero");
     if(badge){
-      badge.style.border="1px solid rgba(111,208,255,.28)";
-      badge.style.background="rgba(111,208,255,.08)";
-      badge.innerHTML='<span class="fc-risk-dot" style="background:#6fd0ff;box-shadow:0 0 0 3px rgba(111,208,255,.14)"></span> 历史数据模式';
+      badge.style.border=isLight ? "1px solid rgba(122,95,60,.18)" : "1px solid rgba(111,208,255,.28)";
+      badge.style.background=isLight ? "rgba(166,123,66,.08)" : "rgba(111,208,255,.08)";
+      badge.innerHTML=isLight
+        ? '<span class="fc-risk-dot" style="background:#a67b42;box-shadow:0 0 0 3px rgba(166,123,66,.12)"></span> 历史数据模式'
+        : '<span class="fc-risk-dot" style="background:#6fd0ff;box-shadow:0 0 0 3px rgba(111,208,255,.14)"></span> 历史数据模式';
     }
   }
 
@@ -1400,8 +1443,18 @@ function initForecast(){
   document.addEventListener("mousedown",e=>{
     if(alertPanel.classList.contains("show")&&!alertPanel.contains(e.target)&&e.target!==alertBtn) closeAlertPanel(true);
   });
+  if(themeBtn && themeBtn.dataset.themeBound!=="1"){
+    themeBtn.addEventListener("click",()=>{
+      const next=fcIsLight()?"dark":"light";
+      applyForecastTheme(next);
+      try{ localStorage.setItem(FC_THEME_KEY,next); }catch{}
+      drawForecast();
+    });
+    themeBtn.dataset.themeBound="1";
+  }
 
   /* ── Init render ── */
+  applyForecastTheme(readStoredTheme());
   syncForecastPanelLayout();
   renderConsensus();
   renderSliders();
