@@ -2002,8 +2002,8 @@ function initForecast(){
       },
       series: [
         { name:'K线', itemStyle: { color:'#ff5c7c', color0:'#39d98a', borderColor:'#ff5c7c', borderColor0:'#39d98a' } },
-        { name:'MA5', lineStyle: { color:'#d6b36a' } },
-        { name:'MA20', lineStyle: { color:'#f6e3b2' } }
+        { lineStyle: { color:'#d6b36a' } },
+        { lineStyle: { color:'#f6e3b2' } }
       ]
     });
   };
@@ -2110,8 +2110,8 @@ function initForecast(){
           splitLine: { lineStyle: { color: 'rgba(214,179,106,.08)' } }
         },
         series: [
-          { name: undefined, lineStyle: { color: '#d6b36a' }, areaStyle: { color: 'rgba(214,179,106,.08)' } },
-          { name: undefined, lineStyle: { color: '#f6e3b2' }, areaStyle: { color: 'rgba(246,227,178,.06)' } }
+          { lineStyle: { color: '#d6b36a' }, areaStyle: { color: 'rgba(214,179,106,.08)' } },
+          { lineStyle: { color: '#f6e3b2' }, areaStyle: { color: 'rgba(246,227,178,.06)' } }
         ]
       });
     }, 300);

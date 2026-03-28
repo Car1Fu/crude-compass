@@ -491,6 +491,7 @@
       },
       series: [
         {
+          id: "custom-series-1",
           name: titleOne,
           type: "line",
           data: seriesOneValues,
@@ -501,6 +502,7 @@
           areaStyle: { color: "rgba(214,179,106,.08)" },
         },
         {
+          id: "custom-series-2",
           name: titleTwo,
           type: "line",
           data: seriesTwoValues,
@@ -511,7 +513,7 @@
           areaStyle: { color: "rgba(246,227,178,.06)" },
         },
       ],
-    });
+    }, { notMerge: true });
   }
 
   async function renderRealKline(product) {
@@ -603,6 +605,7 @@
         ],
         series: [
           {
+            id: "kline-candles",
             name: "K Line",
             type: "candlestick",
             data: klineData.candles,
@@ -614,6 +617,7 @@
             },
           },
           {
+            id: "kline-ma5",
             name: "MA5",
             type: "line",
             data: ma5,
@@ -622,6 +626,7 @@
             symbol: "none",
           },
           {
+            id: "kline-ma20",
             name: "MA20",
             type: "line",
             data: ma20,
@@ -630,7 +635,7 @@
             symbol: "none",
           },
         ],
-      });
+      }, { notMerge: true });
     } catch (error) {
       console.warn(`Failed to replace local K-line for ${product}.`, error);
     }
@@ -738,7 +743,10 @@
 
   const previousDbChangeProduct = window.dbChangeProduct;
   window.dbChangeProduct = function (product) {
+    if (product === "wti" || product === "brent") {
+      void renderRealKline(product);
+      return;
+    }
     if (typeof previousDbChangeProduct === "function") previousDbChangeProduct(product);
-    void renderRealKline(product);
   };
 })();
