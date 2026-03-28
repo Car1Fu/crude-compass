@@ -3,6 +3,7 @@
     || (/^https?:/i.test(window.location.href)
       ? window.location.origin
       : "http://127.0.0.1:8008");
+  const maxVisibleKlinePoints = 300;
 
   let klineRequestToken = 0;
 
@@ -92,6 +93,19 @@
     };
   }
 
+  function getKlineWindow(pointCount) {
+    if (pointCount <= 0) {
+      return { startValue: 0, endValue: 0, maxValueSpan: maxVisibleKlinePoints };
+    }
+    const endValue = pointCount - 1;
+    const startValue = Math.max(0, pointCount - maxVisibleKlinePoints);
+    return {
+      startValue,
+      endValue,
+      maxValueSpan: Math.min(maxVisibleKlinePoints, pointCount),
+    };
+  }
+
   async function renderRealKline(product) {
     const symbol = product === "brent" ? "Brent" : product === "wti" ? "WTI" : null;
     if (!symbol || typeof echarts === "undefined") return;
@@ -106,13 +120,14 @@
 
     try {
       const payload = await fetchJson(
-        `${apiBase}/api/price-board/kline?symbol=${encodeURIComponent(symbol)}&limit=365`
+        `${apiBase}/api/price-board/kline?symbol=${encodeURIComponent(symbol)}&limit=5000`
       );
       if (requestToken !== klineRequestToken) return;
 
       const rows = Array.isArray(payload && payload.rows) ? payload.rows : [];
       const klineData = buildKlineData(rows);
       if (!klineData.candles.length) return;
+      const zoomWindow = getKlineWindow(klineData.candles.length);
 
       const ma5 = calcMA(klineData.candles, 5);
       const ma20 = calcMA(klineData.candles, 20);
@@ -163,7 +178,14 @@
           splitLine: { lineStyle: { color: "rgba(214,179,106,.06)", type: "dashed" } },
           axisLabel: { color: "rgba(240,240,242,.50)" },
         },
-        dataZoom: [{ type: "inside", start: 50, end: 100 }],
+        dataZoom: [
+          {
+            type: "inside",
+            startValue: zoomWindow.startValue,
+            endValue: zoomWindow.endValue,
+            maxValueSpan: zoomWindow.maxValueSpan,
+          },
+        ],
         series: [
           {
             name: "K Line",

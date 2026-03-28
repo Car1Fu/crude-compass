@@ -2277,7 +2277,8 @@
       pointer-events: none;
       z-index: 100;
       max-width: 260px;
-      transform: translate(14px, -50%);
+      transform: none;
+      white-space: normal;
     }
     .fc-tooltip .row {
       display: flex; justify-content: space-between; gap: 14px;

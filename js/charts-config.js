@@ -243,6 +243,11 @@ function initForecast(){
   function toast(msg){const el=$("fc-toast");el.textContent=msg;el.classList.add("show");clearTimeout(toast._t);toast._t=setTimeout(()=>el.classList.remove("show"),1200);}
   function svgEl(tag,attrs={}){const el=document.createElementNS("http://www.w3.org/2000/svg",tag);Object.entries(attrs).forEach(([k,v])=>el.setAttribute(k,v));return el;}
   function pathD(xs,ys){return xs.map((x,i)=>(i===0?"M":"L")+x.toFixed(2)+" "+ys[i].toFixed(2)).join(" ");}
+  const forecastApiBase = (window.CC_MARKET_API_CONFIG && window.CC_MARKET_API_CONFIG.base)
+    || (/^https?:/i.test(window.location.href) ? window.location.origin : "http://127.0.0.1:8008");
+  const forecastHistoryLimit = 300;
+  const realHistoryCache = new Map();
+  const realHistoryLoads = new Map();
 
   const state = {
     asset:"wti", horizon:1, model:"ap",
@@ -259,44 +264,249 @@ function initForecast(){
   );
 
   /* ── Data ── */
+  function parseMarketDate(value){
+    const parsed=new Date(`${value}T12:00:00`);
+    return Number.isNaN(parsed.getTime()) ? new Date(value) : parsed;
+  }
+
+  function buildFutureDatesFrom(lastDate,nF){
+    return Array.from({length:nF},(_,i)=>addDays(lastDate,i+1));
+  }
+
+  function getRealHistorySymbol(){
+    return state.asset==="brent" ? "Brent" : "WTI";
+  }
+
+  function normalizeRealHistoryRows(rows){
+    return (Array.isArray(rows)?rows:[])
+      .map(row=>({
+        tradeDate:String(row.trade_date||""),
+        closePrice:Number(row.close_price),
+      }))
+      .filter(row=>row.tradeDate && Number.isFinite(row.closePrice));
+  }
+
+  function getCachedRealHistory(){
+    return realHistoryCache.get(getRealHistorySymbol()) || [];
+  }
+
+  function ensureRealHistoryLoaded(){
+    const symbol=getRealHistorySymbol();
+    if(realHistoryCache.has(symbol) || realHistoryLoads.has(symbol)) return;
+    const url=`${forecastApiBase}/api/market/series?symbol=${encodeURIComponent(symbol)}&limit=5000`;
+    const request=fetch(url)
+      .then(response=>{
+        if(!response.ok) throw new Error(`HTTP ${response.status}`);
+        return response.json();
+      })
+      .then(payload=>{
+        realHistoryCache.set(symbol,normalizeRealHistoryRows(payload&&payload.rows));
+        realHistoryLoads.delete(symbol);
+        if(window.fcInited) drawForecast();
+      })
+      .catch(error=>{
+        realHistoryLoads.delete(symbol);
+        console.warn(`Failed to load forecast history for ${symbol}.`,error);
+      });
+    realHistoryLoads.set(symbol,request);
+  }
+
   function buildSeries(){
-    const nH=state.histLen,nF=state.horizon;
-    const base=state.asset==="brent"?85:82;
-    const hist=[];
-    for(let i=0;i<nH;i++){
-      const drift=(state.asset==="brent"?.010:.009)*i;
-      const cyc=Math.sin(i/12)*.65+Math.sin(i/29)*.35;
-      const noise=seededNoise(i,state.asset==="brent"?11:13)*.55;
-      hist.push(base+drift+cyc+noise);
-    }
-    const dir=(state.factors.opec*.18*-1)+(state.factors.shipping*.12)+(state.factors.demand*.15)+(state.factors.inventory*.12*-1)+(state.factors.usd*.10*-1);
-    const volBoost=1.0+Math.abs(state.factors.geo)*.06+Math.abs(state.factors.shipping)*.03+Math.abs(state.factors.usd)*.02;
-    const mGain=state.model==="ap"?1.06:state.model==="stacking"?1:state.model==="lstm"?1.12:state.model==="prophet"?.86:.78;
-    const spot=hist[hist.length-1];
-    const fut=[];
-    for(let t=1;t<=nF;t++){
-      const mr=(spot-base)*Math.exp(-t/28);
-      const tr=(state.asset==="brent"?.030:.026)*t;
-      const sh=dir*mGain*(.35+t/60);
-      const noise=seededNoise(nH+t,17)*.25;
-      fut.push(base+mr+tr+sh+noise);
-    }
-    const bands=fut.map((y,idx)=>{
-      const t=idx+1;
-      const sigma=(state.asset==="brent"?1.10:1.05)*(.75+t/24)*volBoost;
-      return{y,p80:[y-1.28*sigma,y+1.28*sigma],p95:[y-1.96*sigma,y+1.96*sigma],sigma};
-    });
-    return{hist,fut,bands,spot,volBoost,combined:hist.concat(fut),dates:buildDates(nH,nF)};
+    ensureRealHistoryLoaded();
+    const realHistoryRows=getCachedRealHistory().slice(-forecastHistoryLimit);
+    const hist=realHistoryRows.map(row=>row.closePrice);
+    const dates=realHistoryRows.map(row=>parseMarketDate(row.tradeDate));
+    const spot=hist.length?hist[hist.length-1]:null;
+    return{
+      hist,
+      fut:[],
+      bands:[],
+      spot,
+      volBoost:1,
+      combined:hist.slice(),
+      dates,
+    };
   }
 
   function resetView(total){
-    state.viewCount=clamp(120,60,Math.min(300,total));
+    if(!total||total<=0){
+      state.viewCount=0;
+      state.viewStart=0;
+      return;
+    }
+    state.viewCount=Math.min(300,total);
     state.viewStart=Math.max(0,total-state.viewCount);
+  }
+
+  function setForecastHistoryStats(spot){
+    $("fc-stat-pt-label").textContent="预测（待接入）";
+    $("fc-stat-spot").textContent=spot==null ? "—" : money(spot);
+    $("fc-stat-point").textContent="待接入";
+    $("fc-stat-80").textContent="待接入";
+    $("fc-stat-dir").textContent="待接入";
+    const badge=$("fc-risk-badge-hero");
+    if(badge){
+      badge.style.border="1px solid rgba(111,208,255,.28)";
+      badge.style.background="rgba(111,208,255,.08)";
+      badge.innerHTML='<span class="fc-risk-dot" style="background:#6fd0ff;box-shadow:0 0 0 3px rgba(111,208,255,.14)"></span> 历史数据模式';
+    }
+  }
+
+  function renderForecastMessage(svg,message){
+    const text=svgEl("text",{
+      x:"550",
+      y:"240",
+      fill:"rgba(240,240,242,.72)",
+      "font-size":"18",
+      "text-anchor":"middle"
+    });
+    text.textContent=message;
+    svg.appendChild(text);
+  }
+
+  function getForecastPlotRect(){
+    const svgRect=$("fc-chart").getBoundingClientRect();
+    const plotLeft=svgRect.left + svgRect.width*(56/1100);
+    const plotWidth=svgRect.width*((1100-56-20)/1100);
+    return {
+      left:plotLeft,
+      width:Math.max(plotWidth,1),
+    };
   }
 
   /* ── Draw forecast chart ── */
   function drawForecast(){
     const series=buildSeries();
+    {
+      const total=series.combined.length;
+      const svg=$("fc-chart");
+      svg.innerHTML="";
+
+      if(!total){
+        $("fc-view-pill").textContent="视图：加载中";
+        setForecastHistoryStats(null);
+        renderForecastMessage(svg,"正在加载真实历史数据...");
+        return;
+      }
+
+      const minView=Math.min(60,total);
+      const maxView=Math.min(300,total);
+      state.viewCount=clamp(state.viewCount||maxView,minView,maxView);
+      state.viewStart=clamp(state.viewStart,0,Math.max(0,total-state.viewCount));
+      $("fc-view-pill").textContent=`视图：${state.viewCount} 点`;
+
+      const viewStart=state.viewStart;
+      const viewEnd=viewStart+state.viewCount-1;
+      let vMin=Infinity;
+      let vMax=-Infinity;
+      for(let gi=viewStart;gi<=viewEnd;gi++){
+        vMin=Math.min(vMin,series.combined[gi]);
+        vMax=Math.max(vMax,series.combined[gi]);
+      }
+      if(!Number.isFinite(vMin)||!Number.isFinite(vMax)){
+        setForecastHistoryStats(series.spot);
+        renderForecastMessage(svg,"暂无可展示的真实历史数据");
+        return;
+      }
+      if(vMin===vMax){
+        vMin-=1;
+        vMax+=1;
+      }else{
+        vMin-=2.5;
+        vMax+=2.5;
+      }
+
+      const W=1100,H=480,pL=56,pR=20,pT=24,pB=40,plotW=W-pL-pR,plotH=H-pT-pB;
+      const x=vi=>state.viewCount<=1 ? pL+plotW/2 : pL+(vi/(state.viewCount-1))*plotW;
+      const y=v=>pT+(1-(v-vMin)/(vMax-vMin))*plotH;
+
+      for(let i=0;i<=5;i++){
+        const yy=pT+(i/5)*plotH;
+        svg.appendChild(svgEl("line",{x1:pL,x2:W-pR,y1:yy,y2:yy,stroke:"rgba(255,255,255,.05)","stroke-width":"1","stroke-dasharray":"4 6"}));
+        const txt=svgEl("text",{x:8,y:yy+4,fill:"rgba(200,180,130,.55)","font-size":"11"});
+        txt.textContent=money(vMax-(i/5)*(vMax-vMin));
+        svg.appendChild(txt);
+      }
+
+      const yBase=pT+plotH;
+      for(let i=0;i<6;i++){
+        const vi=Math.round(i/5*(state.viewCount-1));
+        const gi=viewStart+vi;
+        const xx=x(vi);
+        svg.appendChild(svgEl("line",{x1:xx,x2:xx,y1:yBase,y2:yBase+5,stroke:"rgba(255,255,255,.1)","stroke-width":"1"}));
+        const txt=svgEl("text",{x:xx,y:yBase+18,fill:"rgba(200,180,130,.55)","font-size":"11","text-anchor":"middle"});
+        txt.textContent=fmtDate(series.dates[gi]).slice(5);
+        svg.appendChild(txt);
+      }
+
+      const historyPts=[];
+      for(let gi=viewStart;gi<=viewEnd;gi++){
+        historyPts.push({gi,vi:gi-viewStart});
+      }
+      if(historyPts.length>=2){
+        svg.appendChild(svgEl("path",{
+          d:pathD(historyPts.map(p=>x(p.vi)),historyPts.map(p=>y(series.combined[p.gi]))),
+          fill:"none",
+          stroke:"rgba(111,208,255,.9)",
+          "stroke-width":"2"
+        }));
+        const last=historyPts[historyPts.length-1];
+        svg.appendChild(svgEl("circle",{cx:x(last.vi),cy:y(series.combined[last.gi]),r:"5",fill:"rgba(111,208,255,1)",stroke:"rgba(8,12,16,.9)","stroke-width":"2"}));
+      }else if(historyPts.length===1){
+        svg.appendChild(svgEl("circle",{cx:x(0),cy:y(series.combined[historyPts[0].gi]),r:"4.5",fill:"rgba(111,208,255,.9)",stroke:"rgba(8,12,16,.9)","stroke-width":"2"}));
+      }
+
+      const cross=svgEl("line",{y1:pT,y2:pT+plotH,stroke:"rgba(216,179,106,.25)","stroke-width":"1","stroke-dasharray":"5 5"});
+      cross.style.display="none";
+      svg.appendChild(cross);
+      const hdot=svgEl("circle",{r:"4.5",fill:"rgba(232,237,245,.9)",stroke:"rgba(8,12,16,.9)","stroke-width":"2"});
+      hdot.style.display="none";
+      svg.appendChild(hdot);
+      const overlay=svgEl("rect",{x:pL,y:pT,width:plotW,height:plotH,fill:"transparent"});
+      overlay.style.cursor="crosshair";
+      svg.appendChild(overlay);
+      const tip=$("fc-tip");
+      overlay.addEventListener("mousemove",e=>{
+        const plotRect=getForecastPlotRect();
+        const wrapRect=$("fc-chart-wrap").getBoundingClientRect();
+        const vi=Math.round(clamp((e.clientX-plotRect.left)/plotRect.width,0,1)*(state.viewCount-1));
+        const gi=viewStart+vi;
+        const xx=x(vi);
+        cross.setAttribute("x1",xx);
+        cross.setAttribute("x2",xx);
+        cross.style.display="block";
+        hdot.setAttribute("cx",xx);
+        hdot.setAttribute("cy",y(series.combined[gi]));
+        hdot.style.display="block";
+        let html=`<div style="font-weight:900;color:var(--fc-gold);margin-bottom:4px">${state.asset==="brent"?"Brent":"WTI"} · 历史</div>`;
+        html+=`<div class="row"><span class="k">日期</span><span>${fmtDate(series.dates[gi])}</span></div>`;
+        html+=`<div class="row"><span class="k">价格</span><span><strong>${money(series.combined[gi])}</strong></span></div>`;
+        tip.innerHTML=html;
+        tip.style.display="block";
+        const relX=e.clientX-wrapRect.left;
+        const relY=e.clientY-wrapRect.top;
+        const tipGap=14;
+        const tipWidth=tip.offsetWidth||260;
+        const tipHeight=tip.offsetHeight||120;
+        let tipLeft=relX+tipGap;
+        if(relX>wrapRect.width*.58 || tipLeft+tipWidth>wrapRect.width-tipGap){
+          tipLeft=relX-tipWidth-tipGap;
+        }
+        tipLeft=clamp(tipLeft,tipGap,Math.max(tipGap,wrapRect.width-tipWidth-tipGap));
+        let tipTop=relY-tipHeight/2;
+        tipTop=clamp(tipTop,tipGap,Math.max(tipGap,wrapRect.height-tipHeight-tipGap));
+        tip.style.left=`${tipLeft}px`;
+        tip.style.top=`${tipTop}px`;
+      });
+      overlay.addEventListener("mouseleave",()=>{
+        tip.style.display="none";
+        cross.style.display="none";
+        hdot.style.display="none";
+      });
+
+      setForecastHistoryStats(series.spot);
+      return;
+    }
     const nH=series.hist.length,total=series.combined.length;
     state.viewCount=clamp(state.viewCount,60,Math.min(300,total));
     state.viewStart=clamp(state.viewStart,0,Math.max(0,total-state.viewCount));
@@ -402,7 +612,22 @@ function initForecast(){
       }else{
         html+=`<div class="row"><span class="k">价格</span><span><strong>${money(series.combined[gi])}</strong></span></div>`;
       }
-      tip.innerHTML=html;tip.style.left=(e.clientX-rect.left)+"px";tip.style.top=(e.clientY-rect.top)+"px";tip.style.display="block";
+      tip.innerHTML=html;
+      tip.style.display="block";
+      const relX=e.clientX-rect.left;
+      const relY=e.clientY-rect.top;
+      const tipGap=14;
+      const tipWidth=tip.offsetWidth||260;
+      const tipHeight=tip.offsetHeight||120;
+      let tipLeft=relX+tipGap;
+      if(relX>rect.width*.58 || tipLeft+tipWidth>rect.width-tipGap){
+        tipLeft=relX-tipWidth-tipGap;
+      }
+      tipLeft=clamp(tipLeft,tipGap,Math.max(tipGap,rect.width-tipWidth-tipGap));
+      let tipTop=relY-tipHeight/2;
+      tipTop=clamp(tipTop,tipGap,Math.max(tipGap,rect.height-tipHeight-tipGap));
+      tip.style.left=`${tipLeft}px`;
+      tip.style.top=`${tipTop}px`;
     });
     overlay.addEventListener("mouseleave",()=>{tip.style.display="none";cross.style.display="none";hdot.style.display="none";});
 
@@ -1028,8 +1253,8 @@ function initForecast(){
   $("fc-chart-wrap").addEventListener("wheel",e=>{
     e.preventDefault();
     const series=buildSeries();const total=series.combined.length;
-    const rect=$("fc-chart-wrap").getBoundingClientRect();
-    const relX=clamp((e.clientX-rect.left)/rect.width,0,1);
+    const plotRect=getForecastPlotRect();
+    const relX=clamp((e.clientX-plotRect.left)/plotRect.width,0,1);
     const anchor=state.viewStart+Math.round(relX*(state.viewCount-1));
     const factor=e.deltaY<0?.87:1.15;
     const newCount=clamp(Math.round(state.viewCount*factor),60,Math.min(300,total));
@@ -1042,8 +1267,8 @@ function initForecast(){
   $("fc-chart-wrap").addEventListener("pointermove",e=>{
     if(!dragging)return;
     const series=buildSeries();const total=series.combined.length;
-    const rect=$("fc-chart-wrap").getBoundingClientRect();
-    const shift=Math.round(-(e.clientX-dragStartX)/rect.width*state.viewCount);
+    const plotRect=getForecastPlotRect();
+    const shift=Math.round(-(e.clientX-dragStartX)/plotRect.width*state.viewCount);
     state.viewStart=clamp(dragStartVS+shift,0,Math.max(0,total-state.viewCount));
     drawForecast();
   });
@@ -1269,6 +1494,7 @@ function initForecast(){
     if(!opecEl||!demEl) return;
     if(!dbOpecChart) dbOpecChart=echarts.init(opecEl);
     if(!dbDemandChart) dbDemandChart=echarts.init(demEl);
+    /*
     dbOpecChart.setOption({
       tooltip:{trigger:'item',formatter:'{b}: {c}千桶/日 ({d}%)',textStyle:{color:'#d4af37'}},
       legend:{orient:'horizontal',bottom:1,textStyle:{color:'#d4af37',fontSize:8},itemWidth:6,itemHeight:6,itemGap:2},
@@ -1301,6 +1527,46 @@ function initForecast(){
   }
 
   /* ── 自定义弹窗 ── */
+    dbOpecChart.setOption({
+      tooltip:{trigger:'item',formatter:'{b}: {c} kb/d ({d}%)',textStyle:{color:'#d4af37'}},
+      legend:{orient:'horizontal',bottom:1,textStyle:{color:'#d4af37',fontSize:8},itemWidth:6,itemHeight:6,itemGap:2},
+      series:[{
+        name:'OPEC Output',
+        type:'pie',
+        radius:['25%','50%'],
+        center:['50%','42%'],
+        label:{show:true,formatter:'{b}',color:'#d4af37',fontSize:10},
+        labelLine:{lineStyle:{color:'#d4af37'}},
+        itemStyle:{borderRadius:5,borderColor:'#1a1a1a',borderWidth:2},
+        data:[
+          {value:2641,name:'Saudi Arabia',itemStyle:{color:'#d4af37'}},
+          {value:1680,name:'Iraq',itemStyle:{color:'#c49a28'}},
+          {value:1402,name:'UAE',itemStyle:{color:'#b08520'}},
+          {value:1320,name:'Kuwait',itemStyle:{color:'#9a7015'}},
+          {value:1100,name:'Iran',itemStyle:{color:'#876010'}},
+          {value:880,name:'Nigeria',itemStyle:{color:'#755010'}},
+          {value:720,name:'Angola',itemStyle:{color:'#634010'}},
+          {value:650,name:'Congo',itemStyle:{color:'#523510'}},
+          {value:580,name:'Gabon',itemStyle:{color:'#412a0c'}},
+          {value:520,name:'Equatorial Guinea',itemStyle:{color:'#2e1e08'}},
+        ],
+      }],
+    });
+    dbDemandChart.setOption({
+      tooltip:{trigger:'axis',axisPointer:{type:'shadow'},textStyle:{color:'#d4af37'},formatter:'{b}: {c} mb/d'},
+      grid:{left:'3%',right:'4%',bottom:'3%',top:'8%',containLabel:true},
+      xAxis:{type:'category',data:['2026Q3','2026Q4','2027Q1','2027Q2','2027Q3','2027Q4'],axisLine:{lineStyle:{color:'#d4af37'}},axisLabel:{color:'#d4af37',fontSize:10}},
+      yAxis:{type:'value',name:'mb/d',nameTextStyle:{color:'#d4af37',fontSize:10},axisLine:{lineStyle:{color:'#d4af37'}},axisLabel:{color:'#d4af37',fontSize:10},splitLine:{lineStyle:{color:'#444'}}},
+      series:[{
+        type:'bar',
+        barWidth:'50%',
+        data:[103.5,104.2,105.0,105.8,104.8,106.2],
+        itemStyle:{color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'#d4af37'},{offset:1,color:'#8a7015'}]),borderRadius:[5,5,0,0]},
+        label:{show:true,position:'top',color:'#d4af37',fontSize:11},
+      }],
+    });
+  }
+
   let dbLineChart=null;
   window.dbOpenModal=function(){
     document.getElementById('db-custom-modal').style.display='block';
