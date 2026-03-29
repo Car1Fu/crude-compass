@@ -274,6 +274,16 @@
     });
   }
 
+  function normalizeFrequencyKey(value) {
+    const text = String(value || "").trim();
+    if (!text) return freqDay;
+    if (text === freqDay || text === "日度") return freqDay;
+    if (text === freqWeek || text === "周度") return freqWeek;
+    if (text === freqMonth || text === "月度") return freqMonth;
+    if (text === freqYear || text === "年度" || text === "年") return freqYear;
+    return text.slice(0, 1);
+  }
+
   function parseTradeDate(value) {
     if (/^\d{4}$/.test(String(value))) {
       return new Date(`${value}-01-01T12:00:00`);
@@ -449,6 +459,18 @@
     if (sectionKey === "supply-demand") {
       return document.querySelectorAll('.category-item[data-category="supply"] .category-children > .subcategory-children')[3] || null;
     }
+    if (sectionKey === "macro-economy") {
+      return document.querySelectorAll('.category-item[data-category="macro"] .category-children > .subcategory-children')[0] || null;
+    }
+    if (sectionKey === "macro-fx") {
+      return document.querySelectorAll('.category-item[data-category="macro"] .category-children > .subcategory-children')[1] || null;
+    }
+    if (sectionKey === "macro-commodities") {
+      return document.querySelectorAll('.category-item[data-category="macro"] .category-children > .subcategory-children')[2] || null;
+    }
+    if (sectionKey === "macro-rates") {
+      return document.querySelectorAll('.category-item[data-category="macro"] .category-children > .subcategory-children')[3] || null;
+    }
     return null;
   }
 
@@ -540,12 +562,97 @@
     }
   }
 
-  function registerAllSidebarItems() {
-    realEntries.forEach((entry) => {
+  function registerEntries(entries) {
+    entries.forEach((entry) => {
       dataConfigMap.set(entry.name, entry);
       registerSidebarItem(entry);
     });
     if (typeof updateSidebarSelectionState === "function") updateSidebarSelectionState();
+  }
+
+  function registerAllSidebarItems() {
+    registerEntries(realEntries);
+  }
+
+  function classifyMacroSectionKey(seriesName) {
+    const name = String(seriesName || "");
+    if (
+      name.includes("汇率")
+      || name.includes("美元指数")
+      || name.includes("人民币")
+      || name.includes("欧元")
+      || name.includes("名义美元指数")
+      || name.includes("实际美元指数")
+    ) {
+      return "macro-fx";
+    }
+    if (
+      name.includes("利率")
+      || name.includes("EFFR")
+      || name.includes("联邦基金")
+      || name.includes("LPR")
+    ) {
+      return "macro-rates";
+    }
+    if (
+      name.includes("黄金")
+      || name.includes("铜")
+      || name.includes("天然气")
+    ) {
+      return "macro-commodities";
+    }
+    return "macro-economy";
+  }
+
+  function buildMacroEntries(items) {
+    const nameCounter = new Map();
+    (Array.isArray(items) ? items : []).forEach((item) => {
+      const rawName = String(item && item.series_name || "").trim();
+      if (!rawName) return;
+      nameCounter.set(rawName, (nameCounter.get(rawName) || 0) + 1);
+    });
+
+    return (Array.isArray(items) ? items : [])
+      .map((item) => {
+        const rawName = String(item && item.series_name || "").trim();
+        if (!rawName) return null;
+        const freq = normalizeFrequencyKey(item.frequency_label);
+        const displayName = (nameCounter.get(rawName) || 0) > 1
+          ? `${rawName}（${typeof getFreqLabel === "function" ? getFreqLabel(freq) : freq}）`
+          : rawName;
+        return {
+          name: displayName,
+          category: "macro",
+          freq,
+          unit: String(item.unit_label || "").trim() || "原始单位",
+          sectionKey: classifyMacroSectionKey(rawName),
+          source: String(item.source_label || "").trim() || sourceLabels.fallback,
+          loader: {
+            kind: "generic",
+            datasetCode: String(item.dataset_code || "").trim(),
+            seriesName: rawName,
+            metricKey: String(item.metric_key || "value").trim() || "value",
+          },
+        };
+      })
+      .filter(Boolean);
+  }
+
+  function loadMacroSidebarEntries() {
+    const datasetCodes = ["macro_monthly_indicators", "macro_daily_indicators"];
+    return Promise.all(
+      datasetCodes.map((datasetCode) => fetchJson(
+        `${apiBase}/api/price-board/generic/latest?dataset_code=${encodeURIComponent(datasetCode)}`
+      ).then((payload) => Array.isArray(payload && payload.items) ? payload.items : []).catch((error) => {
+        console.warn(`Failed to load macro latest series for ${datasetCode}.`, error);
+        return [];
+      }))
+    ).then((payloads) => {
+      const entries = buildMacroEntries(payloads.flat());
+      if (!entries.length) return entries;
+      registerEntries(entries);
+      return entries;
+    });
   }
 
   window.getSource = function (name) {
@@ -569,6 +676,7 @@
   }
 
   registerAllSidebarItems();
+  void loadMacroSidebarEntries();
 
   [
     "WTI原油现货价",

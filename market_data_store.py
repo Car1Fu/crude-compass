@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import csv
 import hashlib
 import re
 import sqlite3
@@ -18,6 +19,17 @@ DEFAULT_WORKBOOK_DIR = SAMPLE_DATA_DIR
 DEFAULT_DB_PATH = DATA_DIR / "crude_compass.sqlite3"
 DEFAULT_SAMPLE_XLSX = SAMPLE_DATA_DIR / "_sample_crude_data.xlsx"
 LEGACY_SAMPLE_XLSX = ROOT_DIR / "_sample_crude_data.xlsx"
+RAW_MACRO_INDICATOR_CSV = SAMPLE_DATA_DIR / "宏观指标_汇总.csv"
+MACRO_SPLIT_SPECS = {
+    "月": {
+        "file_name": "宏观指标（月度）.csv",
+        "dataset_code": "macro_monthly_indicators",
+    },
+    "日": {
+        "file_name": "宏观指标（日度）.csv",
+        "dataset_code": "macro_daily_indicators",
+    },
+}
 DEFAULT_SAMPLE_XLSX_CANDIDATES = (
     DEFAULT_SAMPLE_XLSX,
     LEGACY_SAMPLE_XLSX,
@@ -33,10 +45,13 @@ GENERIC_DATASET_CODES = {
     "成品油煤油现货价格（日）.xlsx": "refined_kerosene_spot_daily",
     "成品油燃料油现货价格（日）.xlsx": "refined_fuel_oil_spot_daily",
     "成品油石脑油现货价格（日）.xlsx": "refined_naphtha_spot_daily",
+    "宏观指标（月度）.csv": "macro_monthly_indicators",
+    "宏观指标（日度）.csv": "macro_daily_indicators",
 }
 
 GENERIC_HEADER_MAP = {
     "name": "series_name",
+    "名称": "series_name",
     "简称": "series_name",
     "date": "trade_date",
     "日期": "trade_date",
@@ -48,16 +63,36 @@ GENERIC_HEADER_MAP = {
     "成交量": "volume",
     "price": "price",
     "价格": "price",
+    "value": "value",
+    "值": "value",
     "consumption": "consumption",
     "消费量": "consumption",
+    "source": "source_label",
+    "来源": "source_label",
+    "frequency": "frequency_label",
+    "freq": "frequency_label",
+    "频率": "frequency_label",
+    "unit": "unit_label",
+    "单位": "unit_label",
+    "series_id": "series_id",
+    "indicator_id": "series_id",
+    "指标id": "series_id",
 }
 
-GENERIC_DIMENSION_KEYS = ("series_name", "trade_date")
+GENERIC_DIMENSION_KEYS = (
+    "series_name",
+    "trade_date",
+    "source_label",
+    "frequency_label",
+    "unit_label",
+    "series_id",
+)
 GENERIC_METRIC_KEYS = (
     "close_price",
     "settlement_price",
     "volume",
     "price",
+    "value",
     "consumption",
 )
 
@@ -71,6 +106,12 @@ GENERIC_PRIMARY_METRIC = {
     "refined_kerosene_spot_daily": "price",
     "refined_fuel_oil_spot_daily": "price",
     "refined_naphtha_spot_daily": "price",
+    "macro_monthly_indicators": "value",
+    "macro_daily_indicators": "value",
+}
+SPARSE_GENERIC_DATASET_CODES = {
+    "macro_monthly_indicators",
+    "macro_daily_indicators",
 }
 
 _XML_NS = {
@@ -114,6 +155,23 @@ def get_connection(db_path: Path | str = DEFAULT_DB_PATH) -> sqlite3.Connection:
     return connection
 
 
+def _ensure_table_columns(
+    connection: sqlite3.Connection,
+    table_name: str,
+    required_columns: dict[str, str],
+) -> None:
+    existing_columns = {
+        row["name"]
+        for row in connection.execute(f"PRAGMA table_info({table_name})").fetchall()
+    }
+    for column_name, column_definition in required_columns.items():
+        if column_name in existing_columns:
+            continue
+        connection.execute(
+            f"ALTER TABLE {table_name} ADD COLUMN {column_name} {column_definition}"
+        )
+
+
 def init_market_database(db_path: Path | str = DEFAULT_DB_PATH) -> None:
     with get_connection(db_path) as connection:
         connection.execute(
@@ -149,6 +207,10 @@ def init_market_database(db_path: Path | str = DEFAULT_DB_PATH) -> None:
                 source_file TEXT NOT NULL,
                 source_sheet TEXT NOT NULL,
                 series_name TEXT NOT NULL,
+                source_label TEXT,
+                frequency_label TEXT,
+                unit_label TEXT,
+                series_id TEXT,
                 trade_date TEXT NOT NULL,
                 metric_key TEXT NOT NULL,
                 metric_value REAL NOT NULL,
@@ -162,6 +224,16 @@ def init_market_database(db_path: Path | str = DEFAULT_DB_PATH) -> None:
             CREATE INDEX IF NOT EXISTS idx_market_generic_daily_metrics_lookup
             ON market_generic_daily_metrics(dataset_code, series_name, trade_date, metric_key)
             """
+        )
+        _ensure_table_columns(
+            connection,
+            "market_generic_daily_metrics",
+            {
+                "source_label": "TEXT",
+                "frequency_label": "TEXT",
+                "unit_label": "TEXT",
+                "series_id": "TEXT",
+            },
         )
 
 
@@ -387,6 +459,128 @@ def list_additional_market_workbooks(
     )
 
 
+def _read_csv_rows(csv_path: Path) -> tuple[list[list[str]], str]:
+    last_error: UnicodeDecodeError | None = None
+    for encoding in ("utf-8-sig", "utf-8", "gb18030", "gbk"):
+        try:
+            with csv_path.open("r", encoding=encoding, newline="") as handle:
+                return list(csv.reader(handle)), encoding
+        except UnicodeDecodeError as error:
+            last_error = error
+            continue
+    if last_error is not None:
+        raise last_error
+    return [], "utf-8-sig"
+
+
+def _normalize_source_label(raw_value: str) -> str:
+    normalized = str(raw_value or "").strip()
+    if not normalized:
+        return "Wind"
+    replacements = {
+        "美国劳工部": "美国劳工统计局（BLS）",
+        "美联储": "美联储",
+        "国家统计局": "国家统计局",
+        "Wind": "Wind",
+        "行情": "Wind",
+        "根据新闻整理": "Wind",
+    }
+    return replacements.get(normalized, normalized)
+
+
+def split_macro_indicator_csv(
+    source_path: Path | str = RAW_MACRO_INDICATOR_CSV,
+    output_dir: Path | str = DEFAULT_WORKBOOK_DIR,
+) -> list[dict[str, object]]:
+    source_file = Path(source_path)
+    if not source_file.exists():
+        return []
+
+    rows, _encoding = _read_csv_rows(source_file)
+    if len(rows) < 6:
+        raise ValueError(f"Macro indicator csv is malformed: {source_file}")
+
+    output_directory = Path(output_dir)
+    output_directory.mkdir(parents=True, exist_ok=True)
+
+    name_row = rows[0]
+    frequency_row = rows[1]
+    unit_row = rows[2]
+    series_id_row = rows[3]
+    source_row = rows[4]
+    data_rows = rows[5:]
+
+    summaries: list[dict[str, object]] = []
+    for frequency_key, spec in MACRO_SPLIT_SPECS.items():
+        column_indexes = [
+            index
+            for index in range(1, len(name_row))
+            if index < len(frequency_row)
+            and str(frequency_row[index]).strip() == frequency_key
+        ]
+        output_path = output_directory / str(spec["file_name"])
+        written_rows = 0
+        with output_path.open("w", encoding="utf-8-sig", newline="") as handle:
+            writer = csv.writer(handle)
+            writer.writerow(["名称", "日期", "值", "来源", "频率", "单位", "指标ID"])
+            for column_index in column_indexes:
+                series_name = str(name_row[column_index]).strip()
+                source_label = (
+                    _normalize_source_label(str(source_row[column_index]).strip())
+                    if column_index < len(source_row)
+                    else "Wind"
+                )
+                frequency_label = (
+                    str(frequency_row[column_index]).strip()
+                    if column_index < len(frequency_row)
+                    else ""
+                )
+                unit_label = (
+                    str(unit_row[column_index]).strip()
+                    if column_index < len(unit_row)
+                    else ""
+                )
+                series_id = (
+                    str(series_id_row[column_index]).strip()
+                    if column_index < len(series_id_row)
+                    else ""
+                )
+                for data_row in data_rows:
+                    trade_date = _excel_date_to_iso(str(data_row[0]).strip() if data_row else "")
+                    raw_value = (
+                        str(data_row[column_index]).strip()
+                        if column_index < len(data_row)
+                        else ""
+                    )
+                    if not series_name or not trade_date or not raw_value:
+                        continue
+                    writer.writerow(
+                        [
+                            series_name,
+                            trade_date,
+                            raw_value,
+                            source_label,
+                            frequency_label,
+                            unit_label,
+                            series_id,
+                        ]
+                    )
+                    written_rows += 1
+
+        summaries.append(
+            {
+                "source_csv": str(source_file),
+                "output_path": str(output_path),
+                "dataset_code": spec["dataset_code"],
+                "frequency": frequency_key,
+                "series_count": len(column_indexes),
+                "row_count": written_rows,
+            }
+        )
+
+    return summaries
+
+
 def _find_generic_sheet(
     zf: zipfile.ZipFile,
     shared_strings: list[str],
@@ -544,6 +738,75 @@ def _canonicalize_generic_series_names(
     return normalized_rows
 
 
+def _finalize_generic_market_payload(
+    workbook_path: Path,
+    source_sheet: str,
+    metric_keys: list[str],
+    parsed_rows: list[dict[str, object]],
+) -> dict[str, object]:
+    dataset_code = _resolve_dataset_code(workbook_path)
+    canonical_rows = _canonicalize_generic_series_names(parsed_rows)
+    deduplicated_rows, duplicate_row_count = _deduplicate_generic_rows(canonical_rows)
+    if dataset_code in SPARSE_GENERIC_DATASET_CODES:
+        cleaned_rows = deduplicated_rows
+        dropped_dates: list[str] = []
+    else:
+        cleaned_rows, dropped_dates = _drop_incomplete_dates(
+            deduplicated_rows,
+            metric_keys=metric_keys,
+        )
+
+    return {
+        "dataset_code": dataset_code,
+        "dataset_name": workbook_path.stem,
+        "excel_path": str(workbook_path),
+        "source_sheet": source_sheet,
+        "metric_keys": metric_keys,
+        "source_row_count": len(parsed_rows),
+        "deduplicated_row_count": len(deduplicated_rows),
+        "duplicate_row_count": duplicate_row_count,
+        "clean_row_count": len(cleaned_rows),
+        "dropped_date_count": len(dropped_dates),
+        "dropped_dates": dropped_dates,
+        "series_count": len({row["series_name"] for row in deduplicated_rows}),
+        "rows": cleaned_rows,
+    }
+
+
+def _build_generic_record(
+    workbook_path: Path,
+    *,
+    source_sheet: str,
+    metric_keys: list[str],
+    raw_record: dict[str, str],
+) -> dict[str, object] | None:
+    series_name = str(raw_record.get("series_name", "")).strip()
+    trade_date = _excel_date_to_iso(str(raw_record.get("trade_date", "")))
+    if not series_name or not trade_date:
+        return None
+
+    metrics = {
+        metric_key: _to_float(str(raw_record.get(metric_key, "")))
+        for metric_key in metric_keys
+    }
+    if not any(metric_value is not None for metric_value in metrics.values()):
+        return None
+
+    return {
+        "dataset_code": _resolve_dataset_code(workbook_path),
+        "dataset_name": workbook_path.stem,
+        "source_file": workbook_path.name,
+        "source_sheet": source_sheet,
+        "series_name": series_name,
+        "source_label": str(raw_record.get("source_label", "")).strip() or None,
+        "frequency_label": str(raw_record.get("frequency_label", "")).strip() or None,
+        "unit_label": str(raw_record.get("unit_label", "")).strip() or None,
+        "series_id": str(raw_record.get("series_id", "")).strip() or None,
+        "trade_date": trade_date,
+        "metrics": metrics,
+    }
+
+
 def read_generic_market_workbook(
     excel_path: Path | str,
     sheet_name: str | None = None,
@@ -551,6 +814,51 @@ def read_generic_market_workbook(
     workbook_path = Path(excel_path)
     if not workbook_path.exists():
         raise FileNotFoundError(f"Excel file not found: {workbook_path}")
+
+    if workbook_path.suffix.lower() == ".csv":
+        rows, _encoding = _read_csv_rows(workbook_path)
+        if not rows:
+            return _finalize_generic_market_payload(workbook_path, workbook_path.stem, [], [])
+
+        mapped_headers = [
+            GENERIC_HEADER_MAP.get(_normalize_header_label(value), "")
+            for value in rows[0]
+        ]
+        if "series_name" not in mapped_headers or "trade_date" not in mapped_headers:
+            raise ValueError(f"No structured data header found in csv: {workbook_path}")
+
+        metric_keys = [
+            header
+            for header in mapped_headers
+            if header and header not in GENERIC_DIMENSION_KEYS
+        ]
+        if not metric_keys:
+            raise ValueError(f"No metric columns found in csv: {workbook_path}")
+
+        parsed_rows: list[dict[str, object]] = []
+        for row in rows[1:]:
+            if not any(str(value).strip() for value in row):
+                continue
+            raw_record: dict[str, str] = {}
+            for index, header in enumerate(mapped_headers):
+                if not header:
+                    continue
+                raw_record[header] = str(row[index]).strip() if index < len(row) else ""
+            record = _build_generic_record(
+                workbook_path,
+                source_sheet=workbook_path.stem,
+                metric_keys=metric_keys,
+                raw_record=raw_record,
+            )
+            if record is not None:
+                parsed_rows.append(record)
+
+        return _finalize_generic_market_payload(
+            workbook_path,
+            workbook_path.stem,
+            metric_keys,
+            parsed_rows,
+        )
 
     with zipfile.ZipFile(workbook_path) as zf:
         shared_strings = _load_shared_strings(zf)
@@ -577,49 +885,21 @@ def read_generic_market_workbook(
                 continue
             raw_record[header] = str(row[index]).strip() if index < len(row) else ""
 
-        series_name = str(raw_record.get("series_name", "")).strip()
-        trade_date = _excel_date_to_iso(str(raw_record.get("trade_date", "")))
-        if not series_name or not trade_date:
-            continue
-
-        metrics = {
-            metric_key: _to_float(str(raw_record.get(metric_key, "")))
-            for metric_key in metric_keys
-        }
-        parsed_rows.append(
-            {
-                "dataset_code": _resolve_dataset_code(workbook_path),
-                "dataset_name": workbook_path.stem,
-                "source_file": workbook_path.name,
-                "source_sheet": source_sheet,
-                "series_name": series_name,
-                "trade_date": trade_date,
-                "metrics": metrics,
-            }
+        record = _build_generic_record(
+            workbook_path,
+            source_sheet=source_sheet,
+            metric_keys=metric_keys,
+            raw_record=raw_record,
         )
+        if record is not None:
+            parsed_rows.append(record)
 
-    canonical_rows = _canonicalize_generic_series_names(parsed_rows)
-    deduplicated_rows, duplicate_row_count = _deduplicate_generic_rows(canonical_rows)
-    cleaned_rows, dropped_dates = _drop_incomplete_dates(
-        deduplicated_rows,
-        metric_keys=metric_keys,
+    return _finalize_generic_market_payload(
+        workbook_path,
+        source_sheet,
+        metric_keys,
+        parsed_rows,
     )
-
-    return {
-        "dataset_code": _resolve_dataset_code(workbook_path),
-        "dataset_name": workbook_path.stem,
-        "excel_path": str(workbook_path),
-        "source_sheet": source_sheet,
-        "metric_keys": metric_keys,
-        "source_row_count": len(parsed_rows),
-        "deduplicated_row_count": len(deduplicated_rows),
-        "duplicate_row_count": duplicate_row_count,
-        "clean_row_count": len(cleaned_rows),
-        "dropped_date_count": len(dropped_dates),
-        "dropped_dates": dropped_dates,
-        "series_count": len({row["series_name"] for row in deduplicated_rows}),
-        "rows": cleaned_rows,
-    }
 
 
 def replace_generic_market_rows(
@@ -651,6 +931,10 @@ def replace_generic_market_rows(
                         row["source_file"],
                         row["source_sheet"],
                         row["series_name"],
+                        row.get("source_label"),
+                        row.get("frequency_label"),
+                        row.get("unit_label"),
+                        row.get("series_id"),
                         row["trade_date"],
                         metric_key,
                         metric_value,
@@ -666,15 +950,23 @@ def replace_generic_market_rows(
                     source_file,
                     source_sheet,
                     series_name,
+                    source_label,
+                    frequency_label,
+                    unit_label,
+                    series_id,
                     trade_date,
                     metric_key,
                     metric_value
                 )
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(dataset_code, series_name, trade_date, metric_key) DO UPDATE SET
                     dataset_name = excluded.dataset_name,
                     source_file = excluded.source_file,
                     source_sheet = excluded.source_sheet,
+                    source_label = excluded.source_label,
+                    frequency_label = excluded.frequency_label,
+                    unit_label = excluded.unit_label,
+                    series_id = excluded.series_id,
                     metric_value = excluded.metric_value
                 """,
                 payload,
@@ -718,6 +1010,7 @@ def import_all_market_data(
     workbook_dir: Path | str = DEFAULT_WORKBOOK_DIR,
 ) -> dict[str, object]:
     summaries: list[dict[str, object]] = []
+    workbook_root = Path(workbook_dir)
     sample_file = resolve_sample_xlsx(sample_path)
     if sample_file.exists():
         summaries.append(
@@ -727,13 +1020,47 @@ def import_all_market_data(
             }
         )
 
-    for workbook_path in list_additional_market_workbooks(workbook_dir):
-        summaries.append(
-            {
-                "kind": "generic",
-                "summary": import_generic_market_workbook(workbook_path, db_path=db_path),
-            }
-        )
+    macro_split_summaries = split_macro_indicator_csv(
+        output_dir=workbook_root,
+    )
+    for split_summary in macro_split_summaries:
+        generated_path = Path(split_summary["output_path"])
+        try:
+            summaries.append(
+                {
+                    "kind": "generic",
+                    "summary": import_generic_market_workbook(generated_path, db_path=db_path),
+                }
+            )
+        except Exception as error:
+            summaries.append(
+                {
+                    "kind": "error",
+                    "summary": {
+                        "excel_path": str(generated_path),
+                        "error": str(error),
+                    },
+                }
+            )
+
+    for workbook_path in list_additional_market_workbooks(workbook_root):
+        try:
+            summaries.append(
+                {
+                    "kind": "generic",
+                    "summary": import_generic_market_workbook(workbook_path, db_path=db_path),
+                }
+            )
+        except Exception as error:
+            summaries.append(
+                {
+                    "kind": "error",
+                    "summary": {
+                        "excel_path": str(workbook_path),
+                        "error": str(error),
+                    },
+                }
+            )
 
     return {
         "db_path": str(Path(db_path)),
@@ -1037,6 +1364,10 @@ def get_generic_latest_metrics(
                source_file,
                source_sheet,
                series_name,
+               source_label,
+               frequency_label,
+               unit_label,
+               series_id,
                trade_date,
                metric_key,
                metric_value
@@ -1050,13 +1381,30 @@ def get_generic_latest_metrics(
 
     grouped_rows: dict[str, dict[str, dict[str, object]]] = defaultdict(dict)
     dataset_name = None
-    source_file = None
-    source_sheet = None
+    series_meta: dict[str, dict[str, object]] = {}
     for row in rows:
         dataset_name = dataset_name or row["dataset_name"]
-        source_file = source_file or row["source_file"]
-        source_sheet = source_sheet or row["source_sheet"]
         series_name = row["series_name"]
+        meta = series_meta.setdefault(
+            series_name,
+            {
+                "source_file": row["source_file"],
+                "source_sheet": row["source_sheet"],
+                "source_label": row["source_label"],
+                "frequency_label": row["frequency_label"],
+                "unit_label": row["unit_label"],
+                "series_id": row["series_id"],
+            },
+        )
+        for key in (
+            "source_file",
+            "source_sheet",
+            "source_label",
+            "frequency_label",
+            "unit_label",
+            "series_id",
+        ):
+            meta[key] = meta.get(key) or row[key]
         trade_date = row["trade_date"]
         grouped_rows[series_name].setdefault(trade_date, {})
         grouped_rows[series_name][trade_date][row["metric_key"]] = row["metric_value"]
@@ -1096,8 +1444,12 @@ def get_generic_latest_metrics(
             {
                 "dataset_code": normalized_dataset_code,
                 "dataset_name": dataset_name,
-                "source_file": source_file,
-                "source_sheet": source_sheet,
+                "source_file": series_meta.get(series_name, {}).get("source_file"),
+                "source_sheet": series_meta.get(series_name, {}).get("source_sheet"),
+                "source_label": series_meta.get(series_name, {}).get("source_label"),
+                "frequency_label": series_meta.get(series_name, {}).get("frequency_label"),
+                "unit_label": series_meta.get(series_name, {}).get("unit_label"),
+                "series_id": series_meta.get(series_name, {}).get("series_id"),
                 "series_name": series_name,
                 "label": series_name,
                 "trade_date": latest_trade_date,
@@ -1161,6 +1513,10 @@ def get_generic_metric_series(
                    source_file,
                    source_sheet,
                    series_name,
+                   source_label,
+                   frequency_label,
+                   unit_label,
+                   series_id,
                    trade_date,
                    metric_key,
                    metric_value
@@ -1181,6 +1537,10 @@ def get_generic_metric_series(
             "dataset_name": row["dataset_name"],
             "source_file": row["source_file"],
             "source_sheet": row["source_sheet"],
+            "source_label": row["source_label"],
+            "frequency_label": row["frequency_label"],
+            "unit_label": row["unit_label"],
+            "series_id": row["series_id"],
             "series_name": row["series_name"],
             "trade_date": row["trade_date"],
             "metric_key": row["metric_key"],

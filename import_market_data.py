@@ -10,6 +10,7 @@ from market_data_store import (
     import_generic_market_workbook,
     import_market_data,
     resolve_sample_xlsx,
+    split_macro_indicator_csv,
 )
 
 
@@ -33,7 +34,7 @@ def build_parser() -> argparse.ArgumentParser:
         "excel_path",
         nargs="?",
         default=None,
-        help="Optional path to the source xlsx file.",
+        help="Optional path to the source xlsx/csv file.",
     )
     parser.add_argument(
         "--db-path",
@@ -70,6 +71,25 @@ def main() -> int:
             print(f"Symbols: {summary['symbols']}")
             return 0
 
+        if excel_path.name == "宏观指标_汇总.csv":
+            split_summaries = split_macro_indicator_csv(
+                source_path=excel_path,
+                output_dir=excel_path.parent,
+            )
+            for split_summary in split_summaries:
+                summary = import_generic_market_workbook(
+                    excel_path=split_summary["output_path"],
+                    db_path=db_path,
+                )
+                print("Macro indicator split import completed.")
+                print(f"Source csv: {excel_path}")
+                print(f"Split file: {summary['excel_path']}")
+                print(f"Dataset: {summary['dataset_code']}")
+                print(f"Series: {summary['series_count']}")
+                print(f"Source rows: {summary['source_row_count']}")
+                print(f"Imported metric rows: {summary['metric_row_count']}")
+            return 0
+
         summary = import_generic_market_workbook(
             excel_path=excel_path,
             db_path=db_path,
@@ -100,6 +120,13 @@ def main() -> int:
                 f"rows={summary['row_count']}, "
                 f"dropped_empty_open={summary['dropped_missing_open']}, "
                 f"symbols={summary['symbols']}"
+            )
+            continue
+
+        if kind == "error":
+            print(
+                f"[skip] {Path(summary['excel_path']).name}: "
+                f"error={summary['error']}"
             )
             continue
 
