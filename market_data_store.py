@@ -38,6 +38,7 @@ DEFAULT_SAMPLE_XLSX_CANDIDATES = (
 GENERIC_DATASET_CODES = {
     "OPEC消费量预测值.xlsx": "opec_consumption_forecast",
     "opec原油产量.xlsx": "opec_crude_production_monthly",
+    "原油需求量预测.xlsx": "crude_demand_forecast_quarterly",
     "\u70bc\u6cb9\u5f00\u5de5\u7387.xlsx": "refinery_utilization_monthly",
     "原油期货价格（日）.xlsx": "crude_futures_daily",
     "原油现货价格（日）.xlsx": "crude_spot_daily",
@@ -111,6 +112,7 @@ GENERIC_PRIMARY_METRIC = {
     "macro_monthly_indicators": "value",
     "macro_daily_indicators": "value",
     "opec_crude_production_monthly": "value",
+    "crude_demand_forecast_quarterly": "value",
     "refinery_utilization_monthly": "value",
 }
 SPARSE_GENERIC_DATASET_CODES = {

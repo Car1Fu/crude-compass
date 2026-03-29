@@ -138,10 +138,12 @@
     ...productCats.map((item) => [`${item[1]}现货`, item[2], item[3], item[4]]),
   ];
 
+  const demandForecastDataset = "crude_demand_forecast_quarterly";
+  const demandForecastStartDate = "2025-10-01";
   const demandLines = [
-    "全球:需求量:石油:预测值",
-    "经合组织国家:需求量:石油:预测值",
-    "中国:需求量:石油:预测值",
+    { label: "世界", seriesName: "全球:需求量:石油:预测值" },
+    { label: "经合组织国家", seriesName: "经合组织国家:需求量:石油:预测值" },
+    { label: "中国", seriesName: "中国:需求量:石油:预测值" },
   ];
   const opecProductionDataset = "opec_crude_production_monthly";
   const refineryUtilizationDataset = "refinery_utilization_monthly";
@@ -428,6 +430,16 @@
       .trim();
   }
 
+  function formatQuarterLabel(value) {
+    const text = String(value || "");
+    const match = text.match(/^(\d{4})-(\d{2})/);
+    if (!match) return text;
+    const year = match[1];
+    const month = Number(match[2]);
+    const quarter = Math.floor((month - 1) / 3) + 1;
+    return `${year}Q${quarter}`;
+  }
+
   async function renderRefineryUtilization() {
     const tbody = document.getElementById("dbRefineryUtilizationBody");
     const asOfEl = document.getElementById("dbRefineryUtilizationAsOf");
@@ -550,19 +562,59 @@
     const el = document.getElementById("dbDemandBar");
     if (!el || typeof echarts === "undefined") return;
     try {
-      const lines = await Promise.all(demandLines.map((name) => loadSeries({ datasetCode: "opec_consumption_forecast", metricKey: "consumption", seriesName: name }, "", "")));
+      const lines = await Promise.all(
+        demandLines.map((item) => loadSeries({
+          datasetCode: demandForecastDataset,
+          metricKey: "value",
+          seriesName: item.seriesName,
+        }, demandForecastStartDate, ""))
+      );
       const dates = [...new Set(lines.flatMap((rows) => rows.map((row) => row.date)))].sort();
       if (!dates.length) return;
       demandChart = demandChart || echarts.getInstanceByDom(el) || echarts.init(el);
       demandChart.setOption({
         animation: false,
         backgroundColor: "transparent",
-        tooltip: { trigger: "axis", backgroundColor: "rgba(18,18,20,.95)", borderColor: "rgba(214,179,106,.30)", textStyle: { color: "#f6e3b2" } },
-        legend: { data: demandLines, textStyle: { color: "#f6e3b2", fontSize: 11 }, bottom: 0 },
+        tooltip: {
+          trigger: "axis",
+          backgroundColor: "rgba(18,18,20,.95)",
+          borderColor: "rgba(214,179,106,.30)",
+          textStyle: { color: "#f6e3b2" },
+          formatter: (params) => {
+            const rows = Array.isArray(params) ? params : [params];
+            if (!rows.length) return "";
+            const title = formatQuarterLabel(rows[0].axisValue);
+            return [
+              title,
+              ...rows.map((row) => `${row.marker}${row.seriesName}: ${fmt(row.value)} 百万桶/天`),
+            ].join("<br/>");
+          },
+        },
+        legend: { data: demandLines.map((item) => item.label), textStyle: { color: "#f6e3b2", fontSize: 11 }, bottom: 0 },
         grid: { left: "4%", right: "4%", top: "10%", bottom: "18%", containLabel: true },
-        xAxis: { type: "category", data: dates, axisLabel: { color: "rgba(240,240,242,.50)", formatter: (v) => String(v).slice(0, 7) }, splitLine: { show: false } },
-        yAxis: { scale: true, axisLabel: { color: "rgba(240,240,242,.50)" }, splitLine: { lineStyle: { color: "rgba(214,179,106,.08)" } } },
-        series: demandLines.map((name, i) => ({ name, type: "line", smooth: true, symbol: "circle", symbolSize: 5, data: values(dates, lines[i]), lineStyle: { width: 2, color: ["#d6b36a", "#f6e3b2", "#7fb8d8"][i] }, itemStyle: { color: ["#d6b36a", "#f6e3b2", "#7fb8d8"][i] } })),
+        xAxis: {
+          type: "category",
+          data: dates,
+          axisLabel: { color: "rgba(240,240,242,.50)", formatter: (v) => formatQuarterLabel(v) },
+          splitLine: { show: false },
+        },
+        yAxis: {
+          scale: true,
+          name: "百万桶/天",
+          nameTextStyle: { color: "rgba(240,240,242,.58)" },
+          axisLabel: { color: "rgba(240,240,242,.50)" },
+          splitLine: { lineStyle: { color: "rgba(214,179,106,.08)" } },
+        },
+        series: demandLines.map((item, i) => ({
+          name: item.label,
+          type: "line",
+          smooth: true,
+          symbol: "circle",
+          symbolSize: 6,
+          data: values(dates, lines[i]),
+          lineStyle: { width: 2.4, color: ["#d6b36a", "#f6e3b2", "#7fb8d8"][i] },
+          itemStyle: { color: ["#d6b36a", "#f6e3b2", "#7fb8d8"][i] },
+        })),
       }, { notMerge: true });
     } catch (error) {
       console.warn("Failed to render demand forecast chart.", error);
