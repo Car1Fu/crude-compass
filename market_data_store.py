@@ -151,6 +151,104 @@ SUPPLY_COUNTRY_CODE_MAP = {
     "Korea": "KR",
     "Saudi Arabia": "SA",
 }
+SUPPLY_PORT_DATASET_CODE = "ports_reference_all_ports"
+SUPPLY_PORT_WORKBOOK_NAMES = {"ports_wpi.xlsx"}
+SUPPLY_PORT_DEFAULT_SHEET = "All_Ports"
+SUPPLY_PORT_REQUIRED_COLUMNS = (
+    "World Port Index Number",
+    "Main Port Name",
+    "Alternate Port Name",
+    "UN/LOCODE",
+    "Country Code",
+    "World Water Body",
+    "Latitude",
+    "Longitude",
+    "Channel Depth (m)",
+    "Anchorage Depth (m)",
+    "Cargo Pier Depth (m)",
+    "Oil Terminal Depth (m)",
+    "Harbor Size",
+    "Harbor Type",
+    "Shelter Afforded",
+)
+PORT_MISSING_VALUE_TOKENS = {
+    "",
+    "-",
+    "--",
+    "unknown",
+    "unk",
+    "n/a",
+    "na",
+    "none",
+    "null",
+}
+PORT_NAME_ZH_OVERRIDES = {
+    "Xiamen": "厦门港",
+    "Shanghai": "上海港",
+    "Ningbo": "宁波港",
+    "Qingdao Gang": "青岛港",
+    "Dalian": "大连港",
+    "Zhoushan": "舟山港",
+    "Tianjin Xingang": "天津新港",
+    "Tianjin": "天津港",
+    "Guangzhou": "广州港",
+    "Shenzhen": "深圳港",
+    "Yantai": "烟台港",
+    "Rizhao": "日照港",
+    "Lianyungang": "连云港",
+    "Zhanjiang": "湛江港",
+    "Qinzhou": "钦州港",
+    "Beihai": "北海港",
+    "Fuzhou": "福州港",
+    "Quanzhou": "泉州港",
+    "Xingang": "新港",
+}
+PORT_HARBOR_SIZE_ZH = {
+    "very small": "极小型",
+    "small": "小型",
+    "medium": "中型",
+    "large": "大型",
+    "very large": "特大型",
+}
+PORT_HARBOR_TYPE_ZH = {
+    "river (natural)": "河港（天然）",
+    "coastal (breakwater)": "沿海港（防波堤）",
+    "coastal (natural)": "沿海港（天然）",
+    "open roadstead": "开放式锚地港",
+    "river basin": "河湾港",
+    "canal": "运河港",
+    "lake (natural)": "湖港（天然）",
+    "lake (artificial)": "湖港（人工）",
+    "coastal (artificial)": "沿海港（人工）",
+    "coastal": "沿海港",
+    "river": "河港",
+}
+PORT_SHELTER_AFFORDED_ZH = {
+    "excellent": "优良",
+    "good": "良好",
+    "fair": "一般",
+    "poor": "较差",
+}
+PORT_WATER_BODY_ZH = {
+    "North Pacific Ocean": "北太平洋",
+    "South Pacific Ocean": "南太平洋",
+    "North Atlantic Ocean": "北大西洋",
+    "South Atlantic Ocean": "南大西洋",
+    "Indian Ocean": "印度洋",
+    "Mediterranean Sea": "地中海",
+    "Black Sea": "黑海",
+    "Red Sea": "红海",
+    "Persian Gulf": "波斯湾",
+    "Arabian Sea": "阿拉伯海",
+    "East China Sea": "东海",
+    "South China Sea": "南海",
+    "Yellow Sea": "黄海",
+    "Bohai Sea": "渤海",
+    "Taiwan Strait": "台湾海峡",
+    "Sea of Japan": "日本海",
+    "Gulf of Mexico": "墨西哥湾",
+    "Caribbean Sea": "加勒比海",
+}
 
 _XML_NS = {
     "main": "http://schemas.openxmlformats.org/spreadsheetml/2006/main",
@@ -261,6 +359,40 @@ def init_market_database(db_path: Path | str = DEFAULT_DB_PATH) -> None:
             """
             CREATE INDEX IF NOT EXISTS idx_market_generic_daily_metrics_lookup
             ON market_generic_daily_metrics(dataset_code, series_name, trade_date, metric_key)
+            """
+        )
+        connection.execute(
+            """
+            CREATE TABLE IF NOT EXISTS port_reference_data (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                dataset_code TEXT NOT NULL,
+                dataset_name TEXT NOT NULL,
+                source_file TEXT NOT NULL,
+                source_sheet TEXT NOT NULL,
+                wpi_number TEXT,
+                main_port_name TEXT NOT NULL,
+                alternate_port_name TEXT,
+                unlocode TEXT,
+                country_name TEXT,
+                world_water_body TEXT,
+                latitude REAL NOT NULL,
+                longitude REAL NOT NULL,
+                channel_depth_m TEXT,
+                anchorage_depth_m TEXT,
+                cargo_pier_depth_m TEXT,
+                oil_terminal_depth_m TEXT,
+                harbor_size TEXT,
+                harbor_type TEXT,
+                shelter_afforded TEXT,
+                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(dataset_code, wpi_number)
+            )
+            """
+        )
+        connection.execute(
+            """
+            CREATE INDEX IF NOT EXISTS idx_port_reference_data_lookup
+            ON port_reference_data(dataset_code, main_port_name, country_name)
             """
         )
         _ensure_table_columns(
@@ -471,6 +603,9 @@ def read_market_rows_from_xlsx(
 
 
 def _resolve_dataset_code(workbook_path: Path) -> str:
+    if _is_port_reference_workbook(workbook_path):
+        return SUPPLY_PORT_DATASET_CODE
+
     mapped = GENERIC_DATASET_CODES.get(workbook_path.name)
     if mapped:
         return mapped
@@ -524,6 +659,119 @@ def _normalize_source_label(raw_value: str) -> str:
         "根据新闻整理": "Wind",
     }
     return replacements.get(normalized, normalized)
+
+
+def _is_port_reference_workbook(workbook_path: Path) -> bool:
+    return workbook_path.name.lower() in SUPPLY_PORT_WORKBOOK_NAMES
+
+
+def _is_port_placeholder_value(raw_value: str | None) -> bool:
+    value = str(raw_value or "").strip()
+    if not value:
+        return True
+    if value.lower() in PORT_MISSING_VALUE_TOKENS:
+        return True
+    numeric_value = _to_float(value)
+    return numeric_value is not None and abs(numeric_value) < 1e-9
+
+
+def _format_numeric_display(raw_value: str | None) -> str:
+    numeric_value = _to_float(str(raw_value or ""))
+    if numeric_value is None:
+        return str(raw_value or "").strip()
+    return f"{numeric_value:.1f}".rstrip("0").rstrip(".")
+
+
+def _format_port_depth_display(raw_value: str | None) -> str:
+    if _is_port_placeholder_value(raw_value):
+        return "待核实"
+    return f"{_format_numeric_display(raw_value)} 米"
+
+
+def _translate_port_name(
+    main_port_name: str | None,
+    alternate_port_name: str | None = None,
+) -> str:
+    candidates = [str(main_port_name or "").strip(), str(alternate_port_name or "").strip()]
+    for candidate in candidates:
+        if not candidate:
+            continue
+        translated = PORT_NAME_ZH_OVERRIDES.get(candidate)
+        if translated:
+            return translated
+    return candidates[0] if candidates and candidates[0] else "待核实"
+
+
+def _translate_port_size(raw_value: str | None) -> str:
+    value = str(raw_value or "").strip()
+    if _is_port_placeholder_value(value):
+        return "待核实"
+    return PORT_HARBOR_SIZE_ZH.get(value.lower(), value)
+
+
+def _translate_port_type(raw_value: str | None) -> str:
+    value = str(raw_value or "").strip()
+    if _is_port_placeholder_value(value):
+        return "待核实"
+
+    exact_match = PORT_HARBOR_TYPE_ZH.get(value.lower())
+    if exact_match:
+        return exact_match
+
+    translated = value
+    replacements = (
+        ("Open Roadstead", "开放式锚地港"),
+        ("Coastal", "沿海港"),
+        ("River", "河港"),
+        ("Lake", "湖港"),
+        ("Canal", "运河港"),
+        ("Breakwater", "防波堤"),
+        ("Natural", "天然"),
+        ("Artificial", "人工"),
+        ("Roadstead", "锚地"),
+        ("Basin", "港池"),
+        ("Marina", "游艇港"),
+    )
+    for english, chinese in replacements:
+        translated = translated.replace(english, chinese)
+    translated = translated.replace("(", "（").replace(")", "）")
+    return translated
+
+
+def _translate_port_shelter(raw_value: str | None) -> str:
+    value = str(raw_value or "").strip()
+    if _is_port_placeholder_value(value):
+        return "待核实"
+    return PORT_SHELTER_AFFORDED_ZH.get(value.lower(), value)
+
+
+def _translate_port_water_body(raw_value: str | None) -> str:
+    value = str(raw_value or "").strip()
+    if _is_port_placeholder_value(value):
+        return "待核实"
+
+    parts = [part.strip() for part in value.split(";") if part.strip()]
+    translated_parts = [PORT_WATER_BODY_ZH.get(part, part) for part in parts]
+    return "；".join(translated_parts) if translated_parts else value
+
+
+def _port_row_value(port_row: sqlite3.Row | dict[str, object], key: str) -> object | None:
+    if isinstance(port_row, sqlite3.Row):
+        return port_row[key] if key in port_row.keys() else None
+    return port_row.get(key)
+
+
+def _build_port_detail_label(port_row: sqlite3.Row | dict[str, object]) -> str | None:
+    harbor_type = _translate_port_type(_port_row_value(port_row, "harbor_type"))
+    harbor_size = _translate_port_size(_port_row_value(port_row, "harbor_size"))
+    detail_parts = [
+        value
+        for value in (harbor_type, harbor_size)
+        if value and value != "待核实"
+    ]
+    if not detail_parts:
+        return None
+    return " · ".join(detail_parts[:2])
 
 
 def split_macro_indicator_csv(
@@ -617,6 +865,252 @@ def split_macro_indicator_csv(
         )
 
     return summaries
+
+
+def _deduplicate_port_rows(
+    rows: list[dict[str, object]],
+) -> tuple[list[dict[str, object]], int]:
+    deduplicated_rows: list[dict[str, object]] = []
+    seen_keys: set[tuple[object, ...]] = set()
+    duplicate_count = 0
+
+    for row in rows:
+        dedupe_key = (
+            row.get("dataset_code"),
+            row.get("wpi_number") or "",
+            row.get("main_port_name") or "",
+            row.get("latitude"),
+            row.get("longitude"),
+        )
+        if dedupe_key in seen_keys:
+            duplicate_count += 1
+            continue
+        seen_keys.add(dedupe_key)
+        deduplicated_rows.append(row)
+
+    return deduplicated_rows, duplicate_count
+
+
+def read_port_reference_workbook(
+    excel_path: Path | str,
+    sheet_name: str | None = None,
+) -> dict[str, object]:
+    workbook_path = Path(excel_path)
+    if not workbook_path.exists():
+        raise FileNotFoundError(f"Excel file not found: {workbook_path}")
+    if not _is_port_reference_workbook(workbook_path):
+        raise ValueError(f"Workbook is not mapped as a port reference source: {workbook_path.name}")
+
+    with zipfile.ZipFile(workbook_path) as zf:
+        shared_strings = _load_shared_strings(zf)
+        sheet_targets = _sheet_targets(zf)
+        selected_sheet_name = sheet_name or SUPPLY_PORT_DEFAULT_SHEET
+        sheet_targets = [item for item in sheet_targets if item[0] == selected_sheet_name]
+        if not sheet_targets:
+            raise ValueError(f"Sheet not found: {selected_sheet_name}")
+
+        target_name, target_path = sheet_targets[0]
+        sheet_rows = _read_sheet_rows(zf, target_path, shared_strings)
+        if len(sheet_rows) < 4:
+            raise ValueError(f"Port reference sheet is malformed: {target_name}")
+
+        header_row = [str(value).strip() for value in sheet_rows[2]]
+        header_indexes = {
+            header_name: index
+            for index, header_name in enumerate(header_row)
+            if header_name
+        }
+        missing_headers = [
+            column_name
+            for column_name in SUPPLY_PORT_REQUIRED_COLUMNS
+            if column_name not in header_indexes
+        ]
+        if missing_headers:
+            raise ValueError(
+                "Port reference sheet is missing required columns: "
+                + ", ".join(missing_headers)
+            )
+
+        parsed_rows: list[dict[str, object]] = []
+        for row in sheet_rows[3:]:
+            if not any(str(value).strip() for value in row):
+                continue
+
+            def read_value(column_name: str) -> str:
+                index = header_indexes[column_name]
+                return str(row[index]).strip() if index < len(row) else ""
+
+            main_port_name = read_value("Main Port Name")
+            latitude = _to_float(read_value("Latitude"))
+            longitude = _to_float(read_value("Longitude"))
+            if not main_port_name or latitude is None or longitude is None:
+                continue
+
+            parsed_rows.append(
+                {
+                    "dataset_code": SUPPLY_PORT_DATASET_CODE,
+                    "dataset_name": workbook_path.stem,
+                    "source_file": workbook_path.name,
+                    "source_sheet": target_name,
+                    "wpi_number": read_value("World Port Index Number"),
+                    "main_port_name": main_port_name,
+                    "alternate_port_name": read_value("Alternate Port Name"),
+                    "unlocode": read_value("UN/LOCODE"),
+                    "country_name": read_value("Country Code"),
+                    "world_water_body": read_value("World Water Body"),
+                    "latitude": float(latitude),
+                    "longitude": float(longitude),
+                    "channel_depth_m": read_value("Channel Depth (m)"),
+                    "anchorage_depth_m": read_value("Anchorage Depth (m)"),
+                    "cargo_pier_depth_m": read_value("Cargo Pier Depth (m)"),
+                    "oil_terminal_depth_m": read_value("Oil Terminal Depth (m)"),
+                    "harbor_size": read_value("Harbor Size"),
+                    "harbor_type": read_value("Harbor Type"),
+                    "shelter_afforded": read_value("Shelter Afforded"),
+                }
+            )
+
+    deduplicated_rows, duplicate_row_count = _deduplicate_port_rows(parsed_rows)
+    return {
+        "dataset_code": SUPPLY_PORT_DATASET_CODE,
+        "dataset_name": workbook_path.stem,
+        "excel_path": str(workbook_path),
+        "source_sheet": target_name,
+        "source_row_count": len(parsed_rows),
+        "duplicate_row_count": duplicate_row_count,
+        "clean_row_count": len(deduplicated_rows),
+        "series_count": len(deduplicated_rows),
+        "rows": deduplicated_rows,
+    }
+
+
+def replace_port_reference_rows(
+    dataset_code: str,
+    rows: Iterable[dict[str, object]],
+    db_path: Path | str = DEFAULT_DB_PATH,
+) -> int:
+    materialized_rows = list(rows)
+    init_market_database(db_path)
+    with get_connection(db_path) as connection:
+        connection.execute(
+            """
+            DELETE FROM port_reference_data
+            WHERE dataset_code = ?
+            """,
+            (dataset_code,),
+        )
+        payload = [
+            (
+                row["dataset_code"],
+                row["dataset_name"],
+                row["source_file"],
+                row["source_sheet"],
+                row.get("wpi_number"),
+                row["main_port_name"],
+                row.get("alternate_port_name"),
+                row.get("unlocode"),
+                row.get("country_name"),
+                row.get("world_water_body"),
+                row["latitude"],
+                row["longitude"],
+                row.get("channel_depth_m"),
+                row.get("anchorage_depth_m"),
+                row.get("cargo_pier_depth_m"),
+                row.get("oil_terminal_depth_m"),
+                row.get("harbor_size"),
+                row.get("harbor_type"),
+                row.get("shelter_afforded"),
+            )
+            for row in materialized_rows
+        ]
+
+        if payload:
+            connection.executemany(
+                """
+                INSERT INTO port_reference_data (
+                    dataset_code,
+                    dataset_name,
+                    source_file,
+                    source_sheet,
+                    wpi_number,
+                    main_port_name,
+                    alternate_port_name,
+                    unlocode,
+                    country_name,
+                    world_water_body,
+                    latitude,
+                    longitude,
+                    channel_depth_m,
+                    anchorage_depth_m,
+                    cargo_pier_depth_m,
+                    oil_terminal_depth_m,
+                    harbor_size,
+                    harbor_type,
+                    shelter_afforded
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(dataset_code, wpi_number) DO UPDATE SET
+                    dataset_name = excluded.dataset_name,
+                    source_file = excluded.source_file,
+                    source_sheet = excluded.source_sheet,
+                    main_port_name = excluded.main_port_name,
+                    alternate_port_name = excluded.alternate_port_name,
+                    unlocode = excluded.unlocode,
+                    country_name = excluded.country_name,
+                    world_water_body = excluded.world_water_body,
+                    latitude = excluded.latitude,
+                    longitude = excluded.longitude,
+                    channel_depth_m = excluded.channel_depth_m,
+                    anchorage_depth_m = excluded.anchorage_depth_m,
+                    cargo_pier_depth_m = excluded.cargo_pier_depth_m,
+                    oil_terminal_depth_m = excluded.oil_terminal_depth_m,
+                    harbor_size = excluded.harbor_size,
+                    harbor_type = excluded.harbor_type,
+                    shelter_afforded = excluded.shelter_afforded
+                """,
+                payload,
+            )
+        inserted_row = connection.execute(
+            """
+            SELECT COUNT(*) AS total
+            FROM port_reference_data
+            WHERE dataset_code = ?
+            """,
+            (dataset_code,),
+        ).fetchone()
+
+    return int(inserted_row["total"]) if inserted_row else 0
+
+
+def import_port_reference_workbook(
+    excel_path: Path | str,
+    db_path: Path | str = DEFAULT_DB_PATH,
+    sheet_name: str | None = None,
+) -> dict[str, object]:
+    workbook = read_port_reference_workbook(excel_path, sheet_name=sheet_name)
+    inserted_port_rows = replace_port_reference_rows(
+        workbook["dataset_code"],
+        workbook["rows"],
+        db_path=db_path,
+    )
+
+    return {
+        "excel_path": workbook["excel_path"],
+        "db_path": str(Path(db_path)),
+        "dataset_code": workbook["dataset_code"],
+        "dataset_name": workbook["dataset_name"],
+        "source_sheet": workbook["source_sheet"],
+        "series_count": workbook["series_count"],
+        "source_row_count": workbook["source_row_count"],
+        "deduplicated_row_count": workbook["clean_row_count"],
+        "duplicate_row_count": workbook["duplicate_row_count"],
+        "clean_row_count": workbook["clean_row_count"],
+        "metric_row_count": inserted_port_rows,
+        "dropped_date_count": 0,
+        "dropped_dates": [],
+        "metric_keys": ["port_reference"],
+        "port_row_count": inserted_port_rows,
+    }
 
 
 def _find_generic_sheet(
@@ -1372,6 +1866,14 @@ def import_generic_market_workbook(
     db_path: Path | str = DEFAULT_DB_PATH,
     sheet_name: str | None = None,
 ) -> dict[str, object]:
+    workbook_path = Path(excel_path)
+    if _is_port_reference_workbook(workbook_path):
+        return import_port_reference_workbook(
+            workbook_path,
+            db_path=db_path,
+            sheet_name=sheet_name,
+        )
+
     workbook = read_generic_market_workbook(excel_path, sheet_name=sheet_name)
     inserted_metric_rows = replace_generic_market_rows(
         workbook["dataset_code"],
@@ -2167,5 +2669,53 @@ def get_supply_country_details(
     return {
         "dataset_code": SUPPLY_COUNTRY_DATASET_CODE,
         "as_of": latest_date,
+        "items": items,
+    }
+
+
+def get_supply_ports_data(
+    db_path: Path | str = DEFAULT_DB_PATH,
+) -> dict[str, object]:
+    init_market_database(db_path)
+    with get_connection(db_path) as connection:
+        rows = connection.execute(
+            """
+            SELECT *
+            FROM port_reference_data
+            WHERE dataset_code = ?
+            ORDER BY country_name ASC, main_port_name ASC, id ASC
+            """,
+            (SUPPLY_PORT_DATASET_CODE,),
+        ).fetchall()
+
+    items = []
+    for row in rows:
+        items.append(
+            {
+                "id": str(row["wpi_number"] or row["id"]),
+                "name": _translate_port_name(
+                    row["main_port_name"],
+                    row["alternate_port_name"],
+                ),
+                "nameOriginal": row["main_port_name"],
+                "latitude": float(row["latitude"]),
+                "longitude": float(row["longitude"]),
+                "channelDepth": _format_port_depth_display(row["channel_depth_m"]),
+                "anchorageDepth": _format_port_depth_display(row["anchorage_depth_m"]),
+                "cargoPierDepth": _format_port_depth_display(row["cargo_pier_depth_m"]),
+                "oilTerminalDepth": _format_port_depth_display(row["oil_terminal_depth_m"]),
+                "harborSize": _translate_port_size(row["harbor_size"]),
+                "harborType": _translate_port_type(row["harbor_type"]),
+                "shelterAfforded": _translate_port_shelter(row["shelter_afforded"]),
+                "waterBody": _translate_port_water_body(row["world_water_body"]),
+                "detailLabel": _build_port_detail_label(row),
+                "countryName": row["country_name"],
+                "berthedVessels": [],
+            }
+        )
+
+    return {
+        "dataset_code": SUPPLY_PORT_DATASET_CODE,
+        "total": len(items),
         "items": items,
     }

@@ -15,6 +15,7 @@ from market_data_store import (
     get_price_series,
     get_supply_country_details,
     get_supply_dashboard_data,
+    get_supply_ports_data,
     normalize_symbol,
 )
 from openrouter_config import OPENROUTER_MODEL, build_openrouter_client
@@ -242,6 +243,10 @@ class HedgeChatHandler(BaseHTTPRequestHandler):
             payload = get_supply_dashboard_data(db_path=DEFAULT_DB_PATH)
             payload["countryDetails"] = get_supply_country_details(db_path=DEFAULT_DB_PATH)
             self._send_json(200, payload)
+            return
+
+        if route == "/api/supply/ports":
+            self._send_json(200, get_supply_ports_data(db_path=DEFAULT_DB_PATH))
             return
 
         static_path = self._resolve_static_path()
