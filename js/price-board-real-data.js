@@ -143,7 +143,23 @@
     "经合组织国家:需求量:石油:预测值",
     "中国:需求量:石油:预测值",
   ];
+  const opecProductionDataset = "opec_crude_production_monthly";
+  const opecPieColors = [
+    "#4E79A7",
+    "#F28E2B",
+    "#E15759",
+    "#76B7B2",
+    "#59A14F",
+    "#EDC948",
+    "#B07AA1",
+    "#FF9DA7",
+    "#9C755F",
+    "#BAB0AC",
+    "#2F4B7C",
+    "#D45087",
+  ];
 
+  let opecChart = null;
   let customChart = null;
   let demandChart = null;
   let lastExport = { headers: [], rows: [], fileName: "custom_spread.csv" };
@@ -390,6 +406,82 @@
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
+  function formatOpecMemberName(value) {
+    return String(value || "")
+      .replace(/:产量:原油$/u, "")
+      .replace(/^OPEC[:：]/u, "")
+      .trim();
+  }
+
+  async function renderOpecPie() {
+    const el = document.getElementById("dbOpecPie");
+    if (!el || typeof echarts === "undefined") return;
+    try {
+      const payload = await j(`${apiBase}/api/price-board/generic/latest?dataset_code=${encodeURIComponent(opecProductionDataset)}&metric_key=value`);
+      const items = (Array.isArray(payload.items) ? payload.items : [])
+        .map((item) => ({
+          ...item,
+          value: Number(item.value),
+          displayName: formatOpecMemberName(item.series_name || item.label),
+        }))
+        .filter((item) => item.displayName && Number.isFinite(item.value))
+        .sort((left, right) => right.value - left.value);
+      if (!items.length) return;
+
+      const latestDate = String(payload.as_of || items[0].trade_date || "");
+      opecChart = opecChart || echarts.getInstanceByDom(el) || echarts.init(el);
+      opecChart.setOption({
+        animation: false,
+        backgroundColor: "transparent",
+        color: opecPieColors,
+        tooltip: {
+          trigger: "item",
+          backgroundColor: "rgba(18,18,20,.95)",
+          borderColor: "rgba(214,179,106,.30)",
+          textStyle: { color: "#f6e3b2" },
+          formatter: (params) => `${params.name}<br/>${fmt(params.value)} 千桶/日 (${params.percent}%)`,
+        },
+        series: [{
+          id: "opec-production",
+          name: "欧佩克成员国原油产量",
+          type: "pie",
+          radius: ["38%", "63%"],
+          center: ["50%", "54%"],
+          minAngle: 2,
+          minShowLabelAngle: 2,
+          avoidLabelOverlap: true,
+          label: {
+            show: true,
+            color: "#f6e3b2",
+            fontSize: 10,
+            formatter: (params) => (params.percent >= 2.2 ? params.name : ""),
+          },
+          labelLine: {
+            show: true,
+            length: 12,
+            length2: 10,
+            lineStyle: { color: "#d6b36a", width: 1.2 },
+          },
+          itemStyle: {
+            borderColor: "rgba(10,12,18,.95)",
+            borderWidth: 2,
+          },
+          labelLayout: {
+            hideOverlap: true,
+            moveOverlap: "shiftY",
+          },
+          data: items.map((item, index) => ({
+            name: item.displayName,
+            value: item.value,
+            itemStyle: { color: opecPieColors[index % opecPieColors.length] },
+          })),
+        }],
+      }, { notMerge: true });
+    } catch (error) {
+      console.warn("Failed to render OPEC production pie chart.", error);
+    }
+  }
+
   async function renderDemand() {
     const el = document.getElementById("dbDemandBar");
     if (!el || typeof echarts === "undefined") return;
@@ -488,9 +580,13 @@
       Promise.all([
         renderCrudeSpotSection(),
         renderSection(sections.futuresIntl),
+        renderOpecPie(),
         renderProducts(),
         renderDemand(),
       ]).catch((error) => console.warn("Failed to refresh price-board real data.", error));
     }, 220);
+    setTimeout(() => {
+      renderOpecPie().catch((error) => console.warn("Failed to reapply OPEC production pie chart.", error));
+    }, 1850);
   };
 })();

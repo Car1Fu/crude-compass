@@ -37,6 +37,7 @@ DEFAULT_SAMPLE_XLSX_CANDIDATES = (
 
 GENERIC_DATASET_CODES = {
     "OPEC消费量预测值.xlsx": "opec_consumption_forecast",
+    "opec原油产量.xlsx": "opec_crude_production_monthly",
     "原油期货价格（日）.xlsx": "crude_futures_daily",
     "原油现货价格（日）.xlsx": "crude_spot_daily",
     "成品油期货价格（日）.xlsx": "refined_futures_daily",
@@ -108,6 +109,7 @@ GENERIC_PRIMARY_METRIC = {
     "refined_naphtha_spot_daily": "price",
     "macro_monthly_indicators": "value",
     "macro_daily_indicators": "value",
+    "opec_crude_production_monthly": "value",
 }
 SPARSE_GENERIC_DATASET_CODES = {
     "macro_monthly_indicators",
@@ -613,6 +615,120 @@ def _find_generic_sheet(
     raise ValueError("No structured data sheet found in workbook")
 
 
+def _parse_wide_metadata_workbook(
+    workbook_path: Path,
+    zf: zipfile.ZipFile,
+    shared_strings: list[str],
+    sheet_name: str | None = None,
+) -> dict[str, object]:
+    sheet_targets = _sheet_targets(zf)
+    if sheet_name:
+        sheet_targets = [item for item in sheet_targets if item[0] == sheet_name]
+        if not sheet_targets:
+            raise ValueError(f"Sheet not found: {sheet_name}")
+
+    meta_aliases = {
+        "指标名称": "series_name",
+        "名称": "series_name",
+        "频率": "frequency_label",
+        "单位": "unit_label",
+        "来源": "source_label",
+        "指标id": "series_id",
+    }
+
+    for target_name, target_path in sheet_targets:
+        sheet_rows = _read_sheet_rows(zf, target_path, shared_strings)
+        if not sheet_rows:
+            continue
+
+        meta_rows: dict[str, list[str]] = {}
+        data_start_index = 0
+        for index, row in enumerate(sheet_rows[:8]):
+            if not row:
+                continue
+            first_value = str(row[0]).strip()
+            alias = meta_aliases.get(first_value) or meta_aliases.get(_normalize_header_label(first_value))
+            if alias:
+                meta_rows[alias] = row
+                data_start_index = max(data_start_index, index + 1)
+
+        name_row = meta_rows.get("series_name")
+        if not name_row or len(name_row) <= 1:
+            continue
+
+        parsed_rows: list[dict[str, object]] = []
+        metric_keys = ["value"]
+        source_row = meta_rows.get("source_label", [])
+        frequency_row = meta_rows.get("frequency_label", [])
+        unit_row = meta_rows.get("unit_label", [])
+        series_id_row = meta_rows.get("series_id", [])
+
+        for row in sheet_rows[data_start_index:]:
+            if not any(str(value).strip() for value in row):
+                continue
+            trade_date = _excel_date_to_iso(str(row[0]).strip() if row else "")
+            if not trade_date:
+                continue
+
+            for column_index in range(1, len(name_row)):
+                series_name = str(name_row[column_index]).strip() if column_index < len(name_row) else ""
+                if not series_name:
+                    continue
+                raw_value = str(row[column_index]).strip() if column_index < len(row) else ""
+                if not raw_value:
+                    continue
+                record = _build_generic_record(
+                    workbook_path,
+                    source_sheet=target_name,
+                    metric_keys=metric_keys,
+                    raw_record={
+                        "series_name": series_name,
+                        "trade_date": trade_date,
+                        "value": raw_value,
+                        "source_label": _normalize_source_label(
+                            str(source_row[column_index]).strip()
+                            if column_index < len(source_row)
+                            else ""
+                        ),
+                        "frequency_label": (
+                            str(frequency_row[column_index]).strip()
+                            if column_index < len(frequency_row)
+                            else ""
+                        ),
+                        "unit_label": (
+                            str(unit_row[column_index]).strip()
+                            if column_index < len(unit_row)
+                            else ""
+                        ),
+                        "series_id": (
+                            str(series_id_row[column_index]).strip()
+                            if column_index < len(series_id_row)
+                            else ""
+                        ),
+                    },
+                )
+                if record is not None:
+                    parsed_rows.append(record)
+
+        if parsed_rows:
+            parsed_rows.sort(
+                key=lambda row: (
+                    str(row.get("series_name", "")),
+                    str(row.get("trade_date", "")),
+                )
+            )
+            return _finalize_generic_market_payload(
+                workbook_path,
+                target_name,
+                metric_keys,
+                parsed_rows,
+            )
+
+    if sheet_name:
+        raise ValueError(f"No wide metadata sheet found in sheet: {sheet_name}")
+    raise ValueError("No wide metadata sheet found in workbook")
+
+
 def _drop_incomplete_dates(
     rows: list[dict[str, object]],
     *,
@@ -862,11 +978,19 @@ def read_generic_market_workbook(
 
     with zipfile.ZipFile(workbook_path) as zf:
         shared_strings = _load_shared_strings(zf)
-        source_sheet, sheet_rows, header_index, mapped_headers = _find_generic_sheet(
-            zf,
-            shared_strings,
-            sheet_name=sheet_name,
-        )
+        try:
+            source_sheet, sheet_rows, header_index, mapped_headers = _find_generic_sheet(
+                zf,
+                shared_strings,
+                sheet_name=sheet_name,
+            )
+        except ValueError:
+            return _parse_wide_metadata_workbook(
+                workbook_path,
+                zf,
+                shared_strings,
+                sheet_name=sheet_name,
+            )
 
     metric_keys = [
         header
