@@ -144,6 +144,15 @@
     "中国:需求量:石油:预测值",
   ];
   const opecProductionDataset = "opec_crude_production_monthly";
+  const refineryUtilizationDataset = "refinery_utilization_monthly";
+  const refinerySeriesOrder = [
+    "\u7f8e\u56fd:\u5f00\u5de5\u7387:\u70bc\u6cb9\u5382",
+    "\u5fb7\u56fd:\u5f00\u5de5\u7387:\u70bc\u6cb9\u5382",
+    "\u6cd5\u56fd:\u5f00\u5de5\u7387:\u70bc\u6cb9\u5382",
+    "\u82f1\u56fd:\u5f00\u5de5\u7387:\u70bc\u6cb9\u5382",
+    "\u610f\u5927\u5229:\u5f00\u5de5\u7387:\u70bc\u6cb9\u5382",
+    "\u65e5\u672c:\u5f00\u5de5\u7387:\u70bc\u6cb9\u5382",
+  ];
   const opecPieColors = [
     "#4E79A7",
     "#F28E2B",
@@ -413,6 +422,61 @@
       .trim();
   }
 
+  function formatRefineryCountryName(value) {
+    return String(value || "")
+      .replace(/:\u5f00\u5de5\u7387:\u70bc\u6cb9\u5382$/u, "")
+      .trim();
+  }
+
+  async function renderRefineryUtilization() {
+    const tbody = document.getElementById("dbRefineryUtilizationBody");
+    const asOfEl = document.getElementById("dbRefineryUtilizationAsOf");
+    if (!tbody) return;
+    try {
+      const payload = await j(
+        `${apiBase}/api/price-board/generic/latest?dataset_code=${encodeURIComponent(refineryUtilizationDataset)}&metric_key=value`
+      );
+      const latestItems = sortByOrder(
+        (Array.isArray(payload.items) ? payload.items : []).filter((item) => Number.isFinite(Number(item.value))),
+        refinerySeriesOrder
+      );
+      if (!latestItems.length) {
+        tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--db-muted)">暂无本地数据</td></tr>';
+        if (asOfEl) asOfEl.textContent = "";
+        return;
+      }
+
+      const histories = await Promise.all(
+        latestItems.map((item) => loadSeries({
+          datasetCode: refineryUtilizationDataset,
+          metricKey: "value",
+          seriesName: item.series_name,
+        }, "", ""))
+      );
+
+      tbody.innerHTML = latestItems.map((item, index) => {
+        const summary = stats(histories[index]);
+        const change = Number(summary.change);
+        const changeClass = Number.isFinite(change) && change < 0 ? "db-neg" : "db-pos";
+        return `
+          <tr>
+            <td>${esc(formatRefineryCountryName(item.series_name || item.label))}</td>
+            <td>${fmt(item.value)}</td>
+            <td class="${changeClass}">${Number.isFinite(change) ? `${fmtSigned(change)}%` : "--"}</td>
+          </tr>
+        `;
+      }).join("");
+
+      if (asOfEl) {
+        asOfEl.textContent = payload.as_of ? `截至 ${String(payload.as_of).slice(0, 7)}` : "";
+      }
+    } catch (error) {
+      console.warn("Failed to render refinery utilization table.", error);
+      tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--db-muted)">本地数据加载失败</td></tr>';
+      if (asOfEl) asOfEl.textContent = "";
+    }
+  }
+
   async function renderOpecPie() {
     const el = document.getElementById("dbOpecPie");
     if (!el || typeof echarts === "undefined") return;
@@ -583,6 +647,7 @@
         renderOpecPie(),
         renderProducts(),
         renderDemand(),
+        renderRefineryUtilization(),
       ]).catch((error) => console.warn("Failed to refresh price-board real data.", error));
     }, 220);
     setTimeout(() => {

@@ -456,6 +456,9 @@
     if (sectionKey === "price-futures") {
       return document.querySelectorAll('.category-item[data-category="price"] .category-children > .subcategory-children')[2] || null;
     }
+    if (sectionKey === "supply-refinery") {
+      return document.querySelectorAll('.category-item[data-category="supply"] .category-children > .subcategory-children')[2] || null;
+    }
     if (sectionKey === "supply-demand") {
       return document.querySelectorAll('.category-item[data-category="supply"] .category-children > .subcategory-children')[3] || null;
     }
@@ -638,6 +641,43 @@
       .filter(Boolean);
   }
 
+  function buildRefineryEntries(items) {
+    const order = new Map([
+      ["\u7f8e\u56fd:\u5f00\u5de5\u7387:\u70bc\u6cb9\u5382", 0],
+      ["\u5fb7\u56fd:\u5f00\u5de5\u7387:\u70bc\u6cb9\u5382", 1],
+      ["\u6cd5\u56fd:\u5f00\u5de5\u7387:\u70bc\u6cb9\u5382", 2],
+      ["\u82f1\u56fd:\u5f00\u5de5\u7387:\u70bc\u6cb9\u5382", 3],
+      ["\u610f\u5927\u5229:\u5f00\u5de5\u7387:\u70bc\u6cb9\u5382", 4],
+      ["\u65e5\u672c:\u5f00\u5de5\u7387:\u70bc\u6cb9\u5382", 5],
+    ]);
+
+    return (Array.isArray(items) ? items : [])
+      .filter((item) => String(item && item.series_name || "").trim())
+      .sort((left, right) => {
+        const leftRank = order.get(String(left.series_name || "").trim()) ?? 999;
+        const rightRank = order.get(String(right.series_name || "").trim()) ?? 999;
+        return leftRank - rightRank;
+      })
+      .map((item) => {
+        const rawName = String(item.series_name || "").trim();
+        const countryName = rawName.replace(/:\u5f00\u5de5\u7387:\u70bc\u6cb9\u5382$/u, "").trim();
+        return {
+          name: countryName ? `${countryName}\u70bc\u5382\u5f00\u5de5\u7387` : rawName,
+          category: "supply",
+          freq: normalizeFrequencyKey(item.frequency_label) || freqMonth,
+          unit: String(item.unit_label || "").trim() || "%",
+          sectionKey: "supply-refinery",
+          source: String(item.source_label || "").trim() || sourceLabels.fallback,
+          loader: {
+            kind: "generic",
+            datasetCode: String(item.dataset_code || "refinery_utilization_monthly").trim(),
+            seriesName: rawName,
+            metricKey: String(item.metric_key || "value").trim() || "value",
+          },
+        };
+      });
+  }
+
   function loadMacroSidebarEntries() {
     const datasetCodes = ["macro_monthly_indicators", "macro_daily_indicators"];
     return Promise.all(
@@ -652,6 +692,20 @@
       if (!entries.length) return entries;
       registerEntries(entries);
       return entries;
+    });
+  }
+
+  function loadRefinerySidebarEntries() {
+    return fetchJson(
+      `${apiBase}/api/price-board/generic/latest?dataset_code=${encodeURIComponent("refinery_utilization_monthly")}&metric_key=value`
+    ).then((payload) => {
+      const entries = buildRefineryEntries(Array.isArray(payload && payload.items) ? payload.items : []);
+      if (!entries.length) return entries;
+      registerEntries(entries);
+      return entries;
+    }).catch((error) => {
+      console.warn("Failed to load refinery utilization latest series.", error);
+      return [];
     });
   }
 
@@ -677,6 +731,7 @@
 
   registerAllSidebarItems();
   void loadMacroSidebarEntries();
+  void loadRefinerySidebarEntries();
 
   [
     "WTI原油现货价",
@@ -686,6 +741,12 @@
     "上海原油期货结算价",
     "全球石油消费",
     "中国石油消费",
+    "\u7f8e\u56fd\u70bc\u5382\u5f00\u5de5\u7387",
+    "\u5fb7\u56fd\u70bc\u5382\u5f00\u5de5\u7387",
+    "\u6cd5\u56fd\u70bc\u5382\u5f00\u5de5\u7387",
+    "\u82f1\u56fd\u70bc\u5382\u5f00\u5de5\u7387",
+    "\u610f\u5927\u5229\u70bc\u5382\u5f00\u5de5\u7387",
+    "\u65e5\u672c\u70bc\u5382\u5f00\u5de5\u7387",
   ].forEach((name) => {
     void ensureSeries(name);
   });
