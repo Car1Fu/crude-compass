@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import csv
+import calendar
 import hashlib
 import re
 import sqlite3
@@ -36,7 +37,9 @@ DEFAULT_SAMPLE_XLSX_CANDIDATES = (
 )
 
 GENERIC_DATASET_CODES = {
+    "原油供需相关数据.xlsx": "country_supply_demand_monthly",
     "OPEC消费量预测值.xlsx": "opec_consumption_forecast",
+    "全球供需.xlsx": "global_supply_demand_monthly",
     "opec原油产量.xlsx": "opec_crude_production_monthly",
     "原油需求量预测.xlsx": "crude_demand_forecast_quarterly",
     "\u70bc\u6cb9\u5f00\u5de5\u7387.xlsx": "refinery_utilization_monthly",
@@ -114,10 +117,39 @@ GENERIC_PRIMARY_METRIC = {
     "opec_crude_production_monthly": "value",
     "crude_demand_forecast_quarterly": "value",
     "refinery_utilization_monthly": "value",
+    "global_supply_demand_monthly": "value",
+    "country_supply_demand_monthly": "production",
 }
 SPARSE_GENERIC_DATASET_CODES = {
     "macro_monthly_indicators",
     "macro_daily_indicators",
+    "country_supply_demand_monthly",
+}
+
+SUPPLY_DASHBOARD_DATASET_CODE = "global_supply_demand_monthly"
+SUPPLY_DASHBOARD_SERIES = {
+    "globalSupply": "world_oil_supply",
+    "globalDemand": "world_oil_demand",
+    "balance": "supply_demand_gap",
+    "floatingStorage": "store",
+}
+SUPPLY_COUNTRY_DATASET_CODE = "country_supply_demand_monthly"
+SUPPLY_COUNTRY_METRIC_COLUMNS = (
+    ("production", 3, "Thousand Barrels"),
+    ("imports", 4, "Thousand Barrels"),
+    ("exports", 5, "Thousand Barrels"),
+    ("stock_change", 6, "Thousand Barrels"),
+    ("products_supplied", 7, "Thousand Barrels"),
+    ("refinery_utilization", 8, "%"),
+)
+SUPPLY_COUNTRY_CODE_MAP = {
+    "U.S.": "US",
+    "Canada": "CA",
+    "China": "CN",
+    "India": "IN",
+    "Japan": "JP",
+    "Korea": "KR",
+    "Saudi Arabia": "SA",
 }
 
 _XML_NS = {
@@ -733,6 +765,223 @@ def _parse_wide_metadata_workbook(
     raise ValueError("No wide metadata sheet found in workbook")
 
 
+def _infer_series_frequency_label(trade_dates: list[str]) -> str:
+    parsed_dates = []
+    for trade_date in trade_dates[:4]:
+        try:
+            parsed_dates.append(datetime.strptime(trade_date, "%Y-%m-%d"))
+        except ValueError:
+            continue
+    if len(parsed_dates) < 2:
+        return ""
+
+    day_deltas = [
+        abs((right - left).days)
+        for left, right in zip(parsed_dates, parsed_dates[1:])
+    ]
+    if not day_deltas:
+        return ""
+
+    average_delta = sum(day_deltas) / len(day_deltas)
+    if 27 <= average_delta <= 35:
+        return "月"
+    if 80 <= average_delta <= 100:
+        return "季"
+    if 360 <= average_delta <= 370:
+        return "年"
+    if 6 <= average_delta <= 8:
+        return "周"
+    return "日"
+
+
+def _default_compact_source_label(workbook_path: Path) -> str:
+    if _resolve_dataset_code(workbook_path) == SUPPLY_DASHBOARD_DATASET_CODE:
+        return "IEA"
+    return "Wind"
+
+
+def _is_missing_metric_value(raw_value: str) -> bool:
+    return str(raw_value or "").strip() in {"", "-", "—", "N/A", "n/a", "None", "null"}
+
+
+def _parse_supply_country_workbook(
+    workbook_path: Path,
+    zf: zipfile.ZipFile,
+    shared_strings: list[str],
+    sheet_name: str | None = None,
+) -> dict[str, object]:
+    if _resolve_dataset_code(workbook_path) != SUPPLY_COUNTRY_DATASET_CODE:
+        raise ValueError("Workbook is not mapped to the supply country dataset")
+
+    sheet_targets = _sheet_targets(zf)
+    if sheet_name:
+        sheet_targets = [item for item in sheet_targets if item[0] == sheet_name]
+        if not sheet_targets:
+            raise ValueError(f"Sheet not found: {sheet_name}")
+
+    for target_name, target_path in sheet_targets:
+        sheet_rows = _read_sheet_rows(zf, target_path, shared_strings)
+        if len(sheet_rows) < 3:
+            continue
+
+        header_row = [str(value).strip() for value in sheet_rows[0]]
+        if len(header_row) < 8:
+            continue
+        if _normalize_header_label(header_row[1]) != "source":
+            continue
+        if _normalize_header_label(header_row[2]) != "month":
+            continue
+        if _normalize_header_label(header_row[3]) != "crude oil production":
+            continue
+        if _normalize_header_label(header_row[7]) != "petroleum products supplied":
+            continue
+
+        unit_row = [str(value).strip() for value in sheet_rows[1]]
+        metric_keys = [metric_key for metric_key, _column_index, _unit in SUPPLY_COUNTRY_METRIC_COLUMNS]
+        parsed_rows: list[dict[str, object]] = []
+
+        for row in sheet_rows[2:]:
+            if not any(str(value).strip() for value in row):
+                continue
+
+            series_name = str(row[0]).strip() if row else ""
+            source_label = _normalize_source_label(str(row[1]).strip() if len(row) > 1 else "")
+            trade_date = _excel_date_to_iso(str(row[2]).strip() if len(row) > 2 else "")
+            if not series_name or not trade_date:
+                continue
+
+            for metric_key, column_index, fallback_unit in SUPPLY_COUNTRY_METRIC_COLUMNS:
+                raw_value = str(row[column_index]).strip() if column_index < len(row) else ""
+                metric_value = None if _is_missing_metric_value(raw_value) else _to_float(raw_value)
+                parsed_rows.append(
+                    {
+                        "dataset_code": SUPPLY_COUNTRY_DATASET_CODE,
+                        "dataset_name": workbook_path.stem,
+                        "source_file": workbook_path.name,
+                        "source_sheet": target_name,
+                        "series_name": series_name,
+                        "source_label": source_label or None,
+                        "frequency_label": "月",
+                        "unit_label": (
+                            unit_row[column_index]
+                            if column_index < len(unit_row) and unit_row[column_index]
+                            else fallback_unit
+                        ),
+                        "series_id": f"{series_name}:{metric_key}",
+                        "trade_date": trade_date,
+                        "metrics": {metric_key: metric_value},
+                    }
+                )
+
+        if parsed_rows:
+            return _finalize_generic_market_payload(
+                workbook_path,
+                target_name,
+                metric_keys,
+                parsed_rows,
+            )
+
+    if sheet_name:
+        raise ValueError(f"No supply country data sheet found in sheet: {sheet_name}")
+    raise ValueError("No supply country data sheet found in workbook")
+
+
+def _parse_compact_wide_workbook(
+    workbook_path: Path,
+    zf: zipfile.ZipFile,
+    shared_strings: list[str],
+    sheet_name: str | None = None,
+) -> dict[str, object]:
+    sheet_targets = _sheet_targets(zf)
+    if sheet_name:
+        sheet_targets = [item for item in sheet_targets if item[0] == sheet_name]
+        if not sheet_targets:
+            raise ValueError(f"Sheet not found: {sheet_name}")
+
+    for target_name, target_path in sheet_targets:
+        sheet_rows = _read_sheet_rows(zf, target_path, shared_strings)
+        if len(sheet_rows) < 3:
+            continue
+
+        name_row = [str(value).strip() for value in sheet_rows[0]]
+        if len(name_row) <= 1 or _excel_date_to_iso(name_row[0]):
+            continue
+
+        first_data_index = None
+        for row_index, row in enumerate(sheet_rows[1:8], start=1):
+            if row and _excel_date_to_iso(str(row[0]).strip()):
+                first_data_index = row_index
+                break
+        if first_data_index is None:
+            continue
+
+        unit_row = sheet_rows[1] if first_data_index > 1 else []
+        source_label = _default_compact_source_label(workbook_path)
+        metric_keys = ["value"]
+        parsed_rows: list[dict[str, object]] = []
+        detected_trade_dates: list[str] = []
+
+        for row in sheet_rows[first_data_index:]:
+            if not any(str(value).strip() for value in row):
+                continue
+
+            trade_date = _excel_date_to_iso(str(row[0]).strip() if row else "")
+            if not trade_date:
+                continue
+            detected_trade_dates.append(trade_date)
+
+            for column_index in range(1, len(name_row)):
+                series_name = str(name_row[column_index]).strip() if column_index < len(name_row) else ""
+                if not series_name:
+                    continue
+                raw_value = str(row[column_index]).strip() if column_index < len(row) else ""
+                if not raw_value:
+                    continue
+
+                record = _build_generic_record(
+                    workbook_path,
+                    source_sheet=target_name,
+                    metric_keys=metric_keys,
+                    raw_record={
+                        "series_name": series_name,
+                        "trade_date": trade_date,
+                        "value": raw_value,
+                        "source_label": source_label,
+                        "frequency_label": "",
+                        "unit_label": (
+                            str(unit_row[column_index]).strip()
+                            if column_index < len(unit_row)
+                            else ""
+                        ),
+                        "series_id": "",
+                    },
+                )
+                if record is not None:
+                    parsed_rows.append(record)
+
+        if parsed_rows:
+            frequency_label = _infer_series_frequency_label(detected_trade_dates)
+            for row in parsed_rows:
+                if not row.get("frequency_label"):
+                    row["frequency_label"] = frequency_label or None
+            parsed_rows.sort(
+                key=lambda row: (
+                    str(row.get("series_name", "")),
+                    str(row.get("trade_date", "")),
+                )
+            )
+            return _finalize_generic_market_payload(
+                workbook_path,
+                target_name,
+                metric_keys,
+                parsed_rows,
+            )
+
+    if sheet_name:
+        raise ValueError(f"No compact wide sheet found in sheet: {sheet_name}")
+    raise ValueError("No compact wide sheet found in workbook")
+
+
 def _drop_incomplete_dates(
     rows: list[dict[str, object]],
     *,
@@ -989,12 +1238,28 @@ def read_generic_market_workbook(
                 sheet_name=sheet_name,
             )
         except ValueError:
-            return _parse_wide_metadata_workbook(
-                workbook_path,
-                zf,
-                shared_strings,
-                sheet_name=sheet_name,
-            )
+            try:
+                return _parse_wide_metadata_workbook(
+                    workbook_path,
+                    zf,
+                    shared_strings,
+                    sheet_name=sheet_name,
+                )
+            except ValueError:
+                try:
+                    return _parse_supply_country_workbook(
+                        workbook_path,
+                        zf,
+                        shared_strings,
+                        sheet_name=sheet_name,
+                    )
+                except ValueError:
+                    return _parse_compact_wide_workbook(
+                        workbook_path,
+                        zf,
+                        shared_strings,
+                        sheet_name=sheet_name,
+                    )
 
     metric_keys = [
         header
@@ -1676,3 +1941,231 @@ def get_generic_metric_series(
         }
         for row in rows
     ]
+
+
+def _days_in_trade_month(trade_date: str) -> int:
+    parsed_date = datetime.strptime(trade_date, "%Y-%m-%d")
+    return calendar.monthrange(parsed_date.year, parsed_date.month)[1]
+
+
+def _normalize_supply_dashboard_value(series_name: str, trade_date: str, raw_value: float) -> float:
+    series_key = str(series_name or "").strip()
+    if series_key in {
+        SUPPLY_DASHBOARD_SERIES["globalSupply"],
+        SUPPLY_DASHBOARD_SERIES["globalDemand"],
+        SUPPLY_DASHBOARD_SERIES["balance"],
+    }:
+        return raw_value / 1000.0 / float(_days_in_trade_month(trade_date))
+    if series_key == SUPPLY_DASHBOARD_SERIES["floatingStorage"]:
+        return raw_value / 1000.0
+    return raw_value
+
+
+def _fallback_country_code(country_name: str) -> str:
+    normalized = re.sub(r"[^A-Za-z]+", " ", str(country_name or "")).strip()
+    if not normalized:
+        return "NA"
+    tokens = [token for token in normalized.split() if token]
+    if not tokens:
+        return "NA"
+    if len(tokens) == 1:
+        return tokens[0][:2].upper()
+    return "".join(token[0].upper() for token in tokens[:3])
+
+
+def _normalize_supply_country_value(
+    metric_key: str,
+    trade_date: str,
+    raw_value: float,
+) -> float:
+    normalized_metric_key = str(metric_key or "").strip()
+    if normalized_metric_key in {"production", "imports", "exports", "products_supplied"}:
+        return raw_value / 1000.0 / float(_days_in_trade_month(trade_date))
+    if normalized_metric_key == "stock_change":
+        return raw_value / 1000.0
+    return raw_value
+
+
+def _compute_percent_change(current_value: float | None, previous_value: float | None) -> float | None:
+    if current_value is None or previous_value is None:
+        return None
+    if abs(previous_value) < 1e-9:
+        return 0.0 if abs(current_value) < 1e-9 else None
+    return (current_value - previous_value) / abs(previous_value) * 100.0
+
+
+def get_supply_dashboard_data(
+    db_path: Path | str = DEFAULT_DB_PATH,
+) -> dict[str, object]:
+    series_names = list(SUPPLY_DASHBOARD_SERIES.values())
+    init_market_database(db_path)
+    placeholders = ",".join("?" for _ in series_names)
+    query = f"""
+        SELECT series_name,
+               trade_date,
+               metric_value
+        FROM market_generic_daily_metrics
+        WHERE dataset_code = ?
+          AND metric_key = ?
+          AND series_name IN ({placeholders})
+        ORDER BY trade_date ASC, series_name ASC
+    """
+    params: list[object] = [SUPPLY_DASHBOARD_DATASET_CODE, "value", *series_names]
+    with get_connection(db_path) as connection:
+        rows = connection.execute(query, params).fetchall()
+
+    rows_by_date: dict[str, dict[str, float]] = defaultdict(dict)
+    for row in rows:
+        series_name = str(row["series_name"]).strip()
+        trade_date = str(row["trade_date"]).strip()
+        metric_value = row["metric_value"]
+        if not trade_date or metric_value is None:
+            continue
+        rows_by_date[trade_date][series_name] = _normalize_supply_dashboard_value(
+            series_name,
+            trade_date,
+            float(metric_value),
+        )
+
+    ordered_dates = [
+        trade_date
+        for trade_date in sorted(rows_by_date)
+        if all(series_name in rows_by_date[trade_date] for series_name in series_names)
+    ]
+    if not ordered_dates:
+        return {
+            "dataset_code": SUPPLY_DASHBOARD_DATASET_CODE,
+            "as_of": None,
+            "metrics": {},
+            "trend": [],
+        }
+
+    def metric_value_at(trade_date: str, metric_name: str) -> float:
+        return float(rows_by_date[trade_date][SUPPLY_DASHBOARD_SERIES[metric_name]])
+
+    latest_date = ordered_dates[-1]
+    previous_date = ordered_dates[-2] if len(ordered_dates) > 1 else None
+
+    metrics = {}
+    for metric_name, unit in (
+        ("globalSupply", "M BBL/D"),
+        ("globalDemand", "M BBL/D"),
+        ("balance", "M BBL/D"),
+        ("floatingStorage", "M BBL"),
+    ):
+        latest_value = metric_value_at(latest_date, metric_name)
+        previous_value = metric_value_at(previous_date, metric_name) if previous_date else None
+        change_value = None if previous_value is None else latest_value - previous_value
+        change_pct = _compute_percent_change(latest_value, previous_value)
+        metrics[metric_name] = {
+            "value": round(latest_value, 4),
+            "unit": unit,
+            "change_value": round(change_value, 4) if change_value is not None else None,
+            "change_pct": round(change_pct, 4) if change_pct is not None else None,
+        }
+
+    trend = [
+        {
+            "date": trade_date[:7],
+            "supply": round(metric_value_at(trade_date, "globalSupply"), 4),
+            "demand": round(metric_value_at(trade_date, "globalDemand"), 4),
+            "balance": round(metric_value_at(trade_date, "balance"), 4),
+            "floatingStorage": round(metric_value_at(trade_date, "floatingStorage"), 4),
+        }
+        for trade_date in ordered_dates
+    ]
+
+    return {
+        "dataset_code": SUPPLY_DASHBOARD_DATASET_CODE,
+        "as_of": latest_date,
+        "metrics": metrics,
+        "trend": trend,
+    }
+
+
+def get_supply_country_details(
+    db_path: Path | str = DEFAULT_DB_PATH,
+) -> dict[str, object]:
+    init_market_database(db_path)
+    with get_connection(db_path) as connection:
+        latest_row = connection.execute(
+            """
+            SELECT MAX(trade_date) AS latest_date
+            FROM market_generic_daily_metrics
+            WHERE dataset_code = ?
+            """,
+            (SUPPLY_COUNTRY_DATASET_CODE,),
+        ).fetchone()
+        latest_date = str(latest_row["latest_date"]).strip() if latest_row and latest_row["latest_date"] else None
+        if not latest_date:
+            return {
+                "dataset_code": SUPPLY_COUNTRY_DATASET_CODE,
+                "as_of": None,
+                "items": [],
+            }
+
+        order_rows = connection.execute(
+            """
+            SELECT series_name, MIN(id) AS first_id
+            FROM market_generic_daily_metrics
+            WHERE dataset_code = ?
+            GROUP BY series_name
+            ORDER BY first_id ASC
+            """,
+            (SUPPLY_COUNTRY_DATASET_CODE,),
+        ).fetchall()
+        ordered_countries = [str(row["series_name"]).strip() for row in order_rows if str(row["series_name"]).strip()]
+
+        rows = connection.execute(
+            """
+            SELECT series_name,
+                   source_label,
+                   trade_date,
+                   metric_key,
+                   metric_value
+            FROM market_generic_daily_metrics
+            WHERE dataset_code = ?
+              AND trade_date = ?
+            ORDER BY id ASC
+            """,
+            (SUPPLY_COUNTRY_DATASET_CODE, latest_date),
+        ).fetchall()
+
+    metrics_by_country: dict[str, dict[str, float]] = defaultdict(dict)
+    source_by_country: dict[str, str | None] = {}
+    for row in rows:
+        country = str(row["series_name"]).strip()
+        metric_key = str(row["metric_key"]).strip()
+        metric_value = row["metric_value"]
+        if not country:
+            continue
+        source_by_country[country] = source_by_country.get(country) or row["source_label"]
+        if metric_value is None:
+            continue
+        metrics_by_country[country][metric_key] = round(
+            _normalize_supply_country_value(metric_key, latest_date, float(metric_value)),
+            4,
+        )
+
+    items: list[dict[str, object]] = []
+    for country in ordered_countries:
+        country_metrics = metrics_by_country.get(country, {})
+        items.append(
+            {
+                "country": country,
+                "code": SUPPLY_COUNTRY_CODE_MAP.get(country, _fallback_country_code(country)),
+                "sourceLabel": source_by_country.get(country),
+                "production": country_metrics.get("production"),
+                "consumption": country_metrics.get("products_supplied"),
+                "imports": country_metrics.get("imports"),
+                "exports": country_metrics.get("exports"),
+                "inventory": country_metrics.get("stock_change"),
+                "refineryUtilization": country_metrics.get("refinery_utilization"),
+            }
+        )
+
+    return {
+        "dataset_code": SUPPLY_COUNTRY_DATASET_CODE,
+        "as_of": latest_date,
+        "items": items,
+    }

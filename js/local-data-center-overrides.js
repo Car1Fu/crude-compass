@@ -12,6 +12,10 @@
   const originalGenerateMockData = typeof window.generateMockData === "function"
     ? window.generateMockData
     : null;
+  const freqQuarter = "季";
+  const originalGetFreqLabel = typeof window.getFreqLabel === "function"
+    ? window.getFreqLabel
+    : null;
   const originalGetSource = typeof window.getSource === "function"
     ? window.getSource
     : null;
@@ -33,7 +37,10 @@
     keroseneSpot: "Argus",
     fuelOilSpot: "Platts",
     naphthaSpot: "Platts",
+    opecProduction: "OPEC",
     opecDemand: "OPEC",
+    crudeDemandForecast: "IEA",
+    countrySupplyFallback: "JODI",
     fallback: "Wind",
   };
 
@@ -79,6 +86,42 @@
         metricKey,
       },
     };
+  }
+
+  const supplyCountryNameMap = {
+    "U.S.": "美国",
+    "Canada": "加拿大",
+    "China": "中国",
+    "India": "印度",
+    "Japan": "日本",
+    "Korea": "韩国",
+    "Saudi Arabia": "沙特阿拉伯",
+  };
+
+  const supplyCountryMetricSpecs = [
+    { metricKey: "production", label: "原油产量", unit: "千桶" },
+    { metricKey: "imports", label: "石油进口", unit: "千桶" },
+    { metricKey: "exports", label: "石油出口", unit: "千桶" },
+    { metricKey: "stock_change", label: "石油库存变动", unit: "千桶" },
+    { metricKey: "products_supplied", label: "石油产品供应量", unit: "千桶" },
+    { metricKey: "refinery_utilization", label: "炼厂开工率", unit: "%" },
+  ];
+
+  function getResolvedFreqLabel(freq) {
+    if (freq === freqQuarter || freq === "季度") return "季度";
+    return originalGetFreqLabel ? originalGetFreqLabel(freq) : String(freq || "");
+  }
+
+  function getSupplyCountryDisplayName(name) {
+    return supplyCountryNameMap[String(name || "").trim()] || String(name || "").trim();
+  }
+
+  function formatOpecProductionDisplayName(seriesName) {
+    return String(seriesName || "").replace(/:产量:原油$/u, "原油产量");
+  }
+
+  function formatCrudeDemandForecastName(seriesName) {
+    return String(seriesName || "").replace(/:需求量:石油:预测值$/u, "原油需求量预测");
   }
 
   const realEntries = [
@@ -284,6 +327,17 @@
     return text.slice(0, 1);
   }
 
+  function normalizeFrequencyKey(value) {
+    const text = String(value || "").trim();
+    if (!text) return freqDay;
+    if (text === freqDay || text === "日度") return freqDay;
+    if (text === freqWeek || text === "周度") return freqWeek;
+    if (text === freqMonth || text === "月度") return freqMonth;
+    if (text === freqQuarter || text === "季度") return freqQuarter;
+    if (text === freqYear || text === "年度" || text === "年") return freqYear;
+    return text.slice(0, 1);
+  }
+
   function parseTradeDate(value) {
     if (/^\d{4}$/.test(String(value))) {
       return new Date(`${value}-01-01T12:00:00`);
@@ -446,6 +500,43 @@
     return request;
   }
 
+  function getCategoryChildren(categoryKey) {
+    const category = document.querySelector(`.category-item[data-category="${categoryKey}"] .category-children`);
+    return category || null;
+  }
+
+  function ensureSubcategoryContainer(categoryKey, title) {
+    const categoryChildren = getCategoryChildren(categoryKey);
+    if (!categoryChildren) return null;
+
+    const directChildren = Array.from(categoryChildren.children);
+    for (let index = 0; index < directChildren.length - 1; index += 1) {
+      const header = directChildren[index];
+      const body = directChildren[index + 1];
+      if (!header.classList || !header.classList.contains("subcategory-header")) continue;
+      if (!body.classList || !body.classList.contains("subcategory-children")) continue;
+      if (header.textContent && header.textContent.includes(title)) {
+        return body;
+      }
+    }
+
+    const header = document.createElement("div");
+    header.className = "subcategory-header";
+    header.innerHTML = `<span class="arrow">▶</span> ${title}`;
+    header.addEventListener("click", function () {
+      if (typeof toggleSubcategory === "function") {
+        toggleSubcategory(header);
+      }
+    });
+
+    const body = document.createElement("div");
+    body.className = "subcategory-children";
+
+    categoryChildren.appendChild(header);
+    categoryChildren.appendChild(body);
+    return body;
+  }
+
   function getSectionContainer(sectionKey) {
     if (sectionKey === "price-crude") {
       return document.querySelectorAll('.category-item[data-category="price"] .category-children > .subcategory-children')[0] || null;
@@ -461,6 +552,15 @@
     }
     if (sectionKey === "supply-demand") {
       return document.querySelectorAll('.category-item[data-category="supply"] .category-children > .subcategory-children')[3] || null;
+    }
+    if (sectionKey === "supply-opec") {
+      return document.querySelectorAll('.category-item[data-category="supply"] .category-children > .subcategory-children')[0] || null;
+    }
+    if (sectionKey === "supply-demand-forecast") {
+      return ensureSubcategoryContainer("supply", "需求预测");
+    }
+    if (sectionKey === "supply-country") {
+      return ensureSubcategoryContainer("supply", "主要国家/地区供需");
     }
     if (sectionKey === "macro-economy") {
       return document.querySelectorAll('.category-item[data-category="macro"] .category-children > .subcategory-children')[0] || null;
@@ -489,7 +589,7 @@
     const nameEl = item.querySelector(".data-item-name");
     if (nameEl) nameEl.textContent = entry.name;
     const freqEl = item.querySelector(".data-item-freq");
-    if (freqEl) freqEl.textContent = typeof getFreqLabel === "function" ? getFreqLabel(entry.freq) : entry.freq;
+    if (freqEl) freqEl.textContent = getResolvedFreqLabel(entry.freq);
     const sourceEl = item.querySelector(".data-item-source");
     if (sourceEl) sourceEl.textContent = entry.source;
     const addBtn = item.querySelector(".data-item-add");
@@ -678,6 +778,126 @@
       });
   }
 
+  function buildOpecProductionEntries(items) {
+    const order = new Map([
+      ["沙特阿拉伯:产量:原油", 0],
+      ["伊拉克:产量:原油", 1],
+      ["阿联酋:产量:原油", 2],
+      ["伊朗:产量:原油", 3],
+      ["科威特:产量:原油", 4],
+      ["尼日利亚:产量:原油", 5],
+      ["利比亚:产量:原油", 6],
+      ["阿尔及利亚:产量:原油", 7],
+      ["委内瑞拉:产量:原油", 8],
+      ["刚果(布):产量:原油", 9],
+      ["加蓬:产量:原油", 10],
+      ["赤道几内亚:产量:原油", 11],
+    ]);
+
+    return (Array.isArray(items) ? items : [])
+      .filter((item) => String(item && item.series_name || "").trim())
+      .sort((left, right) => {
+        const leftRank = order.get(String(left.series_name || "").trim()) ?? 999;
+        const rightRank = order.get(String(right.series_name || "").trim()) ?? 999;
+        return leftRank - rightRank;
+      })
+      .map((item) => {
+        const rawName = String(item.series_name || "").trim();
+        return {
+          name: formatOpecProductionDisplayName(rawName),
+          category: "supply",
+          freq: normalizeFrequencyKey(item.frequency_label) || freqMonth,
+          unit: String(item.unit_label || "").trim() || "千桶/天",
+          sectionKey: "supply-opec",
+          source: String(item.source_label || "").trim() || sourceLabels.opecProduction,
+          loader: {
+            kind: "generic",
+            datasetCode: String(item.dataset_code || "opec_crude_production_monthly").trim(),
+            seriesName: rawName,
+            metricKey: String(item.metric_key || "value").trim() || "value",
+          },
+        };
+      });
+  }
+
+  function buildCrudeDemandForecastEntries(items) {
+    const order = new Map([
+      ["全球:需求量:石油:预测值", 0],
+      ["经合组织国家:需求量:石油:预测值", 1],
+      ["中国:需求量:石油:预测值", 2],
+      ["经合组织美洲国家:需求量:石油:预测值", 3],
+      ["经合组织欧洲国家:需求量:石油:预测值", 4],
+      ["经合组织亚太地区国家:需求量:石油:预测值", 5],
+      ["其他欧洲地区:需求量:石油:预测值", 6],
+    ]);
+
+    return (Array.isArray(items) ? items : [])
+      .filter((item) => String(item && item.series_name || "").trim())
+      .sort((left, right) => {
+        const leftRank = order.get(String(left.series_name || "").trim()) ?? 999;
+        const rightRank = order.get(String(right.series_name || "").trim()) ?? 999;
+        return leftRank - rightRank;
+      })
+      .map((item) => {
+        const rawName = String(item.series_name || "").trim();
+        return {
+          name: formatCrudeDemandForecastName(rawName),
+          category: "supply",
+          freq: normalizeFrequencyKey(item.frequency_label) || freqQuarter,
+          unit: String(item.unit_label || "").trim() || "百万桶/天",
+          sectionKey: "supply-demand-forecast",
+          source: String(item.source_label || "").trim() || sourceLabels.crudeDemandForecast,
+          loader: {
+            kind: "generic",
+            datasetCode: String(item.dataset_code || "crude_demand_forecast_quarterly").trim(),
+            seriesName: rawName,
+            metricKey: String(item.metric_key || "value").trim() || "value",
+          },
+        };
+      });
+  }
+
+  function buildSupplyCountryEntries(items) {
+    const countryOrder = new Map([
+      ["U.S.", 0],
+      ["Canada", 1],
+      ["China", 2],
+      ["India", 3],
+      ["Japan", 4],
+      ["Korea", 5],
+      ["Saudi Arabia", 6],
+    ]);
+
+    return (Array.isArray(items) ? items : [])
+      .filter((item) => String(item && item.series_name || "").trim())
+      .sort((left, right) => {
+        const leftRank = countryOrder.get(String(left.series_name || "").trim()) ?? 999;
+        const rightRank = countryOrder.get(String(right.series_name || "").trim()) ?? 999;
+        return leftRank - rightRank;
+      })
+      .flatMap((item) => {
+        const rawName = String(item.series_name || "").trim();
+        const displayCountry = getSupplyCountryDisplayName(rawName);
+        const datasetCode = String(item.dataset_code || "country_supply_demand_monthly").trim();
+        const source = String(item.source_label || "").trim() || sourceLabels.countrySupplyFallback;
+
+        return supplyCountryMetricSpecs.map((spec) => ({
+          name: `${displayCountry}-${spec.label}`,
+          category: "supply",
+          freq: normalizeFrequencyKey(item.frequency_label) || freqMonth,
+          unit: spec.unit,
+          sectionKey: "supply-country",
+          source,
+          loader: {
+            kind: "generic",
+            datasetCode,
+            seriesName: rawName,
+            metricKey: spec.metricKey,
+          },
+        }));
+      });
+  }
+
   function loadMacroSidebarEntries() {
     const datasetCodes = ["macro_monthly_indicators", "macro_daily_indicators"];
     return Promise.all(
@@ -709,11 +929,59 @@
     });
   }
 
+  function loadOpecProductionSidebarEntries() {
+    return fetchJson(
+      `${apiBase}/api/price-board/generic/latest?dataset_code=${encodeURIComponent("opec_crude_production_monthly")}&metric_key=value`
+    ).then((payload) => {
+      const entries = buildOpecProductionEntries(Array.isArray(payload && payload.items) ? payload.items : []);
+      if (!entries.length) return entries;
+      registerEntries(entries);
+      return entries;
+    }).catch((error) => {
+      console.warn("Failed to load OPEC production latest series.", error);
+      return [];
+    });
+  }
+
+  function loadCrudeDemandForecastSidebarEntries() {
+    return fetchJson(
+      `${apiBase}/api/price-board/generic/latest?dataset_code=${encodeURIComponent("crude_demand_forecast_quarterly")}&metric_key=value`
+    ).then((payload) => {
+      const entries = buildCrudeDemandForecastEntries(Array.isArray(payload && payload.items) ? payload.items : []);
+      if (!entries.length) return entries;
+      registerEntries(entries);
+      return entries;
+    }).catch((error) => {
+      console.warn("Failed to load crude demand forecast latest series.", error);
+      return [];
+    });
+  }
+
+  function loadSupplyCountrySidebarEntries() {
+    return fetchJson(
+      `${apiBase}/api/price-board/generic/latest?dataset_code=${encodeURIComponent("country_supply_demand_monthly")}&metric_key=production`
+    ).then((payload) => {
+      const entries = buildSupplyCountryEntries(Array.isArray(payload && payload.items) ? payload.items : []);
+      if (!entries.length) return entries;
+      registerEntries(entries);
+      return entries;
+    }).catch((error) => {
+      console.warn("Failed to load supply country latest series.", error);
+      return [];
+    });
+  }
+
   window.getSource = function (name) {
     const entry = dataConfigMap.get(name);
     if (entry) return entry.source;
     return originalGetSource ? originalGetSource(name) : sourceLabels.fallback;
   };
+
+  if (originalGetFreqLabel) {
+    window.getFreqLabel = function (freq) {
+      return getResolvedFreqLabel(freq);
+    };
+  }
 
   if (originalGenerateMockData) {
     window.generateMockData = function (name, freq, count) {
@@ -732,6 +1000,9 @@
   registerAllSidebarItems();
   void loadMacroSidebarEntries();
   void loadRefinerySidebarEntries();
+  void loadOpecProductionSidebarEntries();
+  void loadCrudeDemandForecastSidebarEntries();
+  void loadSupplyCountrySidebarEntries();
 
   [
     "WTI原油现货价",
