@@ -9,6 +9,7 @@ from urllib.parse import parse_qs, unquote, urlparse
 from market_data_store import (
     DEFAULT_DB_PATH,
     bootstrap_sample_database,
+    bootstrap_supply_tracking_database,
     get_generic_latest_metrics,
     get_generic_metric_series,
     get_latest_snapshots,
@@ -16,6 +17,7 @@ from market_data_store import (
     get_supply_country_details,
     get_supply_dashboard_data,
     get_supply_ports_data,
+    get_supply_tracking_data,
     normalize_symbol,
 )
 from openrouter_config import OPENROUTER_MODEL, build_openrouter_client
@@ -249,6 +251,10 @@ class HedgeChatHandler(BaseHTTPRequestHandler):
             self._send_json(200, get_supply_ports_data(db_path=DEFAULT_DB_PATH))
             return
 
+        if route == "/api/supply/tracking":
+            self._send_json(200, get_supply_tracking_data(db_path=DEFAULT_DB_PATH))
+            return
+
         static_path = self._resolve_static_path()
         if static_path is None:
             self._send_json(404, {"error": "Not found"})
@@ -308,6 +314,14 @@ def main():
             "[hedge-chat-proxy] Bootstrapped SQLite market data "
             f"from {bootstrap_summary['excel_path']} "
             f"({bootstrap_summary['row_count']} rows)",
+            flush=True,
+        )
+    supply_tracking_summary = bootstrap_supply_tracking_database(db_path=DEFAULT_DB_PATH)
+    if supply_tracking_summary:
+        print(
+            "[hedge-chat-proxy] Bootstrapped SQLite supply tracking data "
+            f"from {supply_tracking_summary['excel_path']} "
+            f"({supply_tracking_summary['tracking_row_count']} rows)",
             flush=True,
         )
     server = ThreadingHTTPServer((HOST, PORT), HedgeChatHandler)

@@ -95,6 +95,18 @@ def main() -> int:
             db_path=db_path,
             sheet_name=args.sheet_name,
         )
+        if "tracking_row_count" in summary:
+            print("Supply tracking import completed.")
+            print(f"Excel file: {summary['excel_path']}")
+            print(f"SQLite file: {summary['db_path']}")
+            print(f"Dataset: {summary['dataset_code']}")
+            print(f"Sheet: {summary['source_sheet']}")
+            print(f"Source rows: {summary['source_row_count']}")
+            print(f"Valid tracking rows: {summary['clean_row_count']}")
+            print(f"Dropped rows: {summary['dropped_row_count']}")
+            print(f"Imported tracking rows: {summary['tracking_row_count']}")
+            return 0
+
         print("Generic market workbook import completed.")
         print(f"Excel file: {summary['excel_path']}")
         print(f"SQLite file: {summary['db_path']}")
@@ -127,6 +139,17 @@ def main() -> int:
             print(
                 f"[skip] {Path(summary['excel_path']).name}: "
                 f"error={summary['error']}"
+            )
+            continue
+
+        if "tracking_row_count" in summary:
+            print(
+                f"[tracking] {Path(summary['excel_path']).name}: "
+                f"dataset={summary['dataset_code']}, "
+                f"source_rows={summary['source_row_count']}, "
+                f"valid_rows={summary['clean_row_count']}, "
+                f"dropped_rows={summary['dropped_row_count']}, "
+                f"tracking_rows={summary['tracking_row_count']}"
             )
             continue
 

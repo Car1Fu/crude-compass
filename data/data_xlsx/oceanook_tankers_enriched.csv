@@ -1,0 +1,28 @@
+﻿船名,MMSI,IMO,当时位置,起始地,上一港,目的地,最大负载量,来源_船型
+ARTEMIS,564616000,9589580,"1.284980°N, 103.954555°E","Changi, Singapore","Changi, Singapore",,6500,Coastal
+MARMORIS,565662000,9628790,"1.295605°N, 103.953725°E","Changi, Singapore","Changi, Singapore",,2281,Bunker
+BERNARD M,244000935,,"51.406910°N, 4.032923°E","Ooltgensplaat, Netherlands","Ooltgensplaat, Netherlands","Hansweert, Netherlands",,Inland
+HU SHAN,477997080,9628790,"22.285072°N, 114.108355°E","Aberdeen, Hong Kong","Aberdeen, Hong Kong",,2812,Bunkering
+PACIFICO,266002000,9628790,"47.21471°N, 3.69428°W","Donges, France","Donges, France","Antwerpen, Belgium",22554,Handy
+STI WEMBLEY,538005404,9628790,"58.217760°N, 10.922343°E","Nowy Port/Gdansk, Poland","Nowy Port/Gdansk, Poland","Brofjorden, Sweden",38734,Handymax
+ST EUSTATIUS,244790272,,"51.15389°N, 4.87969°E","Botlek, Netherlands","Botlek, Netherlands","Beringen Albertkanaal, Belgium",1600,Inland
+STAR CURACAO,245405000,9628790,"49.79193°N, 1.00537°W","Dartford, United Kingdom","Dartford, United Kingdom","Bordeaux, France",4733,Small
+MARION DEYMANN,211622450,,"53.217888°N, 10.493313°E","Lauenburg/Elbe, Germany","Lauenburg/Elbe, Germany","Brunsbuettel, Germany",,Inland
+MUSCAT SILVER,538006488,9628790,"1.238725°N, 104.012793°E","Changi, Singapore","Changi, Singapore","Pending, Malaysia",45923,MR
+MEROPE,211222300,,"51.029933°N, 4.357150°E","Ooltgensplaat, Netherlands","Ooltgensplaat, Netherlands","Antwerpen 6e Havendok, Belgium",,Inland
+CASTARA,563071600,9834155,"39.590682°N, 9.961933°W","Le Grand-Quevilly, France","Le Grand-Quevilly, France","Villagarcía de Arosa, Spain",50620,Panamax
+AIGEORGIS,538009248,9891660,"27.290555°N, 15.398032°W","Botlek, Netherlands","Botlek, Netherlands","Abidjan, Côte d’Ivoire",116092,Aframax
+ORIENTAL VIOLA,354833000,9824928,"31.170900°S, 15.764653°E","Gonfreville-l'Orcher, France","Gonfreville-l'Orcher, France",,16293,Small
+SANDPIPER PACIFIC,563103000,9648192,"35.23505°S, 55.44379°W","Del Guazu, Argentina","Del Guazu, Argentina",,51833,MR
+VLCC STEPHANIE,636021213,9534042,"1.23886°N, 103.55649°E","Tanjung Pelepas Anch., Malaysia","Tanjung Pelepas Anch., Malaysia","Tanjung Pelepas Anch., Malaysia",318445,VLCC
+NEW EXPLORER,477206200,1090777,"6.82787°N, 76.94829°E","Mina al Fahl Anch., Oman","Mina al Fahl Anch., Oman",CHINA,304627,VLCC
+AL YARMOUK,447188000,9653422,"28.99920°N, 48.49220°E","Shuaiba Anch., Kuwait","Shuaiba Anch., Kuwait",KUWAIT>CHINA,317033,VLCC
+SEA MAJESTY,636021861,9783344,"33.84276°S, 18.07300°E","Singapore Anch. 4, Singapore","Singapore Anch. 4, Singapore","Corpus Christi, United States (USA)",308206,VLCC
+YASA SOUTHERN CROSS,538009409,9534030,"21.61408°N, 66.62341°E","Al Fujayrah Anch., United Arab Emirates (UAE)","Al Fujayrah Anch., United Arab Emirates (UAE)",TURKISH VESSEL&CREW,318348,VLCC
+YOHO,636020393,9878644,"6.47628°N, 77.84848°E","Singapore Anch. 5, Singapore","Singapore Anch. 5, Singapore","Ras Tanura, Saudi Arabia",312006,VLCC
+JAG LAADKI,419002060,9461764,"7.26235°N, 76.47427°E","Mundra Term., India","Mundra Term., India",KIZOMBA,164716,Suezmax
+CEDAR,205649000,9907433,"36.12267°N, 5.37643°W","Gibraltar West Anch., Gibraltar","Gibraltar West Anch., Gibraltar","Burgas, Bulgaria",158289,Suezmax
+POLIEGOS,538007797,9746621,"36.92969°N, 1.69487°E","Dardanelles North Anch., Turkey","Dardanelles North Anch., Turkey","Rotterdam, Netherlands",157540,Suezmax
+FRONT IDUN,538005762,9600944,"20.71450°N, 66.29519°E","Cochin Anch., India","Cochin Anch., India","Durban, South Africa",156657,Suezmax
+TIANLONG,636025209,9378369,"39.36982°N, 25.35325°E","Novorossiysk Anch., Russia","Novorossiysk Anch., Russia","Port Said, Egypt",159021,Suezmax
+DELTA COMMANDER,636022626,9418157,"40.00453°N, 7.12457°E","Fos-sur-Mer, France","Fos-sur-Mer, France","Piraeus, Greece",157477,Suezmax

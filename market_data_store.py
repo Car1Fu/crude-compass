@@ -5,6 +5,7 @@ import calendar
 import hashlib
 import re
 import sqlite3
+import unicodedata
 import zipfile
 import xml.etree.ElementTree as ET
 from collections import Counter, defaultdict
@@ -182,6 +183,92 @@ PORT_MISSING_VALUE_TOKENS = {
     "none",
     "null",
 }
+SUPPLY_TRACKING_DATASET_CODE = "oceanook_tanker_tracking"
+SUPPLY_TRACKING_WORKBOOK_NAMES = {
+    "oceanook_tankers_enriched.csv",
+    "oceanook_tankers_enriched.xlsx",
+}
+DEFAULT_SUPPLY_TRACKING_XLSX = SAMPLE_DATA_DIR / "oceanook_tankers_enriched.xlsx"
+DEFAULT_SUPPLY_TRACKING_CSV = SAMPLE_DATA_DIR / "oceanook_tankers_enriched.csv"
+DEFAULT_SUPPLY_TRACKING_CANDIDATES = (
+    DEFAULT_SUPPLY_TRACKING_XLSX,
+    DEFAULT_SUPPLY_TRACKING_CSV,
+)
+SUPPLY_TRACKING_HEADER_MAP = {
+    "船名": "vessel_name",
+    "mmsi": "mmsi",
+    "imo": "imo",
+    "imonumber": "imo",
+    "shipimo": "imo",
+    "当时位置": "current_position_raw",
+    "起始地": "origin_name",
+    "上一港": "previous_port_name",
+    "目的地": "destination_name",
+    "最大负载量": "dwt",
+    "来源船型": "vessel_type",
+    "来源_船型": "vessel_type",
+    "sourcevesseltype": "vessel_type",
+    "shipname": "vessel_name",
+    "currentposition": "current_position_raw",
+    "origin": "origin_name",
+    "previousport": "previous_port_name",
+    "destination": "destination_name",
+    "maxdwt": "dwt",
+}
+SUPPLY_TRACKING_REQUIRED_FIELDS = (
+    "vessel_name",
+    "mmsi",
+    "current_position_raw",
+    "origin_name",
+    "previous_port_name",
+    "destination_name",
+    "dwt",
+    "vessel_type",
+)
+SUPPLY_TRACKING_NORMALIZED_HEADER_MAP = {
+    re.sub(r"[\s_]+", "", key.strip().lower()): value
+    for key, value in SUPPLY_TRACKING_HEADER_MAP.items()
+}
+SUPPLY_TRACKING_PLACEHOLDER_TOKENS = {
+    "",
+    "-",
+    "--",
+    "na",
+    "n a",
+    "n/a",
+    "none",
+    "null",
+    "unknown",
+    "pending",
+    "china",
+    "kuwait china",
+    "turkish vessel crew",
+}
+SUPPLY_TRACKING_SOURCE_LABEL = "Oceanook"
+SUPPLY_TRACKING_PORT_ALIAS_MAP = {
+    "aberdeen hong kong": "hong kong",
+    "botlek netherlands": "rotterdam",
+    "brunsbuettel germany": "brunsbuttel canal terminals",
+    "changi singapore": "singapore",
+    "cochin anch india": "kochi cochin",
+    "dardanelles north anch turkey": "canakkale",
+    "fos sur mer france": "fos",
+    "gibraltar west anch gibraltar": "europa point",
+    "gonfreville l orcher france": "port of le havre",
+    "kizomba": "kizomba a terminal",
+    "lauenburg elbe germany": "brunsbuttel canal terminals",
+    "le grand quevilly france": "port of rouen",
+    "mina al fahl anch oman": "mina al fahl",
+    "mundra term india": "mundra",
+    "nowy port gdansk poland": "nowy port",
+    "piraeus greece": "piraievs",
+    "port said egypt": "port said",
+    "ras tanura saudi arabia": "ras tanura",
+    "shuaiba anch kuwait": "shuaiba",
+    "singapore anch 4 singapore": "singapore",
+    "singapore anch 5 singapore": "singapore",
+    "tanjung pelepas anch malaysia": "tanjung pelepas",
+}
 PORT_NAME_ZH_OVERRIDES = {
     "Xiamen": "厦门港",
     "Shanghai": "上海港",
@@ -282,6 +369,17 @@ def resolve_sample_xlsx(sample_path: Path | str | None = None) -> Path:
             return candidate
 
     return DEFAULT_SAMPLE_XLSX
+
+
+def resolve_supply_tracking_workbook(source_path: Path | str | None = None) -> Path:
+    if source_path is not None:
+        return Path(source_path)
+
+    for candidate in DEFAULT_SUPPLY_TRACKING_CANDIDATES:
+        if candidate.exists():
+            return candidate
+
+    return DEFAULT_SUPPLY_TRACKING_CSV
 
 
 def get_connection(db_path: Path | str = DEFAULT_DB_PATH) -> sqlite3.Connection:
@@ -393,6 +491,55 @@ def init_market_database(db_path: Path | str = DEFAULT_DB_PATH) -> None:
             """
             CREATE INDEX IF NOT EXISTS idx_port_reference_data_lookup
             ON port_reference_data(dataset_code, main_port_name, country_name)
+            """
+        )
+        connection.execute(
+            """
+            CREATE TABLE IF NOT EXISTS supply_tanker_tracking (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                dataset_code TEXT NOT NULL,
+                dataset_name TEXT NOT NULL,
+                source_file TEXT NOT NULL,
+                source_sheet TEXT NOT NULL,
+                source_row_number INTEGER NOT NULL,
+                vessel_name TEXT NOT NULL,
+                imo TEXT,
+                mmsi TEXT,
+                vessel_type TEXT NOT NULL,
+                dwt REAL,
+                current_position_raw TEXT,
+                current_latitude REAL NOT NULL,
+                current_longitude REAL NOT NULL,
+                position_label TEXT,
+                origin_name TEXT,
+                origin_latitude REAL,
+                origin_longitude REAL,
+                origin_match_method TEXT,
+                origin_matched_port_name TEXT,
+                previous_port_name TEXT,
+                previous_port_latitude REAL,
+                previous_port_longitude REAL,
+                previous_port_match_method TEXT,
+                previous_port_matched_port_name TEXT,
+                destination_name TEXT,
+                destination_latitude REAL,
+                destination_longitude REAL,
+                destination_match_method TEXT,
+                destination_matched_port_name TEXT,
+                speed REAL,
+                heading REAL,
+                cargo_status TEXT NOT NULL DEFAULT 'unknown',
+                eta TEXT,
+                source_label TEXT,
+                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(dataset_code, source_file, source_sheet, source_row_number)
+            )
+            """
+        )
+        connection.execute(
+            """
+            CREATE INDEX IF NOT EXISTS idx_supply_tanker_tracking_lookup
+            ON supply_tanker_tracking(dataset_code, vessel_type, vessel_name)
             """
         )
         _ensure_table_columns(
@@ -625,11 +772,17 @@ def list_additional_market_workbooks(
     if not directory.exists():
         return []
 
-    return sorted(
+    workbook_paths = [
         path
         for path in directory.glob("*.xlsx")
         if path.name != DEFAULT_SAMPLE_XLSX.name and not path.name.startswith("~$")
+    ]
+    workbook_paths.extend(
+        path
+        for path in directory.glob("*.csv")
+        if path.name.lower() in SUPPLY_TRACKING_WORKBOOK_NAMES
     )
+    return sorted(workbook_paths)
 
 
 def _read_csv_rows(csv_path: Path) -> tuple[list[list[str]], str]:
@@ -1867,6 +2020,12 @@ def import_generic_market_workbook(
     sheet_name: str | None = None,
 ) -> dict[str, object]:
     workbook_path = Path(excel_path)
+    if workbook_path.name.lower() in SUPPLY_TRACKING_WORKBOOK_NAMES:
+        return import_supply_tracking_workbook(
+            workbook_path,
+            db_path=db_path,
+            sheet_name=sheet_name,
+        )
     if _is_port_reference_workbook(workbook_path):
         return import_port_reference_workbook(
             workbook_path,
@@ -2473,6 +2632,703 @@ def _fallback_country_code(country_name: str) -> str:
     if len(tokens) == 1:
         return tokens[0][:2].upper()
     return "".join(token[0].upper() for token in tokens[:3])
+
+
+def _normalize_supply_tracking_header_label(raw_value: str) -> str:
+    return re.sub(r"[\s_]+", "", str(raw_value or "").strip().lower())
+
+
+def _normalize_ascii_text(raw_value: str | None) -> str:
+    normalized = unicodedata.normalize("NFKD", str(raw_value or ""))
+    normalized = normalized.replace("’", "'").replace("‘", "'")
+    return normalized.encode("ascii", "ignore").decode("ascii")
+
+
+def _normalize_supply_tracking_token(raw_value: str | None) -> str:
+    value = _normalize_ascii_text(raw_value).lower()
+    value = value.replace("&", " and ")
+    value = value.replace("(", " ").replace(")", " ")
+    value = value.replace(">", " ")
+    value = re.sub(r"[^a-z0-9/;,]+", " ", value)
+    value = re.sub(r"\s+", " ", value).strip()
+    return value
+
+
+def _strip_supply_tracking_navigation_terms(raw_value: str | None) -> str:
+    value = _normalize_supply_tracking_token(raw_value)
+    value = re.sub(r"\banch(?:orage)?\.?\b", " ", value)
+    value = re.sub(r"\bterm(?:inal)?s?\.?\b", " ", value)
+    value = re.sub(r"\bport of\b", " ", value)
+    value = re.sub(r"\s+", " ", value).strip(" ,;/")
+    return value
+
+
+def _normalize_supply_tracking_country(raw_value: str | None) -> str:
+    value = _normalize_supply_tracking_token(raw_value)
+    value = re.sub(r"[^a-z0-9]+", " ", value).strip()
+    replacements = {
+        "usa": "united states",
+        "united states usa": "united states",
+        "uae": "united arab emirates",
+        "united arab emirates uae": "united arab emirates",
+    }
+    return replacements.get(value, value)
+
+
+def _extract_supply_tracking_country(raw_value: str | None) -> str:
+    text = str(raw_value or "").strip()
+    if "," not in text:
+        return ""
+    return _normalize_supply_tracking_country(text.rsplit(",", 1)[-1])
+
+
+def _is_supply_tracking_placeholder_value(raw_value: str | None) -> bool:
+    normalized = re.sub(r"[^a-z0-9]+", " ", _normalize_supply_tracking_token(raw_value)).strip()
+    return not normalized or normalized in SUPPLY_TRACKING_PLACEHOLDER_TOKENS
+
+
+def _normalize_supply_tracking_place_key(raw_value: str | None) -> str:
+    if _is_supply_tracking_placeholder_value(raw_value):
+        return ""
+    return re.sub(r"[^a-z0-9]+", " ", _normalize_supply_tracking_token(raw_value)).strip()
+
+
+def _has_same_supply_tracking_route_endpoints(raw_record: dict[str, str]) -> bool:
+    place_keys = [
+        _normalize_supply_tracking_place_key(raw_record.get("origin_name")),
+        _normalize_supply_tracking_place_key(raw_record.get("previous_port_name")),
+        _normalize_supply_tracking_place_key(raw_record.get("destination_name")),
+    ]
+    return bool(place_keys[0] and place_keys[1] and place_keys[2]) and len(set(place_keys)) == 1
+
+
+def _parse_signed_coordinate_component(
+    raw_value: str,
+    positive_direction: str,
+    negative_direction: str,
+) -> float | None:
+    match = re.match(
+        r"^\s*([+-]?\d+(?:\.\d+)?)\s*°?\s*([A-Za-z])?\s*$",
+        str(raw_value or "").strip(),
+    )
+    if not match:
+        return None
+
+    magnitude = float(match.group(1))
+    direction = str(match.group(2) or "").upper()
+    if direction == negative_direction:
+        return -abs(magnitude)
+    if direction == positive_direction:
+        return abs(magnitude)
+    if direction:
+        return None
+    return magnitude
+
+
+def _parse_supply_tracking_position(
+    raw_value: str | None,
+) -> tuple[float, float] | None:
+    text = str(raw_value or "").strip()
+    if not text:
+        return None
+
+    parts = [part.strip() for part in text.split(",")]
+    if len(parts) >= 2:
+        latitude = _parse_signed_coordinate_component(parts[0], "N", "S")
+        longitude = _parse_signed_coordinate_component(parts[1], "E", "W")
+        if latitude is not None and longitude is not None:
+            return latitude, longitude
+
+    numeric_parts = re.findall(r"[-+]?\d+(?:\.\d+)?", text)
+    if len(numeric_parts) >= 2:
+        latitude = float(numeric_parts[0])
+        longitude = float(numeric_parts[1])
+        return latitude, longitude
+    return None
+
+
+def _read_supply_tracking_sheet_rows(
+    workbook_path: Path,
+    sheet_name: str | None = None,
+) -> tuple[str, list[list[str]]]:
+    if workbook_path.suffix.lower() == ".csv":
+        rows, _encoding = _read_csv_rows(workbook_path)
+        return workbook_path.stem, rows
+
+    with zipfile.ZipFile(workbook_path) as zf:
+        shared_strings = _load_shared_strings(zf)
+        sheet_targets = _sheet_targets(zf)
+        if sheet_name:
+            sheet_targets = [item for item in sheet_targets if item[0] == sheet_name]
+            if not sheet_targets:
+                raise ValueError(f"Sheet not found: {sheet_name}")
+        if not sheet_targets:
+            raise ValueError(f"No worksheet found in workbook: {workbook_path}")
+        source_sheet, target_path = sheet_targets[0]
+        return source_sheet, _read_sheet_rows(zf, target_path, shared_strings)
+
+
+def _find_supply_tracking_header(
+    rows: list[list[str]],
+) -> tuple[int, list[str]]:
+    for row_index, row in enumerate(rows[:10]):
+        mapped_headers = [
+            SUPPLY_TRACKING_NORMALIZED_HEADER_MAP.get(
+                _normalize_supply_tracking_header_label(value),
+                "",
+            )
+            for value in row
+        ]
+        if all(field in mapped_headers for field in SUPPLY_TRACKING_REQUIRED_FIELDS):
+            return row_index, mapped_headers
+    raise ValueError("No structured tanker tracking header found")
+
+
+def read_supply_tracking_workbook(
+    excel_path: Path | str,
+    sheet_name: str | None = None,
+) -> dict[str, object]:
+    workbook_path = Path(excel_path)
+    source_sheet, rows = _read_supply_tracking_sheet_rows(workbook_path, sheet_name=sheet_name)
+    if not rows:
+        return {
+            "excel_path": str(workbook_path),
+            "dataset_code": SUPPLY_TRACKING_DATASET_CODE,
+            "dataset_name": workbook_path.stem,
+            "source_sheet": source_sheet,
+            "source_row_count": 0,
+            "clean_row_count": 0,
+            "dropped_row_count": 0,
+            "dropped_rows": [],
+            "rows": [],
+        }
+
+    header_index, mapped_headers = _find_supply_tracking_header(rows)
+    parsed_rows: list[dict[str, object]] = []
+    dropped_rows: list[int] = []
+
+    for source_row_number, row in enumerate(rows[header_index + 1 :], start=header_index + 2):
+        if not any(str(value).strip() for value in row):
+            continue
+
+        raw_record: dict[str, str] = {}
+        for index, mapped_header in enumerate(mapped_headers):
+            if not mapped_header:
+                continue
+            raw_record[mapped_header] = str(row[index]).strip() if index < len(row) else ""
+
+        if _has_same_supply_tracking_route_endpoints(raw_record):
+            dropped_rows.append(source_row_number)
+            continue
+
+        vessel_name = str(raw_record.get("vessel_name") or "").strip()
+        current_position_raw = str(raw_record.get("current_position_raw") or "").strip()
+        if not vessel_name and not current_position_raw:
+            continue
+
+        current_coords = _parse_supply_tracking_position(current_position_raw)
+        if current_coords is None:
+            dropped_rows.append(source_row_number)
+            continue
+
+        parsed_rows.append(
+            {
+                "dataset_code": SUPPLY_TRACKING_DATASET_CODE,
+                "dataset_name": workbook_path.stem,
+                "source_file": workbook_path.name,
+                "source_sheet": source_sheet,
+                "source_row_number": source_row_number,
+                "vessel_name": vessel_name or f"Unknown Vessel {source_row_number}",
+                "imo": str(raw_record.get("imo") or "").strip() or None,
+                "mmsi": str(raw_record.get("mmsi") or "").strip() or None,
+                "vessel_type": str(raw_record.get("vessel_type") or "").strip() or "Unknown",
+                "dwt": _to_float(str(raw_record.get("dwt") or "").strip()),
+                "current_position_raw": current_position_raw or None,
+                "current_latitude": current_coords[0],
+                "current_longitude": current_coords[1],
+                "position_label": current_position_raw or None,
+                "origin_name": str(raw_record.get("origin_name") or "").strip() or None,
+                "previous_port_name": str(raw_record.get("previous_port_name") or "").strip() or None,
+                "destination_name": str(raw_record.get("destination_name") or "").strip() or None,
+                "speed": None,
+                "heading": None,
+                "cargo_status": "unknown",
+                "eta": None,
+                "source_label": SUPPLY_TRACKING_SOURCE_LABEL,
+            }
+        )
+
+    return {
+        "excel_path": str(workbook_path),
+        "dataset_code": SUPPLY_TRACKING_DATASET_CODE,
+        "dataset_name": workbook_path.stem,
+        "source_sheet": source_sheet,
+        "source_row_count": max(len(rows) - header_index - 1, 0),
+        "clean_row_count": len(parsed_rows),
+        "dropped_row_count": len(dropped_rows),
+        "dropped_rows": dropped_rows,
+        "rows": parsed_rows,
+    }
+
+
+def _split_port_aliases(raw_value: str | None) -> list[str]:
+    normalized = _normalize_ascii_text(raw_value)
+    if not normalized.strip():
+        return []
+    values = [normalized]
+    values.extend(re.split(r"[;/]", normalized))
+    aliases: list[str] = []
+    for value in values:
+        for candidate in (
+            _normalize_supply_tracking_token(value),
+            _strip_supply_tracking_navigation_terms(value),
+        ):
+            candidate = re.sub(r"[^a-z0-9]+", " ", candidate).strip()
+            if candidate and candidate not in aliases:
+                aliases.append(candidate)
+    return aliases
+
+
+def _build_supply_tracking_port_lookup(
+    db_path: Path | str = DEFAULT_DB_PATH,
+) -> dict[str, object]:
+    init_market_database(db_path)
+    with get_connection(db_path) as connection:
+        rows = connection.execute(
+            """
+            SELECT main_port_name,
+                   alternate_port_name,
+                   country_name,
+                   latitude,
+                   longitude
+            FROM port_reference_data
+            WHERE dataset_code = ?
+            """,
+            (SUPPLY_PORT_DATASET_CODE,),
+        ).fetchall()
+
+    ports: list[dict[str, object]] = []
+    by_key: dict[str, list[dict[str, object]]] = defaultdict(list)
+    for row in rows:
+        alias_keys = _split_port_aliases(row["main_port_name"])
+        alias_keys.extend(_split_port_aliases(row["alternate_port_name"]))
+        deduped_alias_keys = list(dict.fromkeys(alias_keys))
+        port = {
+            "name": str(row["main_port_name"]).strip(),
+            "country": str(row["country_name"] or "").strip() or None,
+            "country_key": _normalize_supply_tracking_country(row["country_name"]),
+            "latitude": float(row["latitude"]),
+            "longitude": float(row["longitude"]),
+            "alias_keys": deduped_alias_keys,
+        }
+        ports.append(port)
+        for key in deduped_alias_keys:
+            by_key[key].append(port)
+
+    return {"ports": ports, "by_key": by_key}
+
+
+def _select_supply_tracking_exact_port(
+    matches: list[dict[str, object]],
+    country_key: str,
+) -> dict[str, object] | None:
+    if not matches:
+        return None
+    if country_key:
+        country_matches = [port for port in matches if port["country_key"] == country_key]
+        if country_matches:
+            return country_matches[0]
+    return matches[0]
+
+
+def _build_supply_tracking_place_candidates(raw_value: str | None) -> list[str]:
+    text = str(raw_value or "").strip()
+    if not text:
+        return []
+
+    normalized_full = re.sub(r"[^a-z0-9]+", " ", _normalize_supply_tracking_token(text)).strip()
+    base_text = text.rsplit(",", 1)[0].strip() if "," in text else text
+    variants = [text, base_text]
+    variants.extend(re.split(r"[;/]", base_text))
+    candidates: list[str] = []
+
+    alias_target = SUPPLY_TRACKING_PORT_ALIAS_MAP.get(normalized_full)
+    if alias_target:
+        variants.insert(0, alias_target)
+
+    for value in variants:
+        for candidate in (
+            _normalize_supply_tracking_token(value),
+            _strip_supply_tracking_navigation_terms(value),
+        ):
+            normalized = re.sub(r"[^a-z0-9]+", " ", candidate).strip()
+            if normalized and normalized not in candidates:
+                candidates.append(normalized)
+    return candidates
+
+
+def _match_supply_tracking_port(
+    raw_value: str | None,
+    port_lookup: dict[str, object],
+) -> dict[str, object]:
+    if _is_supply_tracking_placeholder_value(raw_value):
+        return {
+            "name": str(raw_value or "").strip() or None,
+            "latitude": None,
+            "longitude": None,
+            "match_method": None,
+            "matched_port_name": None,
+        }
+
+    candidates = _build_supply_tracking_place_candidates(raw_value)
+    country_key = _extract_supply_tracking_country(raw_value)
+    by_key = port_lookup["by_key"]
+
+    for candidate in candidates:
+        exact_match = _select_supply_tracking_exact_port(list(by_key.get(candidate, [])), country_key)
+        if exact_match is not None:
+            return {
+                "name": str(raw_value or "").strip() or None,
+                "latitude": float(exact_match["latitude"]),
+                "longitude": float(exact_match["longitude"]),
+                "match_method": "port_reference_exact",
+                "matched_port_name": str(exact_match["name"]),
+            }
+
+    scored_matches: list[tuple[int, dict[str, object]]] = []
+    for port in port_lookup["ports"]:
+        if country_key and port["country_key"] and port["country_key"] != country_key:
+            continue
+        best_score = 0
+        for candidate in candidates:
+            if len(candidate) < 4:
+                continue
+            for alias_key in port["alias_keys"]:
+                if candidate == alias_key:
+                    best_score = max(best_score, 1000 + len(candidate))
+                elif candidate in alias_key or alias_key in candidate:
+                    best_score = max(best_score, min(len(candidate), len(alias_key)))
+        if best_score > 0:
+            scored_matches.append((best_score, port))
+
+    if scored_matches:
+        scored_matches.sort(
+            key=lambda item: (
+                item[0],
+                1 if country_key and item[1]["country_key"] == country_key else 0,
+                len(item[1]["name"]),
+            ),
+            reverse=True,
+        )
+        best_port = scored_matches[0][1]
+        return {
+            "name": str(raw_value or "").strip() or None,
+            "latitude": float(best_port["latitude"]),
+            "longitude": float(best_port["longitude"]),
+            "match_method": "port_reference_fuzzy",
+            "matched_port_name": str(best_port["name"]),
+        }
+
+    return {
+        "name": str(raw_value or "").strip() or None,
+        "latitude": None,
+        "longitude": None,
+        "match_method": None,
+        "matched_port_name": None,
+    }
+
+
+def _enrich_supply_tracking_rows(
+    rows: list[dict[str, object]],
+    db_path: Path | str = DEFAULT_DB_PATH,
+) -> list[dict[str, object]]:
+    port_lookup = _build_supply_tracking_port_lookup(db_path)
+    enriched_rows: list[dict[str, object]] = []
+
+    for row in rows:
+        current_latitude = float(row["current_latitude"])
+        current_longitude = float(row["current_longitude"])
+        origin_match = _match_supply_tracking_port(row.get("origin_name"), port_lookup)
+        previous_match = _match_supply_tracking_port(row.get("previous_port_name"), port_lookup)
+        destination_match = _match_supply_tracking_port(row.get("destination_name"), port_lookup)
+
+        if origin_match["latitude"] is None:
+            origin_match["latitude"] = current_latitude
+            origin_match["longitude"] = current_longitude
+            origin_match["match_method"] = "fallback_current_position"
+
+        if previous_match["latitude"] is None:
+            previous_match["latitude"] = current_latitude
+            previous_match["longitude"] = current_longitude
+            previous_match["match_method"] = "fallback_current_position"
+
+        enriched_rows.append(
+            {
+                **row,
+                "origin_latitude": origin_match["latitude"],
+                "origin_longitude": origin_match["longitude"],
+                "origin_match_method": origin_match["match_method"],
+                "origin_matched_port_name": origin_match["matched_port_name"],
+                "previous_port_latitude": previous_match["latitude"],
+                "previous_port_longitude": previous_match["longitude"],
+                "previous_port_match_method": previous_match["match_method"],
+                "previous_port_matched_port_name": previous_match["matched_port_name"],
+                "destination_latitude": destination_match["latitude"],
+                "destination_longitude": destination_match["longitude"],
+                "destination_match_method": destination_match["match_method"],
+                "destination_matched_port_name": destination_match["matched_port_name"],
+            }
+        )
+
+    return enriched_rows
+
+
+def replace_supply_tracking_rows(
+    dataset_code: str,
+    rows: Iterable[dict[str, object]],
+    db_path: Path | str = DEFAULT_DB_PATH,
+) -> int:
+    materialized_rows = list(rows)
+    init_market_database(db_path)
+    with get_connection(db_path) as connection:
+        connection.execute(
+            """
+            DELETE FROM supply_tanker_tracking
+            WHERE dataset_code = ?
+            """,
+            (dataset_code,),
+        )
+        if not materialized_rows:
+            return 0
+
+        payload = [
+            (
+                row["dataset_code"],
+                row["dataset_name"],
+                row["source_file"],
+                row["source_sheet"],
+                row["source_row_number"],
+                row["vessel_name"],
+                row.get("imo"),
+                row.get("mmsi"),
+                row["vessel_type"],
+                row.get("dwt"),
+                row.get("current_position_raw"),
+                row["current_latitude"],
+                row["current_longitude"],
+                row.get("position_label"),
+                row.get("origin_name"),
+                row.get("origin_latitude"),
+                row.get("origin_longitude"),
+                row.get("origin_match_method"),
+                row.get("origin_matched_port_name"),
+                row.get("previous_port_name"),
+                row.get("previous_port_latitude"),
+                row.get("previous_port_longitude"),
+                row.get("previous_port_match_method"),
+                row.get("previous_port_matched_port_name"),
+                row.get("destination_name"),
+                row.get("destination_latitude"),
+                row.get("destination_longitude"),
+                row.get("destination_match_method"),
+                row.get("destination_matched_port_name"),
+                row.get("speed"),
+                row.get("heading"),
+                row.get("cargo_status") or "unknown",
+                row.get("eta"),
+                row.get("source_label"),
+            )
+            for row in materialized_rows
+        ]
+        connection.executemany(
+            """
+            INSERT INTO supply_tanker_tracking (
+                dataset_code,
+                dataset_name,
+                source_file,
+                source_sheet,
+                source_row_number,
+                vessel_name,
+                imo,
+                mmsi,
+                vessel_type,
+                dwt,
+                current_position_raw,
+                current_latitude,
+                current_longitude,
+                position_label,
+                origin_name,
+                origin_latitude,
+                origin_longitude,
+                origin_match_method,
+                origin_matched_port_name,
+                previous_port_name,
+                previous_port_latitude,
+                previous_port_longitude,
+                previous_port_match_method,
+                previous_port_matched_port_name,
+                destination_name,
+                destination_latitude,
+                destination_longitude,
+                destination_match_method,
+                destination_matched_port_name,
+                speed,
+                heading,
+                cargo_status,
+                eta,
+                source_label
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            payload,
+        )
+    return len(materialized_rows)
+
+
+def import_supply_tracking_workbook(
+    excel_path: Path | str,
+    db_path: Path | str = DEFAULT_DB_PATH,
+    sheet_name: str | None = None,
+) -> dict[str, object]:
+    workbook = read_supply_tracking_workbook(excel_path, sheet_name=sheet_name)
+    enriched_rows = _enrich_supply_tracking_rows(list(workbook["rows"]), db_path=db_path)
+    inserted_rows = replace_supply_tracking_rows(
+        workbook["dataset_code"],
+        enriched_rows,
+        db_path=db_path,
+    )
+    return {
+        "excel_path": workbook["excel_path"],
+        "db_path": str(Path(db_path)),
+        "dataset_code": workbook["dataset_code"],
+        "dataset_name": workbook["dataset_name"],
+        "source_sheet": workbook["source_sheet"],
+        "source_row_count": workbook["source_row_count"],
+        "clean_row_count": workbook["clean_row_count"],
+        "dropped_row_count": workbook["dropped_row_count"],
+        "dropped_rows": workbook["dropped_rows"],
+        "tracking_row_count": inserted_rows,
+    }
+
+
+def count_supply_tracking_rows(
+    db_path: Path | str = DEFAULT_DB_PATH,
+) -> int:
+    init_market_database(db_path)
+    with get_connection(db_path) as connection:
+        row = connection.execute(
+            """
+            SELECT COUNT(*) AS count
+            FROM supply_tanker_tracking
+            WHERE dataset_code = ?
+            """,
+            (SUPPLY_TRACKING_DATASET_CODE,),
+        ).fetchone()
+    return int(row["count"]) if row else 0
+
+
+def bootstrap_supply_tracking_database(
+    source_path: Path | str | None = None,
+    db_path: Path | str = DEFAULT_DB_PATH,
+) -> dict[str, object] | None:
+    workbook_path = resolve_supply_tracking_workbook(source_path)
+    if count_supply_tracking_rows(db_path) > 0:
+        return None
+    if not workbook_path.exists():
+        return None
+    return import_supply_tracking_workbook(workbook_path, db_path=db_path)
+
+
+def get_supply_tracking_data(
+    db_path: Path | str = DEFAULT_DB_PATH,
+) -> dict[str, object]:
+    init_market_database(db_path)
+    with get_connection(db_path) as connection:
+        rows = connection.execute(
+            """
+            SELECT *
+            FROM supply_tanker_tracking
+            WHERE dataset_code = ?
+            ORDER BY vessel_type ASC, COALESCE(dwt, 0) DESC, vessel_name ASC
+            """,
+            (SUPPLY_TRACKING_DATASET_CODE,),
+        ).fetchall()
+
+    items: list[dict[str, object]] = []
+    for row in rows:
+        items.append(
+            {
+                "id": str(row["mmsi"] or row["id"]),
+                "name": str(row["vessel_name"]),
+                "imo": str(row["imo"]).strip() if row["imo"] else None,
+                "mmsi": str(row["mmsi"]).strip() if row["mmsi"] else None,
+                "type": str(row["vessel_type"]),
+                "dwt": float(row["dwt"]) if row["dwt"] is not None else None,
+                "latitude": float(row["current_latitude"]),
+                "longitude": float(row["current_longitude"]),
+                "speed": float(row["speed"]) if row["speed"] is not None else None,
+                "heading": float(row["heading"]) if row["heading"] is not None else None,
+                "cargoStatus": str(row["cargo_status"] or "unknown"),
+                "destination": str(row["destination_name"]).strip() if row["destination_name"] else None,
+                "eta": str(row["eta"]).strip() if row["eta"] else None,
+                "positionLabel": str(row["position_label"]).strip() if row["position_label"] else None,
+                "originPort": {
+                    "role": "origin",
+                    "name": str(row["origin_name"]).strip() if row["origin_name"] else "",
+                    "latitude": float(row["origin_latitude"]) if row["origin_latitude"] is not None else None,
+                    "longitude": float(row["origin_longitude"]) if row["origin_longitude"] is not None else None,
+                    "matchMethod": str(row["origin_match_method"]).strip() if row["origin_match_method"] else None,
+                    "matchedPortName": str(row["origin_matched_port_name"]).strip()
+                    if row["origin_matched_port_name"]
+                    else None,
+                }
+                if row["origin_name"]
+                else None,
+                "previousPort": {
+                    "role": "previous",
+                    "name": str(row["previous_port_name"]).strip() if row["previous_port_name"] else "",
+                    "latitude": float(row["previous_port_latitude"])
+                    if row["previous_port_latitude"] is not None
+                    else None,
+                    "longitude": float(row["previous_port_longitude"])
+                    if row["previous_port_longitude"] is not None
+                    else None,
+                    "matchMethod": str(row["previous_port_match_method"]).strip()
+                    if row["previous_port_match_method"]
+                    else None,
+                    "matchedPortName": str(row["previous_port_matched_port_name"]).strip()
+                    if row["previous_port_matched_port_name"]
+                    else None,
+                }
+                if row["previous_port_name"]
+                else None,
+                "destinationPort": {
+                    "role": "destination",
+                    "name": str(row["destination_name"]).strip() if row["destination_name"] else "",
+                    "latitude": float(row["destination_latitude"])
+                    if row["destination_latitude"] is not None
+                    else None,
+                    "longitude": float(row["destination_longitude"])
+                    if row["destination_longitude"] is not None
+                    else None,
+                    "matchMethod": str(row["destination_match_method"]).strip()
+                    if row["destination_match_method"]
+                    else None,
+                    "matchedPortName": str(row["destination_matched_port_name"]).strip()
+                    if row["destination_matched_port_name"]
+                    else None,
+                }
+                if row["destination_name"]
+                else None,
+                "sourceLabel": str(row["source_label"]).strip() if row["source_label"] else None,
+            }
+        )
+
+    return {
+        "dataset_code": SUPPLY_TRACKING_DATASET_CODE,
+        "total": len(items),
+        "items": items,
+    }
 
 
 def _normalize_supply_country_value(
