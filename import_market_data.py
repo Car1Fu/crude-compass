@@ -95,6 +95,17 @@ def main() -> int:
             db_path=db_path,
             sheet_name=args.sheet_name,
         )
+        if "news_row_count" in summary:
+            print("News extraction import completed.")
+            print(f"Excel file: {summary['excel_path']}")
+            print(f"SQLite file: {summary['db_path']}")
+            print(f"Dataset: {summary['dataset_code']}")
+            print(f"Sheet: {summary['source_sheet']}")
+            print(f"Source rows: {summary['source_row_count']}")
+            print(f"Clean rows: {summary['clean_row_count']}")
+            print(f"Dropped rows: {summary['dropped_row_count']}")
+            print(f"Imported news rows: {summary['news_row_count']}")
+            return 0
         if "tracking_row_count" in summary:
             print("Supply tracking import completed.")
             print(f"Excel file: {summary['excel_path']}")
@@ -150,6 +161,17 @@ def main() -> int:
                 f"valid_rows={summary['clean_row_count']}, "
                 f"dropped_rows={summary['dropped_row_count']}, "
                 f"tracking_rows={summary['tracking_row_count']}"
+            )
+            continue
+
+        if "news_row_count" in summary:
+            print(
+                f"[news] {Path(summary['excel_path']).name}: "
+                f"dataset={summary['dataset_code']}, "
+                f"source_rows={summary['source_row_count']}, "
+                f"clean_rows={summary['clean_row_count']}, "
+                f"dropped_rows={summary['dropped_row_count']}, "
+                f"news_rows={summary['news_row_count']}"
             )
             continue
 

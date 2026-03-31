@@ -1589,11 +1589,9 @@
 #view-supply {
   padding: 0;
   overflow: hidden;
-  position: fixed;
-  left: 0;
-  right: 0;
-  top: var(--header-h);
-  bottom: 0;
+  position: relative;
+  margin-top: var(--header-h);
+  height: calc(100vh - var(--header-h));
   box-sizing: border-box;
   z-index: 5;
 }
@@ -1606,6 +1604,7 @@
   border: none;
   display: block;
   background: #0b0f14;
+  overflow: hidden;
 }
 
     /* ══ Hero 左侧卡片框 ══ */

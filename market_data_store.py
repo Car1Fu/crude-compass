@@ -13,6 +13,8 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Iterable
 
+from openpyxl import load_workbook
+
 
 ROOT_DIR = Path(__file__).resolve().parent
 DATA_DIR = ROOT_DIR / "data"
@@ -194,6 +196,17 @@ DEFAULT_SUPPLY_TRACKING_CANDIDATES = (
     DEFAULT_SUPPLY_TRACKING_XLSX,
     DEFAULT_SUPPLY_TRACKING_CSV,
 )
+NEWS_EXTRACTION_WORKBOOK_NAMES = {"news_extraction.xlsx"}
+NEWS_DATASET_CODE = "module_news_feed"
+NEWS_THEME_SECTION_MAP = {
+    "供给政策（opec+）": ("Supply", "供给政策（OPEC+）"),
+    "风险事件（地缘）": ("Geopolitics", "风险事件（地缘）"),
+    "数据与流向（库存）": ("Inventory", "数据与流向（库存）"),
+    "航运与物价（运价）": ("Freight", "航运与物流（运价）"),
+    "结构与炼化（价差）": ("Spreads", "结构与炼化（价差）"),
+    "美元与利率（宏观）": ("Macro", "美元与利率（宏观）"),
+    "消费与经济（需求）": ("Demand", "消费与经济（需求）"),
+}
 SUPPLY_TRACKING_HEADER_MAP = {
     "船名": "vessel_name",
     "mmsi": "mmsi",
@@ -542,6 +555,32 @@ def init_market_database(db_path: Path | str = DEFAULT_DB_PATH) -> None:
             ON supply_tanker_tracking(dataset_code, vessel_type, vessel_name)
             """
         )
+        connection.execute(
+            """
+            CREATE TABLE IF NOT EXISTS market_news_items (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                dataset_code TEXT NOT NULL,
+                source_file TEXT NOT NULL,
+                source_sheet TEXT NOT NULL,
+                article_key TEXT NOT NULL,
+                title TEXT NOT NULL,
+                source_label TEXT NOT NULL,
+                published_at TEXT NOT NULL,
+                theme_raw TEXT NOT NULL,
+                section_key TEXT NOT NULL,
+                section_name TEXT NOT NULL,
+                market_impact_score REAL,
+                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(dataset_code, article_key)
+            )
+            """
+        )
+        connection.execute(
+            """
+            CREATE INDEX IF NOT EXISTS idx_market_news_items_section_time
+            ON market_news_items(dataset_code, section_key, published_at DESC)
+            """
+        )
         _ensure_table_columns(
             connection,
             "market_generic_daily_metrics",
@@ -816,6 +855,208 @@ def _normalize_source_label(raw_value: str) -> str:
 
 def _is_port_reference_workbook(workbook_path: Path) -> bool:
     return workbook_path.name.lower() in SUPPLY_PORT_WORKBOOK_NAMES
+
+
+def _is_news_extraction_workbook(workbook_path: Path) -> bool:
+    return workbook_path.name.lower() in NEWS_EXTRACTION_WORKBOOK_NAMES
+
+
+def _normalize_news_theme(raw_theme: str | None) -> tuple[str, str, str]:
+    theme_text = str(raw_theme or "").strip()
+    normalized_theme = theme_text.lower()
+    section_key, section_name = NEWS_THEME_SECTION_MAP.get(
+        normalized_theme,
+        ("Macro", theme_text or "未分类新闻"),
+    )
+    return theme_text, section_key, section_name
+
+
+def _normalize_news_publish_time(raw_value: object) -> str:
+    if isinstance(raw_value, datetime):
+        return raw_value.strftime("%Y-%m-%d %H:%M")
+
+    if raw_value is None:
+        return ""
+
+    text = str(raw_value).strip()
+    if not text:
+        return ""
+
+    for fmt in (
+        "%Y-%m-%d %H:%M:%S",
+        "%Y-%m-%d %H:%M",
+        "%Y/%m/%d %H:%M:%S",
+        "%Y/%m/%d %H:%M",
+        "%Y-%m-%d",
+        "%Y/%m/%d",
+    ):
+        try:
+            parsed = datetime.strptime(text, fmt)
+            return parsed.strftime("%Y-%m-%d %H:%M")
+        except ValueError:
+            continue
+    return text
+
+
+def read_news_extraction_workbook(
+    excel_path: Path | str,
+    sheet_name: str | None = None,
+) -> dict[str, object]:
+    workbook_path = Path(excel_path)
+    workbook = load_workbook(workbook_path, read_only=True, data_only=True)
+    target_sheet_name = sheet_name or workbook.sheetnames[0]
+    worksheet = workbook[target_sheet_name]
+
+    rows_iter = worksheet.iter_rows(values_only=True)
+    try:
+        raw_headers = next(rows_iter)
+    except StopIteration:
+        raw_headers = ()
+    headers = [str(header or "").strip() for header in raw_headers]
+
+    required_headers = {
+        "chinese_title",
+        "source",
+        "publish_time",
+        "theme",
+        "market_impact_score",
+    }
+    missing_headers = sorted(required_headers.difference(headers))
+    if missing_headers:
+        missing_text = ", ".join(missing_headers)
+        raise ValueError(
+            f"News workbook is missing required columns: {missing_text}"
+        )
+
+    rows: list[dict[str, object]] = []
+    dropped_row_count = 0
+    for row_index, values in enumerate(rows_iter, start=2):
+        record = dict(zip(headers, values))
+        title = str(record.get("chinese_title") or "").strip()
+        source_label = str(record.get("source") or "").strip() or "未知来源"
+        published_at = _normalize_news_publish_time(record.get("publish_time"))
+        theme_raw, section_key, section_name = _normalize_news_theme(record.get("theme"))
+        impact_score = _to_float(str(record.get("market_impact_score") or ""))
+        if not title or not published_at or not theme_raw:
+            dropped_row_count += 1
+            continue
+
+        article_key = hashlib.sha1(
+            f"{title}|{source_label}|{published_at}|{theme_raw}".encode("utf-8")
+        ).hexdigest()[:16]
+        rows.append(
+            {
+                "dataset_code": NEWS_DATASET_CODE,
+                "source_file": workbook_path.name,
+                "source_sheet": target_sheet_name,
+                "article_key": article_key,
+                "title": title,
+                "source_label": source_label,
+                "published_at": published_at,
+                "theme_raw": theme_raw,
+                "section_key": section_key,
+                "section_name": section_name,
+                "market_impact_score": impact_score,
+                "source_row_number": row_index,
+            }
+        )
+
+    return {
+        "excel_path": str(workbook_path),
+        "dataset_code": NEWS_DATASET_CODE,
+        "source_sheet": target_sheet_name,
+        "source_row_count": max(worksheet.max_row - 1, 0),
+        "clean_row_count": len(rows),
+        "dropped_row_count": dropped_row_count,
+        "rows": rows,
+    }
+
+
+def replace_news_rows(
+    dataset_code: str,
+    rows: Iterable[dict[str, object]],
+    db_path: Path | str = DEFAULT_DB_PATH,
+) -> int:
+    materialized_rows = list(rows)
+    init_market_database(db_path)
+    with get_connection(db_path) as connection:
+        connection.execute(
+            """
+            DELETE FROM market_news_items
+            WHERE dataset_code = ?
+            """,
+            (dataset_code,),
+        )
+        if not materialized_rows:
+            return 0
+        connection.executemany(
+            """
+            INSERT INTO market_news_items (
+                dataset_code,
+                source_file,
+                source_sheet,
+                article_key,
+                title,
+                source_label,
+                published_at,
+                theme_raw,
+                section_key,
+                section_name,
+                market_impact_score
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(dataset_code, article_key) DO UPDATE SET
+                source_file = excluded.source_file,
+                source_sheet = excluded.source_sheet,
+                title = excluded.title,
+                source_label = excluded.source_label,
+                published_at = excluded.published_at,
+                theme_raw = excluded.theme_raw,
+                section_key = excluded.section_key,
+                section_name = excluded.section_name,
+                market_impact_score = excluded.market_impact_score
+            """,
+            [
+                (
+                    row["dataset_code"],
+                    row["source_file"],
+                    row["source_sheet"],
+                    row["article_key"],
+                    row["title"],
+                    row["source_label"],
+                    row["published_at"],
+                    row["theme_raw"],
+                    row["section_key"],
+                    row["section_name"],
+                    row.get("market_impact_score"),
+                )
+                for row in materialized_rows
+            ],
+        )
+    return len(materialized_rows)
+
+
+def import_news_extraction_workbook(
+    excel_path: Path | str,
+    db_path: Path | str = DEFAULT_DB_PATH,
+    sheet_name: str | None = None,
+) -> dict[str, object]:
+    workbook = read_news_extraction_workbook(excel_path, sheet_name=sheet_name)
+    inserted_rows = replace_news_rows(
+        workbook["dataset_code"],
+        workbook["rows"],
+        db_path=db_path,
+    )
+    return {
+        "excel_path": workbook["excel_path"],
+        "db_path": str(Path(db_path)),
+        "dataset_code": workbook["dataset_code"],
+        "source_sheet": workbook["source_sheet"],
+        "source_row_count": workbook["source_row_count"],
+        "clean_row_count": workbook["clean_row_count"],
+        "dropped_row_count": workbook["dropped_row_count"],
+        "news_row_count": inserted_rows,
+    }
 
 
 def _is_port_placeholder_value(raw_value: str | None) -> bool:
@@ -2020,6 +2261,12 @@ def import_generic_market_workbook(
     sheet_name: str | None = None,
 ) -> dict[str, object]:
     workbook_path = Path(excel_path)
+    if _is_news_extraction_workbook(workbook_path):
+        return import_news_extraction_workbook(
+            workbook_path,
+            db_path=db_path,
+            sheet_name=sheet_name,
+        )
     if workbook_path.name.lower() in SUPPLY_TRACKING_WORKBOOK_NAMES:
         return import_supply_tracking_workbook(
             workbook_path,
@@ -3575,3 +3822,79 @@ def get_supply_ports_data(
         "total": len(items),
         "items": items,
     }
+
+
+def count_news_rows(
+    db_path: Path | str = DEFAULT_DB_PATH,
+) -> int:
+    init_market_database(db_path)
+    with get_connection(db_path) as connection:
+        row = connection.execute(
+            """
+            SELECT COUNT(*) AS count
+            FROM market_news_items
+            WHERE dataset_code = ?
+            """,
+            (NEWS_DATASET_CODE,),
+        ).fetchone()
+    return int(row["count"]) if row else 0
+
+
+def bootstrap_news_database(
+    source_path: Path | str | None = None,
+    db_path: Path | str = DEFAULT_DB_PATH,
+) -> dict[str, object] | None:
+    workbook_path = Path(source_path) if source_path is not None else SAMPLE_DATA_DIR / "news_extraction.xlsx"
+    if count_news_rows(db_path) > 0:
+        return None
+    if not workbook_path.exists():
+        return None
+    return import_news_extraction_workbook(workbook_path, db_path=db_path)
+
+
+def get_news_items(
+    section_key: str | None = None,
+    limit: int | None = None,
+    db_path: Path | str = DEFAULT_DB_PATH,
+) -> list[dict[str, object]]:
+    init_market_database(db_path)
+    normalized_section_key = str(section_key or "").strip()
+    params: list[object] = [NEWS_DATASET_CODE]
+    where_clauses = ["dataset_code = ?"]
+    if normalized_section_key and normalized_section_key.upper() != "HIGHLIGHT":
+        where_clauses.append("section_key = ?")
+        params.append(normalized_section_key)
+
+    query = f"""
+        SELECT id,
+               title,
+               source_label,
+               published_at,
+               theme_raw,
+               section_key,
+               section_name,
+               market_impact_score
+        FROM market_news_items
+        WHERE {" AND ".join(where_clauses)}
+        ORDER BY published_at DESC, COALESCE(market_impact_score, 0) DESC, id DESC
+    """
+    if limit is not None and limit > 0:
+        query += " LIMIT ?"
+        params.append(limit)
+
+    with get_connection(db_path) as connection:
+        rows = connection.execute(query, params).fetchall()
+
+    return [
+        {
+            "id": str(row["id"]),
+            "title": str(row["title"]),
+            "source": str(row["source_label"]),
+            "published_at": str(row["published_at"]),
+            "theme": str(row["theme_raw"]),
+            "section_key": str(row["section_key"]),
+            "section_name": str(row["section_name"]),
+            "impact": float(row["market_impact_score"]) if row["market_impact_score"] is not None else None,
+        }
+        for row in rows
+    ]

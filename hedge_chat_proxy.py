@@ -8,11 +8,13 @@ from urllib.parse import parse_qs, unquote, urlparse
 
 from market_data_store import (
     DEFAULT_DB_PATH,
+    bootstrap_news_database,
     bootstrap_sample_database,
     bootstrap_supply_tracking_database,
     get_generic_latest_metrics,
     get_generic_metric_series,
     get_latest_snapshots,
+    get_news_items,
     get_price_series,
     get_supply_country_details,
     get_supply_dashboard_data,
@@ -241,6 +243,24 @@ class HedgeChatHandler(BaseHTTPRequestHandler):
             )
             return
 
+        if route == "/api/news/list":
+            section_key = (query.get("section_key") or query.get("theme") or [None])[0]
+            limit = _coerce_positive_int((query.get("limit") or [None])[0], default=200)
+            items = get_news_items(
+                section_key=section_key,
+                limit=limit,
+                db_path=DEFAULT_DB_PATH,
+            )
+            self._send_json(
+                200,
+                {
+                    "section_key": section_key,
+                    "total": len(items),
+                    "items": items,
+                },
+            )
+            return
+
         if route == "/api/supply/dashboard":
             payload = get_supply_dashboard_data(db_path=DEFAULT_DB_PATH)
             payload["countryDetails"] = get_supply_country_details(db_path=DEFAULT_DB_PATH)
@@ -322,6 +342,14 @@ def main():
             "[hedge-chat-proxy] Bootstrapped SQLite supply tracking data "
             f"from {supply_tracking_summary['excel_path']} "
             f"({supply_tracking_summary['tracking_row_count']} rows)",
+            flush=True,
+        )
+    news_summary = bootstrap_news_database(db_path=DEFAULT_DB_PATH)
+    if news_summary:
+        print(
+            "[hedge-chat-proxy] Bootstrapped SQLite news data "
+            f"from {news_summary['excel_path']} "
+            f"({news_summary['news_row_count']} rows)",
             flush=True,
         )
     server = ThreadingHTTPServer((HOST, PORT), HedgeChatHandler)
