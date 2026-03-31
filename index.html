@@ -995,9 +995,9 @@
       }
       #view-hedge .hg-wrap { max-width:1600px; margin:0 auto; padding:28px 20px 60px; }
       #view-hedge .hg-page-title { color:var(--hg-accent); font-size:22px; font-weight:900; letter-spacing:.5px; margin-bottom:24px; padding-bottom:14px; border-bottom:1px solid var(--hg-accent-border); display:flex; align-items:center; gap:12px; }
-      #view-hedge .hg-core { display:flex; gap:28px; }
-      #view-hedge .hg-input-area { width:40%; background:rgba(30,29,28,.78); border:1px solid var(--hg-accent-border-strong); border-radius:10px; padding:28px; display:flex; flex-direction:column; gap:22px; backdrop-filter:blur(8px); }
-      #view-hedge .hg-btn-group { display:flex; gap:14px; align-items:center; }
+      #view-hedge .hg-core { display:flex; gap:28px; align-items:stretch; }
+      #view-hedge .hg-input-area { width:40%; background:rgba(30,29,28,.78); border:1px solid var(--hg-accent-border-strong); border-radius:10px; padding:28px; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:22px 16px; align-content:start; backdrop-filter:blur(8px); }
+      #view-hedge .hg-btn-group { display:flex; gap:14px; align-items:center; grid-column:1 / -1; }
       #view-hedge .hg-btn { padding:10px 22px; border-radius:6px; cursor:pointer; font-size:14px; font-weight:700; border:1px solid var(--hg-accent); transition:.2s; }
       #view-hedge .hg-reset-btn { background:rgba(25,25,30,.9); color:rgba(240,240,242,.85); border-color:rgba(255,255,255,.15); }
       #view-hedge .hg-reset-btn:hover { background:rgba(50,50,58,.9); color:#fff; }
@@ -1031,6 +1031,10 @@
       }
       #view-hedge .hg-calc-btn:hover { background:linear-gradient(135deg, #d0ad78 0%, #ab8451 100%); transform:translateY(-1px); box-shadow:0 12px 28px rgba(176,132,73,.28); }
       #view-hedge .hg-form-item { display:flex; flex-direction:column; gap:8px; }
+      #view-hedge .hg-field-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+      #view-hedge .hg-form-item:has(#hgTradeRegion),
+      #view-hedge .hg-form-item:has(#hgMarginPressure),
+      #view-hedge .hg-form-item:has(#hgConsumerType) { grid-column:1 / -1; }
       #view-hedge .hg-form-label { font-size:14px; color:var(--hg-accent-soft); display:flex; align-items:center; gap:5px; }
       #view-hedge .hg-required { color:var(--hg-accent); font-size:16px; }
       #view-hedge .hg-input,
@@ -1079,10 +1083,10 @@
       #view-hedge .hg-profile-title { color:#f3efe6; font-size:13px; font-weight:800; margin-bottom:6px; }
       #view-hedge .hg-profile-desc { color:rgba(243,239,230,.62); font-size:12px; line-height:1.7; }
       #view-hedge .hg-advanced { display:none; margin-top:10px; padding-top:10px; border-top:1px dashed #333; flex-direction:column; gap:8px; }
-      #view-hedge .hg-result-area { width:60%; display:flex; flex-direction:column; gap:18px; min-height:0; }
+      #view-hedge .hg-result-area { width:60%; display:flex; flex-direction:column; gap:18px; min-height:0; align-self:stretch; }
       #view-hedge .hg-card { background:rgba(0,0,0,.70); border:1px solid var(--hg-accent-border-strong); border-radius:10px; padding:22px; backdrop-filter:blur(8px); }
       #view-hedge .hg-card-title { color:var(--hg-accent); font-size:17px; font-weight:900; margin-bottom:18px; padding-bottom:10px; border-bottom:1px solid #222; }
-      #view-hedge .hg-empty-stage { height:720px; padding:0; overflow:hidden; display:flex; }
+      #view-hedge .hg-empty-stage { flex:1; height:auto; min-height:100%; padding:0; overflow:hidden; display:flex; }
       #view-hedge .hg-chat-shell { height:100%; flex:1; display:flex; flex-direction:column; min-height:0; background:linear-gradient(180deg, rgba(7,10,14,.96) 0%, rgba(11,13,18,.92) 52%, rgba(14,16,21,.96) 100%); }
       #view-hedge .hg-chat-topbar { display:flex; align-items:center; justify-content:space-between; gap:18px; padding:18px 20px; border-bottom:1px solid rgba(199,164,106,.16); background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,0)); }
       #view-hedge .hg-chat-agent { display:flex; align-items:center; gap:12px; min-width:0; }
@@ -1201,7 +1205,8 @@
         border-color:rgba(34,28,22,.20);
         box-shadow:0 12px 28px rgba(64,42,18,.08);
       }
-      @media (max-width:1100px) { #view-hedge .hg-core { flex-direction:column; } #view-hedge .hg-input-area, #view-hedge .hg-result-area { width:100%; } #view-hedge .hg-result-list { grid-template-columns:1fr; } #view-hedge .hg-result-value.big-gold { grid-column:span 1; } #view-hedge .hg-empty-stage { height:520px; } #view-hedge .hg-msg-row.ai, #view-hedge .hg-msg-row.user { max-width:100%; } #view-hedge .hg-profile-guide { grid-template-columns:1fr; } }
+      @media (max-width:1100px) { #view-hedge .hg-core { flex-direction:column; } #view-hedge .hg-input-area, #view-hedge .hg-result-area { width:100%; } #view-hedge .hg-result-list { grid-template-columns:1fr; } #view-hedge .hg-result-value.big-gold { grid-column:span 1; } #view-hedge .hg-empty-stage { height:520px; } #view-hedge .hg-msg-row.ai, #view-hedge .hg-msg-row.user { max-width:100%; } #view-hedge .hg-profile-guide { grid-template-columns:1fr; } #view-hedge .hg-field-grid { grid-template-columns:1fr; } }
+      @media (max-width:1100px) { #view-hedge .hg-input-area { grid-template-columns:1fr; } }
     </style>
 
     <div class="hg-wrap">
@@ -1227,6 +1232,38 @@
             </select>
           </div>
 
+          <div class="hg-form-item">
+            <label class="hg-form-label">现货交易的定价基准</label>
+            <select class="hg-select" id="hgPricingBenchmark">
+              <option value="Brent" selected>Brent</option>
+              <option value="WTI Cushing">WTI Cushing</option>
+              <option value="WTI Midland">WTI Midland</option>
+              <option value="WTI Houston">WTI Houston</option>
+              <option value="Dubai">Dubai</option>
+              <option value="Oman">Oman</option>
+              <option value="Murban">Murban</option>
+              <option value="ASCI">ASCI</option>
+            </select>
+          </div>
+
+          <div class="hg-form-item">
+            <label class="hg-form-label">交易地点</label>
+            <div class="hg-field-grid">
+              <select class="hg-select" id="hgTradeRegion">
+                <option value="中国" selected>中国</option>
+                <option value="北美">北美</option>
+                <option value="南美">南美</option>
+                <option value="欧洲">欧洲</option>
+                <option value="中东">中东</option>
+                <option value="东亚">东亚</option>
+                <option value="东南亚">东南亚</option>
+                <option value="非洲">非洲</option>
+              </select>
+              <select class="hg-select" id="hgTradeLocation"></select>
+            </div>
+            <div class="hg-tips">先选择一级区域，再选择二级交易地点；二级地点为演示用示例。</div>
+          </div>
+
           <!-- 现货数量 -->
           <div class="hg-form-item">
             <label class="hg-form-label"><span class="hg-required">*</span>现货交易数量（桶）</label>
@@ -1240,6 +1277,12 @@
             <label class="hg-form-label"><span class="hg-required">*</span>现货交易到期日期</label>
             <input type="date" class="hg-input" id="hgExpireDate">
             <div class="hg-error" id="hgExpireDateErr">请选择有效的到期日期</div>
+          </div>
+
+          <div class="hg-form-item">
+            <label class="hg-form-label">可承受保证金压力</label>
+            <input type="text" class="hg-input" id="hgMarginPressure" placeholder="如：300万元以内 / 占用不超过月度可用资金的20%">
+            <div class="hg-tips">可填写绝对金额或资金占用比例，作为套保建议时的资金约束参考。</div>
           </div>
 
           <!-- 消费者类型 -->
@@ -3033,6 +3076,10 @@ window._loadDbDownload = function(){
     const modelName='最小方差模型';
     const root=$('view-hedge');
     const bizSelect=$('hgBizType');
+    const pricingBenchmarkSelect=$('hgPricingBenchmark');
+    const tradeRegionSelect=$('hgTradeRegion');
+    const tradeLocationSelect=$('hgTradeLocation');
+    const marginPressureInput=$('hgMarginPressure');
     const consumerSelect=$('hgConsumerType');
     const expireInput=$('hgExpireDate');
     const themeBtn=$('hgThemeBtn');
@@ -3051,6 +3098,16 @@ window._loadDbDownload = function(){
     if(!bizSelect || !consumerSelect || !expireInput || !root) return; // view未激活时跳过
     if(root.dataset.hgInited==='1') return;
     root.dataset.hgInited='1';
+    const tradeLocationMap={
+      '中国':['青岛港','大连港','宁波舟山','上海','华东地区','华南地区','其他'],
+      '北美':['休斯敦','库欣','美湾沿岸','温哥华','洛杉矶'],
+      '南美':['桑托斯','里约热内卢','布宜诺斯艾利斯','卡塔赫纳','其他'],
+      '欧洲':['鹿特丹','安特卫普','地中海沿岸','的里雅斯特','西北欧地区'],
+      '中东':['富查伊拉','杰贝阿里','拉斯坦努拉','巴士拉','苏哈尔'],
+      '东亚':['东京湾','横滨','蔚山','仁川','丽水'],
+      '东南亚':['新加坡','柔佛','巴生港','曼谷','林查班'],
+      '非洲':['拉各斯','亚历山大','苏伊士','德班','开普敦']
+    };
 
     // 设置默认到期日
     const now=new Date();
@@ -3061,6 +3118,19 @@ window._loadDbDownload = function(){
     ].join('-');
     expireInput.value=curDate;
     hgUpdateContract(curDate);
+    function hgUpdateTradeLocationOptions(region, preferred){
+      if(!tradeLocationSelect) return;
+      const options=tradeLocationMap[region] || ['其他'];
+      tradeLocationSelect.innerHTML=options.map(location=>`<option value="${location}">${location}</option>`).join('');
+      tradeLocationSelect.value=preferred && options.includes(preferred) ? preferred : options[0];
+    }
+    function hgGetTradeLocationText(){
+      const region=(tradeRegionSelect?.value || '').trim();
+      const location=(tradeLocationSelect?.value || '').trim();
+      if(region && location) return `${region} / ${location}`;
+      return region || location || 'unknown';
+    }
+    hgUpdateTradeLocationOptions(tradeRegionSelect?.value || '中国','青岛港');
 
     function hgUpdateContract(date){
       if(!date)return;
@@ -3165,9 +3235,12 @@ window._loadDbDownload = function(){
     function hgBuildRequestMessages(userText){
       const context=[
         `Business type: ${bizSelect?.value || 'unknown'}`,
+        `Spot pricing benchmark: ${pricingBenchmarkSelect?.value || 'unknown'}`,
+        `Trade location: ${hgGetTradeLocationText()}`,
         `Spot quantity (barrels): ${$('hgSpotQty')?.value?.trim() || 'unknown'}`,
         `Spot expiry date: ${expireInput?.value || 'unknown'}`,
         `Risk profile: ${consumerSelect?.value || 'unknown'}`,
+        `Margin pressure tolerance: ${marginPressureInput?.value?.trim() || 'unknown'}`,
         `Suggested hedge ratio: ${$('hgHedgeRatio')?.textContent || 'n/a'}`,
         `Suggested futures size: ${$('hgFutQty')?.textContent || 'n/a'}`,
         `Initial margin estimate: ${$('hgInitMargin')?.textContent || 'n/a'}`,
@@ -3252,6 +3325,16 @@ window._loadDbDownload = function(){
       const consumer=consumerSelect.value||'稳健型';
       return `我需要在${date}进行${biz}，数量是${qty}桶原油，我的风险偏好是${consumer}，请帮我拟定一套合适的套保思路。`;
     }
+    function hgBuildCalcPromptV2(){
+      const date=expireInput.value||'待定日期';
+      const biz=bizSelect.value||'采购';
+      const benchmark=pricingBenchmarkSelect?.value || '待补充';
+      const tradeLocation=hgGetTradeLocationText();
+      const qty=$('hgSpotQty').value.trim()||'0';
+      const consumer=consumerSelect.value||'稳健型';
+      const marginPressure=marginPressureInput?.value?.trim() || '待补充';
+      return `我需要在${date}进行${biz}，数量是${qty}桶原油，现货交易的定价基准为${benchmark}，交易地点在${tradeLocation}，我的风险偏好是${consumer}，可承受保证金压力为${marginPressure}，请帮我拟定一套合适的套保思路。`;
+    }
     hgAutoResizeChat();
     hgSyncSendState();
     hgSetChatState('在线响应');
@@ -3259,6 +3342,11 @@ window._loadDbDownload = function(){
 
     // 绑定事件
     bizSelect.addEventListener('change',e=>{hgUpdateHedgeType(e.target.value);});
+    if(tradeRegionSelect){
+      tradeRegionSelect.addEventListener('change',e=>{
+        hgUpdateTradeLocationOptions(e.target.value);
+      });
+    }
     consumerSelect.addEventListener('change',e=>{hgUpdateOpenTime(e.target.value);});
     if(themeBtn){
       themeBtn.addEventListener('click',()=>{
@@ -3335,7 +3423,7 @@ window._loadDbDownload = function(){
       if(hgCheckForm()){
         hgCalc();
         hgToast('套保方案已更新');
-        hgSubmitChat(hgBuildCalcPrompt(),{keepInput:true});
+        hgSubmitChat(hgBuildCalcPromptV2(),{keepInput:true});
       }
     });
   }
