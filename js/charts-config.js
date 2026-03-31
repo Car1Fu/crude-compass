@@ -35,7 +35,7 @@
       return{id:"n"+(20000+i),ts,theme:b.theme,title:b.title+(Math.random()>.7?"（更新）":""),source:b.source,impact,score:impact*.7+Math.max(0,100-h)*.3,summary:""};
     }).sort((a,b)=>b.ts-a.ts);
   }
-  let S={q:"",items:gen()};
+  let S={q:"",items:[]};
   const THEME_KEY="cc_module_news_theme";
   const getStoredTheme=key=>{
     try{
@@ -49,11 +49,76 @@
   const p2=n=>String(n).padStart(2,"0");
   const fT=ts=>{const d=new Date(ts);return`${p2(d.getHours())}:${p2(d.getMinutes())}`;};
   const fD=ts=>{const d=new Date(ts);return`${d.getMonth()+1}/${d.getDate()}`;};
+  const fHomeD=ts=>{const d=new Date(ts);return`${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}`;};
   const esc=s=>String(s).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;");
   const impactCls=v=>v>=80?'impact-high':v>=70?'impact-mid':'impact-low';
   const impactSpan=(v,prefix='影响 ')=>`<span class="${impactCls(v)}">${prefix}${v}</span>`;
   const viewEl=$id("view-module-news");
   const themeBtn=$id("mnThemeToggle");
+  const HOME_NEWS_THEME_META={
+    Geopolitics:{label:"地缘",image:"assets/geo.png"},
+    Supply:{label:"供给",image:"assets/supply.png"},
+    Inventory:{label:"库存",image:"assets/warehouse.png"},
+    Freight:{label:"航运",image:"assets/ship.png"},
+    Spreads:{label:"价差/炼化",image:"assets/oil.png"},
+    Macro:{label:"宏观",image:"assets/macro.png"},
+    Demand:{label:"需求",image:"assets/demand.png"},
+  };
+  function getHomeNewsThemeMeta(theme){
+    return HOME_NEWS_THEME_META[theme] || {label:"资讯",image:"assets/news.png"};
+  }
+  function updateHomeLatestNews(items){
+    const homeFeature=document.querySelector(".news-feature");
+    const homeList=document.querySelector(".news-list");
+    if(!homeFeature||!homeList)return;
+    if(!Array.isArray(items)||!items.length){
+      const tagEl=homeFeature.querySelector(".news-feature-tag");
+      const sourceEl=homeFeature.querySelector(".news-feature-source");
+      const titleEl=homeFeature.querySelector(".news-title");
+      const metaTextEl=homeFeature.querySelector(".news-meta span");
+      const imageEl=homeFeature.querySelector(".news-feature-image");
+      if(tagEl)tagEl.textContent="精选 · 资讯";
+      if(sourceEl)sourceEl.textContent="";
+      if(titleEl)titleEl.textContent="暂无已导入新闻";
+      if(metaTextEl)metaTextEl.textContent="请检查本地新闻数据与后端服务";
+      if(imageEl){
+        imageEl.src="assets/news.png";
+        imageEl.alt="新闻配图";
+      }
+      homeList.innerHTML=`<div class="news-item"><p class="t">暂无新闻</p><p class="m">请检查新闻 Excel 或本地服务</p></div>`;
+      return;
+    }
+    const leadItem=items[0];
+    const sideItems=items.slice(1,5);
+    const leadMeta=getHomeNewsThemeMeta(leadItem.theme);
+    const tagEl=homeFeature.querySelector(".news-feature-tag");
+    const sourceEl=homeFeature.querySelector(".news-feature-source");
+    const titleEl=homeFeature.querySelector(".news-title");
+    const metaTextEl=homeFeature.querySelector(".news-meta span");
+    const imageEl=homeFeature.querySelector(".news-feature-image");
+    const moreBtn=homeFeature.querySelector(".news-btn");
+    if(tagEl)tagEl.textContent=`精选 · ${leadMeta.label}`;
+    if(sourceEl)sourceEl.textContent=leadItem.source||"";
+    if(titleEl)titleEl.textContent=leadItem.title||"";
+    if(metaTextEl)metaTextEl.textContent=`${fHomeD(leadItem.ts)} · ${leadMeta.label}`;
+    if(imageEl){
+      imageEl.src=(leadItem.image&&leadItem.image.trim())||leadMeta.image;
+      imageEl.alt=`${leadMeta.label}新闻配图`;
+    }
+    if(moreBtn){
+      moreBtn.onclick=()=>{if(typeof switchView==="function")switchView("view-module-news");};
+    }
+    homeFeature.onclick=()=>{if(typeof switchView==="function")switchView("view-module-news");};
+    homeFeature.style.cursor="pointer";
+    homeList.innerHTML=sideItems.length?sideItems.map(item=>{
+      const meta=getHomeNewsThemeMeta(item.theme);
+      return `<div class="news-item" data-id="${item.id}"><p class="t">${esc(item.title)}</p><p class="m">${fHomeD(item.ts)} · ${meta.label}</p></div>`;
+    }).join(""):`<div class="news-item"><p class="t">暂无新闻</p><p class="m">请前往新闻资讯查看</p></div>`;
+    homeList.querySelectorAll(".news-item").forEach(itemEl=>{
+      itemEl.style.cursor="pointer";
+      itemEl.addEventListener("click",()=>{if(typeof switchView==="function")switchView("view-module-news");});
+    });
+  }
   function applyTheme(mode){
     if(!viewEl||!themeBtn) return;
     const isLight=mode==="light";
@@ -73,6 +138,41 @@
     const out=s.slice();
     for(const x of sorted){if(out.length>=40)break;if(!used.has(x.id)){out.push(x);used.add(x.id);}}
     return out;
+  }
+  function normalizeNewsItem(item){
+    const theme=item&&item.section_key ? String(item.section_key) : "Macro";
+    const publishedText=String((item&&item.published_at)||"").trim();
+    const parsedTs=Date.parse(publishedText.replace(" ","T"));
+    const ts=Number.isFinite(parsedTs)?parsedTs:Date.now();
+    const impactRaw=Number(item&&item.impact);
+    const impact=Number.isFinite(impactRaw)?impactRaw:50;
+    const ageHours=Math.max(0,(Date.now()-ts)/3600000);
+    const freshness=Math.max(0,100-Math.min(ageHours,240));
+    return{
+      id:String((item&&item.id)||`${theme}-${ts}`),
+      ts,
+      theme,
+      title:String((item&&item.title)||""),
+      source:String((item&&item.source)||""),
+      impact,
+      score:impact*.7+freshness*.3,
+      summary:"",
+      image:getHomeNewsThemeMeta(theme).image,
+    };
+  }
+  async function loadNewsItems(){
+    try{
+      const response=await fetch("/api/news/list?limit=200",{cache:"no-store"});
+      if(!response.ok)throw new Error(`HTTP ${response.status}`);
+      const payload=await response.json();
+      const items=Array.isArray(payload&&payload.items)?payload.items.map(normalizeNewsItem).filter(item=>item.title):[];
+      S.items=items;
+    }catch(error){
+      console.error("[module-news] failed to load SQLite news feed",error);
+      S.items=[];
+    }
+    render();
+    renderQuickNav();
   }
   function modal({title,subtitle,mode,list,det}){
     const w=document.createElement("div");w.className="modal-wrap";
@@ -121,6 +221,7 @@
     const filtered=S.items.filter(x=>!S.q||(x.title+" "+x.source+" "+x.summary).toLowerCase().includes(S.q.trim().toLowerCase()));
     const cEl=document.getElementById("resultCount");if(cEl)cEl.textContent=`${filtered.length} 条`;
     const H=hl(filtered),hlTop=H[0]||null,hlSide=H.slice(1,14);
+    updateHomeLatestNews(H);
     const sec=document.getElementById("mnSections");if(!sec)return;
     sec.innerHTML=MODS.map(m=>{
       const list=m.key==="HIGHLIGHT" ? H : filtered.filter(x=>x.theme===m.key).sort((a,b)=>b.score-a.score);
@@ -152,6 +253,7 @@
   });
   render();
   renderQuickNav();
+  loadNewsItems();
 })();
 
 /* ══════════════════════════════════════════

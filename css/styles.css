@@ -421,13 +421,13 @@
       background:#ece5df;
     }
     .news-feature-overlay{
-      position:absolute;
-      inset:0;
-      background:
-        linear-gradient(180deg, rgba(248,241,236,.84) 0%, rgba(248,241,236,.46) 34%, rgba(23,18,13,.08) 60%, rgba(17,14,10,.40) 100%),
-        radial-gradient(circle at 50% 14%, rgba(255,222,210,.32) 0%, rgba(255,255,255,0) 42%);
-      pointer-events:none;
-    }
+        position:absolute;
+        inset:0;
+        background:
+          linear-gradient(180deg, rgba(248,241,236,.78) 0%, rgba(248,241,236,.40) 34%, rgba(23,18,13,.05) 60%, rgba(17,14,10,.26) 100%),
+          radial-gradient(circle at 50% 14%, rgba(255,222,210,.28) 0%, rgba(255,255,255,0) 46%);
+        pointer-events:none;
+      }
     .news-feature-body::before{
       content:'';
       position:absolute;
@@ -471,15 +471,16 @@
       gap:10px;
     }
     .news-feature-source{
-      font-size:12px;
-      font-weight:800;
-      letter-spacing:1.8px;
+      font-size:11px;
+      font-weight:700;
+      letter-spacing:.45px;
+      line-height:1.2;
+      font-family:"Avenir Next","Segoe UI","Helvetica Neue",Arial,sans-serif;
       color:#b4873f;
-      text-transform:uppercase;
       margin-top:2px;
     }
     .tag{ display:inline-flex; align-items:center; gap:8px; padding:6px 10px; border-radius:999px; border:1px solid rgba(214,179,106,.35); background:rgba(214,178,106,.10); color:#9a7638; font-weight:700; font-size:11px; letter-spacing:.8px; text-transform:uppercase; }
-    .news-title{ margin:0; font-size:clamp(18px, 1.95vw, 24px); font-weight:800; color:#273043 !important; line-height:1.26; font-family: var(--font-display); max-width:88%; text-wrap:balance; }
+    .news-title{ margin:0; font-size:clamp(18px, 1.95vw, 24px); font-weight:800; color:#273043 !important; line-height:1.26; font-family:"Avenir Next","Segoe UI","Helvetica Neue","Noto Sans SC","PingFang SC","Microsoft YaHei UI",sans-serif; letter-spacing:-.015em; max-width:88%; text-wrap:balance; }
     .news-excerpt{ margin:0; color:#666666 !important; line-height:1.75; font-size:var(--fs-base); }
     .news-meta{ margin-top:6px; display:flex; align-items:center; justify-content:space-between; gap:12px; color:rgba(97,102,114,.95) !important; font-size:12px; padding-top:12px; border-top:1px solid rgba(39,48,67,.10); }
     .news-btn{ height:38px; padding:0 14px; border-radius:12px; border:1px solid rgba(214,178,106,.28); background:rgba(255,255,255,.22); color:#7d6438; font-weight:700; cursor:pointer; font-family: var(--font-display); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); }
